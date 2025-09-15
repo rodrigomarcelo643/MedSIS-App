@@ -1,39 +1,76 @@
 {
   "expo": {
-    "name": "IntegratedProject",
-    "slug": "IntegratedProject",
+    "name": "MSIS",
+    "slug": "MSIS",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/swu-head.png",
     "scheme": "integratedproject",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/swu-head.png",
+      "resizeMode": "contain",
+      "backgroundColor": "transparent",
+      "dark": {
+        "image": "./assets/images/swu-head.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#121212"
+      }
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "splash": {
+        "image": "./assets/images/swu-head.png",
+        "resizeMode": "contain",
+        "backgroundColor": "transparent",
+        "dark": {
+          "image": "./assets/images/swu-head.png",
+          "resizeMode": "contain",
+          "backgroundColor": "transparent"
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/swu-head.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "splash": {
+        "ldpi": "./assets/images/swu-head.png",
+        "mdpi": "./assets/images/swu-head.png",
+        "hdpi": "./assets/images/swu-head.png",
+        "xhdpi": "./assets/images/swu-head.png",
+        "xxhdpi": "./assets/images/swu-head.png",
+        "xxxhdpi": "./assets/images/swu-head.png",
+        "resizeMode": "contain",
+        "backgroundColor": "transparent",
+        "dark": {
+          "ldpi": "./assets/images/swu-head.png",
+          "mdpi": "./assets/images/swu-head.png",
+          "hdpi": "./assets/images/swu-head.png",
+          "xhdpi": "./assets/images/swu-head.png",
+          "xxhdpi": "./assets/images/swu-head.png",
+          "xxxhdpi": "./assets/images/swu-head.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#121212"
+        }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.CAMERA"
+      ],
+      "package": "com.marcelo12345.MSIS"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/swu-head.png"
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ]
+      "expo-splash-screen",
+      "expo-barcode-scanner"
     ],
     "experiments": {
       "typedRoutes": true
