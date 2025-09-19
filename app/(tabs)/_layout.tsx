@@ -175,15 +175,15 @@ export default function TabLayout() {
       <View className="flex-1" />
       <View className="flex-row items-center">
         <TouchableOpacity
-          onPress={() => router.push("/notifications/")}
-          className="mr-4 relative"
+          onPress={() => router.push("/notifications/index")}
+          className="mr-3 relative"
         >
           {isLoading ? (
             <Skeleton width={24} height={24} borderRadius={12} />
           ) : (
             <>
               <BellIcon size={22} color={Colors[colorScheme ?? "light"].text} />
-              <View className="absolute right-1 top-.5 w-2 h-2 animated-pulse rounded-full bg-red-500" />
+              <View className="absolute right-1 top-.5 w-2 h-2  rounded-full bg-red-500" />
             </>
           )}
         </TouchableOpacity>
