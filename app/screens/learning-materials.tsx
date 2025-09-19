@@ -1,24 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { ScrollView, View, RefreshControl, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Platform, Modal, Dimensions } from 'react-native';
-import axios from 'axios';
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from 'expo-router';
-import { 
-  FileText, 
-  Download, 
-  Clock,
-  ChevronLeft,
-  Filter,
-  ChevronDown,
-  ChevronUp,
-  BookOpen,
-  Search,
-  X,
-  Check
-} from 'lucide-react-native';
+import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
+import { useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
+import {
+  BookOpen,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  Clock,
+  Download,
+  FileText,
+  Filter,
+  Search,
+  X
+} from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Modal, Platform, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // Types based on your database schema
 interface LearningMaterial {
@@ -406,13 +405,13 @@ const LearningMaterialsScreen: React.FC = () => {
               return (
                 <View 
                   key={material.id} 
-                  className="bg-white rounded-xl shadow-sm p-4 mb-4 border-l-4 border-maroon-500"
+                  className="bg-white rounded-sm shadow-sm p-4 mb-4 border-l-4 border-[#be2e2e]"
                 >
                   <View className="flex-row justify-between items-center mb-3">
                     <View className="flex-row items-center">
                       <View className="flex-row items-center bg-maroon-100 rounded-full px-3 py-1">
                         <IconComponent size={14} color="#800000" />
-                        <Text className="ml-2 text-maroon-800 text-xs font-medium">
+                        <Text className="ml-2 text-maroon-800 text-sm font-medium">
                           {material.subject}
                         </Text>
                       </View>
@@ -438,8 +437,8 @@ const LearningMaterialsScreen: React.FC = () => {
                     </View>
                     
                     <TouchableOpacity 
-                      className={`flex-row items-center px-3 py-2 rounded-lg ${
-                        downloading === material.id ? 'bg-gray-400' : 'bg-maroon-600'
+                      className={`flex-row items-center px-3 rounded-lg ${
+                        downloading === material.id ? 'bg-gray-400' : 'bg-[#be2e2e]'
                       }`}
                       onPress={() => handleDownload(material)}
                       disabled={downloading === material.id}
@@ -449,7 +448,7 @@ const LearningMaterialsScreen: React.FC = () => {
                       ) : (
                         <>
                           <Download size={14} color="#ffffff" />
-                          <Text className="ml-1 text-white  px-5 py-2 shadow-lg rounded-[30px]  bg-[#800000] text-sm font-medium">Download</Text>
+                          <Text className="text-white  px-5 py-2  text-sm font-medium">Download</Text>
                         </>
                       )}
                     </TouchableOpacity>

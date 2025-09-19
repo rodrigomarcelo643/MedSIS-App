@@ -1,23 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { ScrollView, View, RefreshControl, Text, TouchableOpacity, Alert, ActivityIndicator, Modal } from 'react-native';
-import axios from 'axios';
 import { useAuth } from "@/contexts/AuthContext";
+import axios from 'axios';
 import { useRouter } from 'expo-router';
-import { 
-  Bell, 
-  Calendar, 
-  User, 
-  AlertTriangle, 
-  BookOpen, 
-  Heart, 
-  Megaphone,
-  Clock,
+import {
+  AlertTriangle,
+  Bell,
+  BookOpen,
+  Calendar,
+  Check,
   ChevronDown,
-  ChevronUp,
-  Filter,
   ChevronLeft,
-  Check
+  Clock,
+  Filter,
+  Heart,
+  Megaphone,
+  User
 } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Modal, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 // Types based on your database schema
 interface Announcement {
@@ -391,16 +390,11 @@ const AnnouncementsScreen: React.FC = () => {
               return (
                 <View 
                   key={announcement.id} 
-                  className={`bg-white rounded-xl shadow-sm p-4 mb-4 border-l-4 ${priorityBorderColor}`}
+                  className={`bg-white rounded-sm shadow-sm p-4 mb-4 border-l-4 ${priorityBorderColor}`}
                 >
                   <View className="flex-row justify-between items-center mb-3">
                     <View className="flex-row items-center">
-                      <View className="flex-row items-center bg-maroon-100 rounded-full px-3 py-1">
-                        <IconComponent size={14} color="#800000" />
-                        <Text className="ml-2 text-maroon-800 text-xs font-medium">
-                          {announcement.category.charAt(0).toUpperCase() + announcement.category.slice(1)}
-                        </Text>
-                      </View>
+                    
                     </View>
                     
                     <View className={`rounded-full px-3 py-1 ${priorityColor}`}>
