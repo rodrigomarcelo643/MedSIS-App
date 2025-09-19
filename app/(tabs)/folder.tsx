@@ -1108,24 +1108,19 @@ export default function FolderScreen() {
         onRequestClose={() => setViewingImage(null)}
       >
         <View className="flex-1 bg-black/90 items-center justify-center p-4">
-          <View className="w-full h-4/5">
+          <View className="w-full h-4/5 ">
             <Image
               source={{ uri: viewingImage }}
-              className="w-full h-full resize-contain"
+              className="w-full h-full "
             />
           </View>
           <TouchableOpacity
-            className="absolute top-10 right-6 bg-white/20 p-2 rounded-full"
+            className="absolute top-10 right-6 -top-1 bg-white/20 p-2 rounded-full"
             onPress={() => setViewingImage(null)}
           >
             <X size={24} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity
-            className="mt-6 bg-[#8C2323] px-6 py-3 rounded-lg"
-            onPress={() => setViewingImage(null)}
-          >
-            <Text className="text-white font-medium">Close</Text>
-          </TouchableOpacity>
+      
         </View>
       </Modal>
       <Toast />

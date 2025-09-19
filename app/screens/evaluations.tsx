@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  ActivityIndicator,
-  RefreshControl,
-  TouchableOpacity,
-  Alert,
-  Modal,
-  Image,
-  Animated,
-  Easing,
-} from 'react-native';
+import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
-import { useAuth } from "@/contexts/AuthContext";
-import { Svg, Circle } from 'react-native-svg';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  Animated,
+  Easing,
+  Image,
+  Modal,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { Circle, Svg } from 'react-native-svg';
 
 interface Evaluation {
   curriculum_course_id: number;

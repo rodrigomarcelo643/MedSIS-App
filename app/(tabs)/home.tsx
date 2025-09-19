@@ -76,12 +76,12 @@ const QuickLinkCard = ({ title, onPress, color, bgImage }) => {
 
 const WelcomeHeader = ({ user, onProfilePress }) => {
   return (
-    <View className="flex-row justify-between p-2 items-center mb-8">
+    <View className="flex-row justify-between p-2 items-center mb-4">
       <View className="flex-1">
-        <Text className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+        <Text className="text-md text-gray-500 dark:text-gray-400 mb-1">
           Welcome back,
         </Text>
-        <Text className="text-2xl font-bold text-red-700 dark:text-white">
+        <Text className="text-3xl font-bold text-red-700 dark:text-white">
           {user?.first_name} {user?.last_name}
         </Text>
       </View>
@@ -184,6 +184,7 @@ export default function Home() {
     return null;
   }
 
+  // Show the skeleton loader if loading 
   if (isLoading) {
     return (
       <ScrollView className={`flex-1 p-6 bg-white dark:bg-gray-900 ${isLargeWeb ? 'max-w-4xl mx-auto' : ''}`}>
@@ -230,14 +231,14 @@ export default function Home() {
   }
 
   return (
-    <ScrollView className={`flex-1 bg-gray-50 dark:bg-gray-900 ${isLargeWeb ? 'p-4 max-w-4xl mx-auto' : 'p-3'}`}>
+    <ScrollView className={`flex-1  bg-gray-50 dark:bg-gray-900 ${isLargeWeb ? 'p-4 max-w-4xl mx-auto' : 'p-3'}`}>
       {/* Welcome Header */}
       <WelcomeHeader 
         user={user} 
-        onProfilePress={handleProfilePress}
+        onProfilePress={handleProfilePress}      
       />
         {/* Section Title */}
-      <View className="mb-6">
+      <View className="mb-6 ml-2">
         <Text className="text-xl font-bold text-gray-800 dark:text-white">
           Quick Access
         </Text>
