@@ -11,7 +11,6 @@ import {
   View
 } from 'react-native';
 
-
 // Skeleton Loader Component
 const SkeletonLoader = ({ width, height, borderRadius = 4, style = {}, children }) => {
   return (
@@ -48,11 +47,11 @@ const QuickLinkCard = ({ title, onPress, color, bgImage }) => {
   return (
     <TouchableOpacity 
       onPress={onPress}
-      className="mb-0 -mt-8 rounded-2xl  overflow-hidden"
+      className="mb-0 -mt-2 rounded-2xl  overflow-hidden"
       activeOpacity={0.8}
       style={{ width: '48%', marginHorizontal: '1%'}}
     >
-      <View className="rounded-2xl overflow-hidden" style={{ height: 175 }}>
+      <View className="rounded-2xl overflow-hidden" style={{ height: 145  }}>
         {/* Background Image */}
         <Image 
           source={bgImage}
@@ -60,12 +59,11 @@ const QuickLinkCard = ({ title, onPress, color, bgImage }) => {
           resizeMode="cover"
         
         />
-
         {/* Content Overlay */}
       <View className="flex-1 p-6 justify-center  items-center">
         <View className="flex-row items-center justify-center">
           <View className="flex-1  items-center">
-            <Text className="text-lg font-semibold whitespace-nowrap text-white  text-center">
+            <Text className="text-md font-semibold whitespace-nowrap text-white  text-center">
               {title}
             </Text>       
           </View>
@@ -101,9 +99,9 @@ export default function Home() {
 
   // Different folder background images for each card
   const folderImages = [
-    require('../../assets/images/folder3.png'),
-    require('../../assets/images/folder3.png'),
-    require('../../assets/images/folder3.png'),
+    require('../../assets/images/folder5.png'),
+    require('../../assets/images/folder5.png'),
+    require('../../assets/images/folder5.png'),
     require('../../assets/images/folder.png'),
     require('../../assets/images/folder.png'),
   ];
@@ -114,7 +112,7 @@ export default function Home() {
       id: 1,
       title: 'Evaluations',
       description: 'View your tests, quizzes and assessments',
-      color: '#8C2323', // Maroon
+      color: '#8C2323', 
       count: 5,
       bgImage: folderImages[0],
       onPress: () => router.push('/screens/evaluations')
@@ -123,7 +121,7 @@ export default function Home() {
       id: 2,
       title: 'Announcements',
       description: 'Latest updates and important notices',
-      color: '#8C2323', // Maroon
+      color: '#8C2323', 
       count: 3,
       bgImage: folderImages[2],
       onPress: () => router.push('/screens/announcements')
@@ -132,11 +130,21 @@ export default function Home() {
       id: 3,
       title: 'Learning Materials',
       description: 'Access course materials and resources',
-      color: '#8C2323', // Maroon
+      color: '#8C2323', 
       count: 24,
       bgImage: folderImages[1],
       onPress: () => router.push('/screens/learning-materials')
     },
+       {
+      id: 4,
+      title: 'School Calendar',
+      description: 'University Calendar ',
+      color: '#8C2323', 
+      count: 24,
+      bgImage: folderImages[1],
+      onPress: () => router.push('/screens/school-calendar')
+    },
+
 
   ];
 

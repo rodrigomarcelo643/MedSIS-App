@@ -5,17 +5,16 @@ import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import * as Sharing from "expo-sharing";
 import {
+  AlertTriangle,
   Check,
   ChevronDown,
   Download,
   Eye,
   File,
-  Image as ImageIcon,
   Printer,
   Search,
-  X,
   Trash2,
-  AlertTriangle,
+  X
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 
@@ -25,12 +24,12 @@ import {
   Image,
   Modal,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  RefreshControl,
 } from "react-native";
 import Toast from "react-native-toast-message";
 
@@ -108,20 +107,7 @@ export default function FolderScreen() {
       }
     } catch (err) {
       console.error("Error fetching requirements:", err);
-
-      if (err.response) {
-        if (err.response.status === 500) {
-          setError("Server error. Please try again later.");
-        } else if (err.response.status === 404) {
-          setError("API endpoint not found.");
-        } else {
-          setError(`Server error: ${err.response.status}`);
-        }
-      } else if (err.request) {
-        setError("Network error. Please check your connection.");
-      } else {
-        setError("An unexpected error occurred.");
-      }
+          setError(err.data.message || "Failed to fetch requirements");
     } finally {
       setLoading(false);
       setRefreshing(false);

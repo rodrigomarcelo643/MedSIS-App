@@ -1,20 +1,18 @@
+import { useAuth } from '@/contexts/AuthContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { AlertTriangle, Bell, Check, Clock, ChevronLeft, X } from 'lucide-react-native';
-import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import axios from 'axios';
+import { AlertTriangle, Bell, Check, ChevronLeft, Clock, X } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Image,
+  Alert,
+  Modal,
   RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
-  View,
-  Alert,
-  Modal,
-  Pressable
+  View
 } from 'react-native';
-import axios from 'axios';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface Notifications {
   id: number,
