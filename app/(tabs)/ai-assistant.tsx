@@ -1,4 +1,3 @@
-// app/(tabs)/ai-assistant.tsx
 import { useAuth } from '@/contexts/AuthContext';
 import {
   BookOpen,
@@ -150,7 +149,7 @@ export default function AIAssistant() {
 
   const simulateTyping = (fullText: string, messageId: string) => {
     let currentIndex = 0;
-    const typingSpeed = 20;
+    const typingSpeed = .5;
     
     if (typingIntervalRef.current) {
       clearInterval(typingIntervalRef.current);
@@ -212,7 +211,7 @@ export default function AIAssistant() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+      // Json Response
       const data = await response.json();
       
       if (data.success) {
@@ -259,6 +258,8 @@ export default function AIAssistant() {
     setIsLoading(true);
 
     try {
+
+      // send and get response
       const response = await getAIResponse(inputText, currentContext);
       
       if (!response.text) return;
@@ -284,6 +285,7 @@ export default function AIAssistant() {
     }
   };
 
+  // Quick Link Response
   const handleQuickLink = async (action: string, context: string) => {
     if (isLoading) return;
     

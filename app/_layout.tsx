@@ -31,6 +31,7 @@ function MainLayout() {
 
   console.log("🔄 MainLayout render - user:", user, "loading:", loading);
 
+  // Loading session if user not yet loaded 
   if (loading) {
     console.log("⏳ Auth still loading, showing ActivityIndicator");
     return (
@@ -42,6 +43,8 @@ function MainLayout() {
   }
 
   return (
+
+    // Wrapped Theme Provider (For future purpose of light and dark mode implementations)
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         {!user ? (

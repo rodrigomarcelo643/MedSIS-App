@@ -16,7 +16,7 @@ interface Calendar{
 
 // Define the maroon color theme
 const MAROON_THEME = {
-  primary: '#800000',      // Dark maroon
+  primary: '#be2e2e',      // Dark maroon
   light: '#afff',          // Light maroon (as requested)
   accent: '#a52a2a',       // Another shade of maroon
   background: '#fff5f5',   // Very light maroon for backgrounds
@@ -336,7 +336,7 @@ export default function Calendar() {
               }}
               className="flex-row items-start justify-between"
             >
-              <Text className={`text-sm w-6 h-6 text-center rounded-full flex items-center justify-center ${isToday ? "bg-[#8C2323] text-white font-bold" : "text-gray-700"}`}>
+              <Text className={`text-sm w-6 h-6 text-center rounded-full flex items-center justify-center ${isToday ? "bg-[#be2e2e] text-white font-bold" : "text-gray-700"}`}>
                 {day}
               </Text>
             </TouchableOpacity>
@@ -750,7 +750,7 @@ export default function Calendar() {
         
         {/* Button to navigate to School Calendar */}
         <TouchableOpacity 
-          className="flex-row items-center justify-end mt-2 bg-[#8C2323] px-4 py-2 rounded-md self-end"
+          className="flex-row items-center justify-end mt-2 bg-[#be2e2e] px-4 py-2 rounded-md self-end"
           style={{backgroundColor: MAROON_THEME.primary}}
           onPress={() => router.push('/screens/school-calendar')}
         >
@@ -837,7 +837,7 @@ export default function Calendar() {
           
           <TouchableOpacity 
             onPress={goToToday}
-            className="px-3 py-1.5 rounded-md bg-[#8C2323] "
+            className="px-3 py-1.5 rounded-md bg-[#be2e2e] "
           >
             <Text className="text-white text-sm font-medium">Today</Text>
           </TouchableOpacity>

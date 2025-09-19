@@ -338,7 +338,6 @@ const SchoolCalendar: React.FC = () => {
       </View>
     );
   };
-
   const ErrorState = () => (
     <View className="flex-1 justify-center items-center p-5 bg-gray-100">
       <Ionicons
@@ -398,16 +397,12 @@ const SchoolCalendar: React.FC = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#800000"]}
-            tintColor={"#800000"}
+            colors={["#be2e2e"]}
+            tintColor={"#be2e2e"}
           />
         }
       >
         <View className="p-5">
-          <Text className="text-gray-600 mb-4">
-            Academic Calendar for {user?.first_name} {user?.last_name}
-          </Text>
-
           {filteredCalendars.length === 0 ? (
             <View className="bg-white p-6 rounded-lg shadow items-center">
               <Ionicons
@@ -426,7 +421,7 @@ const SchoolCalendar: React.FC = () => {
                 <Ionicons
                   name="refresh"
                   size={16}
-                  color="#800000"
+                  color="#be2e2e"
                   className="mr-1"
                 />
                 <Text className="text-maroon text-sm">Refresh</Text>
@@ -494,7 +489,7 @@ const SchoolCalendar: React.FC = () => {
                               }
                               className="p-2"
                             >
-                              <Eye size={20} color="#800000" />
+                              <Eye size={20} color="#be2e2e" />
                             </TouchableOpacity>
                           )}
 
@@ -506,9 +501,9 @@ const SchoolCalendar: React.FC = () => {
                             className="p-2"
                           >
                             {downloading === document.id ? (
-                              <ActivityIndicator size="small" color="#800000" />
+                              <ActivityIndicator size="small" color="#be2e2e" />
                             ) : (
-                              <Download size={20} color="#800000" />
+                              <Download size={20} color="#be2e2e" />
                             )}
                           </TouchableOpacity>
                         </View>
@@ -542,11 +537,10 @@ const SchoolCalendar: React.FC = () => {
               {selectedDocument?.file_name}
             </Text>
           </View>
-
           <View className="flex-1 justify-center items-center">
             {selectedDocument?.mime_type.includes("image") ? (
               <View className="flex-1 justify-center items-center">
-                <ImageIcon size={64} color="#800000" />
+                <ImageIcon size={64} color="#be2e2e" />
                 <Text className="text-white mt-4 text-center">
                   Image preview not available. Download to view.
                 </Text>

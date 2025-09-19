@@ -183,7 +183,7 @@ export default function TabLayout() {
           ) : (
             <>
               <BellIcon size={22} color={Colors[colorScheme ?? "light"].text} />
-              <View className="absolute right-1 top-.5 w-2 h-2  rounded-full bg-red-500" />
+              <View className="absolute right-[2px] top-[1px] w-2 h-2  rounded-full bg-red-500" />
             </>
           )}
         </TouchableOpacity>

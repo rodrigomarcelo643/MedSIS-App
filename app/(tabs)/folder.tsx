@@ -653,7 +653,7 @@ export default function FolderScreen() {
       <View className="flex-1 bg-white p-4 justify-center items-center">
         <Text className="text-red-500 mb-4 text-center">Error: {error}</Text>
         <TouchableOpacity
-          className="bg-[#8C2323] px-4 py-2 rounded-lg"
+          className="bg-[#be2e2e] px-4 py-2 rounded-lg"
           onPress={retryFetch}
         >
           <Text className="text-white">Try Again</Text>
@@ -670,8 +670,8 @@ export default function FolderScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#8C2323"]}
-            tintColor="#8C2323"
+            colors={["#be2e2e"]}
+            tintColor="#be2e2e"
             progressBackgroundColor="#ffffff"
             progressViewOffset={20}
           />
@@ -732,7 +732,7 @@ export default function FolderScreen() {
         <View className="flex-row items-center gap-3 justify-between mb-4">
           {/* Print Button */}
           <TouchableOpacity
-            className="bg-[#8C2323] px-5 py-2 rounded-lg flex-row items-center justify-center"
+            className="bg-[#be2e2e] px-5 py-2 rounded-lg flex-row items-center justify-center"
             onPress={handlePrint}
           >
             <Printer size={16} color="white" />
@@ -929,7 +929,7 @@ export default function FolderScreen() {
                   ))
                 ) : (
                   <View className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 items-center justify-center">
-                    <File size={24} color="#9CA3AF" />
+                    <File size={35} color="#9CA3AF" />
                     <Text className="text-gray-500 text-center mt-2 text-sm">
                       No files uploaded yet
                     </Text>
@@ -939,7 +939,7 @@ export default function FolderScreen() {
                 {req.uploadedFiles.length < req.file_count && (
                   <View className="items-end mt-2">
                     <TouchableOpacity
-                      className="bg-[#8C2323] border border-gray-300 rounded-lg shadow-md py-2 px-4 flex-row items-center justify-center w-32"
+                      className="bg-[#be2e2e] border border-gray-300 rounded-lg shadow-md py-2 px-4 flex-row items-center justify-center w-32"
                       onPress={() => openFileTypeModal(req.id)}
                       disabled={uploading}
                     >
@@ -1064,7 +1064,7 @@ export default function FolderScreen() {
       <Modal visible={uploading} transparent={true} animationType="fade">
         <View className="flex-1 bg-black/50 justify-center items-center p-4">
           <View className="bg-white rounded-lg p-6 w-full max-w-md items-center">
-            <ActivityIndicator size="large" color="#8C2323" />
+            <ActivityIndicator size="large" color="#be2e2e" />
             <Text className="text-gray-800 text-lg font-medium mt-4">
               Uploading File
             </Text>
@@ -1073,7 +1073,7 @@ export default function FolderScreen() {
             </Text>
             <View className="w-full bg-gray-200 rounded-full h-2.5 mt-4">
               <View
-                className="bg-[#8C2323] h-2.5 rounded-full"
+                className="bg-[#be2e2e] h-2.5 rounded-full"
                 style={{ width: `${uploadProgress}%` }}
               />
             </View>
@@ -1089,7 +1089,7 @@ export default function FolderScreen() {
       >
         <View className="flex-1 bg-black/50 justify-center items-center p-4">
           <View className="bg-white rounded-lg p-6 w-full max-w-md items-center">
-            <ActivityIndicator size="large" color="#8C2323" />
+            <ActivityIndicator size="large" color="#be2e2e" />
             <Text className="text-gray-800 text-lg font-medium mt-4">
               Downloading File
             </Text>
