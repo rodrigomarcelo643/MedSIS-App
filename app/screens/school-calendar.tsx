@@ -374,7 +374,7 @@ const SchoolCalendar: React.FC = () => {
       <View className="flex-1 justify-center items-center p-5 bg-gray-100">
         <Text className="text-gray-600 mb-4">No calendar data available</Text>
         <TouchableOpacity
-          onPress={fetchCalendarData}
+         onPress={() => fetchCalendarData()}
           className="bg-maroon px-4 py-2 rounded"
         >
           <Text className="text-white">Retry</Text>

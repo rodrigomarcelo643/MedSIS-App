@@ -1,9 +1,18 @@
-import { Text, View, TouchableOpacity, ScrollView, Modal, Pressable, Dimensions, TextInput, ActivityIndicator, RefreshControl } from "react-native";
-import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, Search, ChevronDown, School } from "lucide-react-native";
-import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
 import { useRouter } from "expo-router";
+import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import { Dimensions, Modal, Pressable, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+
+interface Calendar{ 
+  id: string;
+  title: string;
+  yearLevel: string;
+  
+
+}
+
 
 // Define the maroon color theme
 const MAROON_THEME = {
