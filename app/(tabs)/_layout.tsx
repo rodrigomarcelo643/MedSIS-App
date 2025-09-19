@@ -175,7 +175,7 @@ export default function TabLayout() {
       <View className="flex-1" />
       <View className="flex-row items-center">
         <TouchableOpacity
-          onPress={() => router.push("/notifications/index")}
+          onPress={() => router.push("/notifications")}
           className="mr-3 relative"
         >
           {isLoading ? (
