@@ -1,4 +1,4 @@
-# MSIS - Mobile Student Information System 📱
+# MedSIS App 
 
 A React Native mobile application built with Expo for managing student information and academic resources.
 
@@ -112,3 +112,7 @@ MedSIS App/
 - 📊 Grade and evaluation tracking
 - 📚 Learning materials access
 - 🔔 Push notifications
+
+
+# MSIS - Medical Student Information System 📱
+# Click the Link for the website version  https://msis.eduisync.io/
