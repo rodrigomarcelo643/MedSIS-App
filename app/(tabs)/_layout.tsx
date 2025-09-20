@@ -6,10 +6,10 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { Tabs, useRouter, useSegments } from "expo-router";
 import {
   Bell as BellIcon,
-  Calendar,
   Folder as FolderIcon,
   Home as HomeIcon,
-  User as UserIcon,
+  ClipboardList,
+  User as UserIcon
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
@@ -23,10 +23,13 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import Reanimated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
-interface Layout{
-
-}
+interface Layout {}
 
 const Skeleton = ({ width, height, borderRadius = 4, style = {} }) => {
   return (
@@ -56,8 +59,8 @@ export default function TabLayout() {
   const router = useRouter();
   const segments = useSegments(); // gives the active route segments
   const colorScheme = useColorScheme();
-  const tintColor = "#8C2323";
-  const { width, height } = useWindowDimensions();
+  const tintColor = "#be2e2e";
+  const { width } = useWindowDimensions();
   const [isLoading, setIsLoading] = useState(true);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const { user } = useAuth(); // Only get user from auth context
@@ -97,16 +100,15 @@ export default function TabLayout() {
 
   const renderYearStatusBadge = () => {
     if (!user) return null;
-    
-    // Safely handle year_level_id which might be number, string, or undefined
+
     const yearLevel = user.year_level_id ? String(user.year_level_id) : "";
     const status = user.status || "";
     const displayText = `${yearLevel} ${status}`.trim();
-    
-    // Check if it's "Year 4 Graduating" - handle cases where year_level_id might be 4 or "4"
-    const isGraduating = (yearLevel === "4" || yearLevel === "4th") && 
-                         status.toLowerCase().includes("graduating");
-    
+
+    const isGraduating =
+      (yearLevel === "4" || yearLevel === "4th") &&
+      status.toLowerCase().includes("graduating");
+
     if (isGraduating) {
       return (
         <View className="flex-row items-center mt-1 px-2 py-1 rounded-[20px] bg-blue-100">
@@ -114,20 +116,15 @@ export default function TabLayout() {
         </View>
       );
     }
-    
-    // Regular status display
+
     return (
       <View
         className={`flex-row items-center mt-1 px-2 py-1 rounded-[20px] ${
-          status.toLowerCase() === "regular"
-            ? "bg-green-100"
-            : "bg-red-100"
+          status.toLowerCase() === "regular" ? "bg-green-100" : "bg-red-100"
         }`}
       >
         <Text className="text-xs font-medium mr-1">Year</Text>
-        <Text className="text-xs font-medium">
-          {displayText || "N/A"}
-        </Text>
+        <Text className="text-xs font-medium">{displayText || "N/A"}</Text>
       </View>
     );
   };
@@ -143,7 +140,6 @@ export default function TabLayout() {
               source={require("../../assets/images/swu-head.png")}
               className="w-9 h-9 mr-2"
             />
-            {/* MedSIS beside the logo */}
             <Text className="text-xl mt-2 font-extrabold tracking-wide">
               <Text
                 style={{
@@ -188,11 +184,9 @@ export default function TabLayout() {
           )}
         </TouchableOpacity>
       </View>
-      {/* User info section */} 
       {user && (
         <View className="flex-row items-center ">
           <View className="items-end mr-2">
-            {/* Nationality */}
             <View className="flex-row items-center">
               {user.nationality && (
                 <Image
@@ -208,14 +202,25 @@ export default function TabLayout() {
                 {user.nationality || "N/A"}
               </Text>
             </View>
-
-            {/* Year + Status */}
             {renderYearStatusBadge()}
           </View>
         </View>
       )}
     </View>
   );
+
+  // === Animated Underline & Highlight ===
+  const underlineX = useSharedValue(0);
+  const highlightX = useSharedValue(0);
+  const tabWidth = width / 5;
+
+  const underlineStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: underlineX.value }],
+  }));
+
+  const highlightStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: highlightX.value }],
+  }));
 
   return (
     <View className="flex-1">
@@ -232,18 +237,30 @@ export default function TabLayout() {
           screenOptions={{
             headerShown: false,
             tabBarStyle: {
-              height: 60,
-              paddingBottom: 5,
+              height: 65,
+              paddingBottom: 8,
+              position: "relative",
             },
             tabBarButton: HapticTab,
             tabBarBackground: TabBarBackground,
             tabBarLabelStyle: {
               fontSize: 12,
-              marginBottom: 5,
+              marginBottom: 0,
             },
             tabBarActiveTintColor: tintColor,
             tabBarInactiveTintColor:
               Colors[colorScheme ?? "light"].tabIconDefault,
+          }}
+          screenListeners={{
+            state: (e) => {
+              const index = e.data.state.index;
+              underlineX.value = withTiming(index * tabWidth, {
+                duration: 350,
+              });
+              highlightX.value = withTiming(index * tabWidth, {
+                duration: 350,
+              });
+            },
           }}
         >
           <Tabs.Screen
@@ -279,21 +296,23 @@ export default function TabLayout() {
                   <Skeleton width={62} height={62} borderRadius={31} />
                 ) : (
                   <TouchableOpacity
-                    className="w-15 h-15 p-3 rounded-full justify-center items-center mt-[-20px] border shadow"
+                    className="w-[70px] h-[70px] rounded-full justify-center items-center mt-[-25px]"
                     style={{
-                      backgroundColor: "#fff",
-                      borderColor: "#e5e7eb",
+                      backgroundColor: focused ? "#be2e2e" : "#fff",
+                      borderWidth: 2,
+                      borderColor: focused ? "#be2e2e" : "#e5e7eb",
                       shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.2,
-                      shadowRadius: 3,
-                      elevation: 5,
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 5,
+                      elevation: 6,
                     }}
                     onPress={handleAIPress}
                   >
                     <Image
                       source={require("../../assets/images/chatbot-app.png")}
                       className="w-10 h-10"
+                      style={{ tintColor: focused ? "#fff" : undefined }}
                     />
                   </TouchableOpacity>
                 ),
@@ -306,14 +325,14 @@ export default function TabLayout() {
             }}
           />
           <Tabs.Screen
-            name="calendar"
+            name="evaluations"
             options={{
-              title: "Calendar",
+              title: "Evaluations",
               tabBarIcon: ({ color }) =>
                 isLoading ? (
                   <Skeleton width={26} height={26} borderRadius={13} />
                 ) : (
-                  <Calendar size={iconSize} color={color} />
+                  <ClipboardList size={iconSize} color={color} />
                 ),
             }}
           />
@@ -330,6 +349,39 @@ export default function TabLayout() {
             }}
           />
         </Tabs>
+
+        {/* Highlight background behind active tab */}
+        <Reanimated.View
+          style={[
+            {
+              position: "absolute",
+              bottom: 10,
+              left: 0,
+              width: tabWidth,
+              height: 50,
+              borderRadius: 10,
+              backgroundColor: "rgba(140, 35, 35, 0.08)", // subtle tint
+            },
+            highlightStyle,
+          ]}
+        />
+
+        {/* Underline (closer to text) */}
+        <Reanimated.View
+          style={[
+            {
+              position: "absolute",
+              bottom: 2,
+              left: 0,
+              width: tabWidth * 0.5,
+              height: 3,
+              marginLeft: tabWidth * 0.25,
+              backgroundColor: tintColor,
+              borderRadius: 3,
+            },
+            underlineStyle,
+          ]}
+        />
       </View>
     </View>
   );

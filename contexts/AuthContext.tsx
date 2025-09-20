@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import Toast from "react-native-toast-message";
 
 interface User {
   id: string;
@@ -11,15 +12,20 @@ interface User {
   program?: string;
   nationality?: string;
   year_level_id?: string;
+  year_level_name?: string;
   account_status?: string;
   enrollment_status: string;
   evaluation_status: string;
   academic_year: string;
   avatar?: string;
+  avatar_url?: string; // New field for avatar URL
+  avatar_data?: string; // New field for base64 avatar data
   contact_number?: string;
   joinDate?: string;
   policy_accepted?: number;
   password?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface AuthContextType {
@@ -30,6 +36,7 @@ interface AuthContextType {
   clearUser: () => void;
   updateUserPolicyStatus: (accepted: boolean) => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -40,6 +47,7 @@ const AuthContext = createContext<AuthContextType>({
   clearUser: () => {},
   updateUserPolicyStatus: async () => {},
   updateUser: async () => {},
+  refreshUser: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -52,7 +60,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const storedUser = await AsyncStorage.getItem("user");
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          console.log("User loaded from storage:", parsedUser.id);
         }
       } catch (err) {
         console.error("Error loading user:", err);
@@ -64,42 +74,53 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (userData: User) => {
-  // Prevent login if account is deactivated
-  if (userData.account_status === "Deactivated") {
-    console.warn("Login failed: Account is deactivated.");
-    Toast.show({
-      type: "error",
-      text1: "Login Failed",
-      text2: "Your account has been deactivated",
-      position: "top",
-    });
-    return;
-  }
+    // Prevent login if account is deactivated
+    if (userData.account_status === "Deactivated" || userData.account_status === "deactivated") {
+      console.warn("Login failed: Account is deactivated.");
+      Toast.show({
+        type: "error",
+        text1: "Login Failed",
+        text2: "Your account has been deactivated",
+        position: "top",
+      });
+      return;
+    }
 
-  // Add default values for optional fields
-  const userWithDefaults = {
-    ...userData,
-    avatar: userData.avatar || "https://i.pravatar.cc/150",
-    contact_number: userData.contact_number || "No phone added",
-    joinDate: userData.joinDate || "Member since 2023",
-    policy_accepted: userData.policy_accepted || 0,
+    // Add default values for optional fields with proper avatar handling
+    const userWithDefaults = {
+      ...userData,
+      avatar: userData.avatar || userData.avatar_url || "https://i.pravatar.cc/150", // Use avatar_url if available
+      avatar_url: userData.avatar_url || userData.avatar || null, // Ensure both fields are populated
+      avatar_data: userData.avatar_data || null,
+      contact_number: userData.contact_number || "Not provided",
+      joinDate: userData.joinDate || "Member since 2023",
+      policy_accepted: userData.policy_accepted || 0,
+      year_level_name: userData.year_level_name || (userData.year_level_id === 4 ? "Graduating" : `Year ${userData.year_level_id}`),
+    };
+
+    console.log("Storing user in context:", { 
+      id: userWithDefaults.id,
+      student_id: userWithDefaults.student_id,
+      has_avatar_data: !!userWithDefaults.avatar_data,
+      has_avatar_url: !!userWithDefaults.avatar_url
+    });
+    
+    setUser(userWithDefaults);
+    await AsyncStorage.setItem("user", JSON.stringify(userWithDefaults));
+    
+    console.log("User stored successfully in AsyncStorage");
   };
 
-  console.log("Storing user in context:", userWithDefaults);
-  
-  setUser(userWithDefaults);
-  await AsyncStorage.setItem("user", JSON.stringify(userWithDefaults));
-  
-  console.log("User stored successfully in AsyncStorage");
-};
-
   const logout = async () => {
+    console.log("Logging out user");
     setUser(null);
     await AsyncStorage.removeItem("user");
+    console.log("User removed from storage");
   };
 
   // Clear user without removing from storage (for edge cases)
   const clearUser = () => {
+    console.log("Clearing user from context (soft logout)");
     setUser(null);
   };
 
@@ -114,6 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     setUser(updatedUser);
     await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
+    console.log("Policy status updated:", accepted);
   };
 
   // Update any user properties
@@ -127,6 +149,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     setUser(updatedUser);
     await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
+    console.log("User updated with:", Object.keys(updates));
+  };
+
+  // Refresh user data from API (useful for getting latest avatar_data)
+  const refreshUser = async () => {
+    if (!user) return;
+    
+    try {
+      const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://msis.eduisync.io/api";
+      const response = await fetch(`${API_URL}/get_user_data.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: user.id }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.user) {
+        await login(data.user); // Update with latest data including avatar_data
+        console.log("User data refreshed from API");
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error refreshing user data:", error);
+      return false;
+    }
   };
 
   return (
@@ -137,11 +188,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       loading, 
       clearUser,
       updateUserPolicyStatus,
-      updateUser
+      updateUser,
+      refreshUser
     }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  
+  return context;
+};

@@ -6,7 +6,11 @@ import {
   ClipboardCheck,
   Send,
   Upload,
-  X
+  X,
+  Sparkles,
+  Stethoscope,
+  GraduationCap,
+  Microscope
 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -46,7 +50,7 @@ export default function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: `Hi ${user?.first_name}! I'm your MedSIS AI Assistant. How can I help you with evaluations, calendar, learning materials, or requirements today?`,
+      text: `Hi ${user?.first_name}! I'm your MedSIS AI Assistant. How can I help you with your medical studies, evaluations, calendar, learning materials, or requirements today?`,
       sender: 'bot',
       timestamp: new Date()
     }
@@ -55,9 +59,11 @@ export default function AIAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [currentContext, setCurrentContext] = useState('general');
+  const [inputHeight, setInputHeight] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const inputScrollRef = useRef<ScrollView>(null);
 
   // Initialize services
   useEffect(() => {
@@ -71,10 +77,55 @@ export default function AIAssistant() {
     };
   }, []);
 
-  // Quick links data
+  // Quick links data with AI Mentor for medical students
   const quickLinks: QuickLink[] = [
     {
       id: '1',
+      title: 'AI Mentor',
+      description: 'Personalized medical study guidance',
+      icon: Sparkles,
+      color: '#7C3AED',
+      action: 'mentor',
+      context: 'mentor'
+    },
+    {
+      id: '2',
+      title: 'Clinical Rotations',
+      description: 'Info about clinical placements',
+      icon: Stethoscope,
+      color: '#2563EB',
+      action: 'rotations',
+      context: 'rotations'
+    },
+    {
+      id: '3',
+      title: 'Study Resources',
+      description: 'Medical textbooks & references',
+      icon: BookOpen,
+      color: '#059669',
+      action: 'resources',
+      context: 'resources'
+    },
+    {
+      id: '4',
+      title: 'Exam Preparation',
+      description: 'Study plans & practice questions',
+      icon: GraduationCap,
+      color: '#DC2626',
+      action: 'exams',
+      context: 'exams'
+    },
+    {
+      id: '5',
+      title: 'Research Guidance',
+      description: 'Thesis & research assistance',
+      icon: Microscope,
+      color: '#7C3AED',
+      action: 'research',
+      context: 'research'
+    },
+    {
+      id: '6',
       title: 'Evaluation Process',
       description: 'View your evaluation steps',
       icon: ClipboardCheck,
@@ -83,25 +134,16 @@ export default function AIAssistant() {
       context: 'evaluation'
     },
     {
-      id: '2',
+      id: '7',
       title: 'School Calendar',
       description: 'Check important events and dates',
       icon: Calendar,
-      color: '#2563EB',
+      color: '#D97706',
       action: 'calendar',
       context: 'calendar'
     },
     {
-      id: '3',
-      title: 'Learning Materials',
-      description: 'Access your study documents',
-      icon: BookOpen,
-      color: '#059669',
-      action: 'materials',
-      context: 'documents'
-    },
-    {
-      id: '4',
+      id: '8',
       title: 'Requirements Upload',
       description: 'See required documents to upload',
       icon: Upload,
@@ -118,6 +160,13 @@ export default function AIAssistant() {
       }, 100);
     }
   }, [messages]);
+
+  // Scroll input when it reaches maximum height
+  useEffect(() => {
+    if (inputHeight > 100 && inputScrollRef.current) {
+      inputScrollRef.current.scrollToEnd({ animated: true });
+    }
+  }, [inputHeight, inputText]);
 
   const stopGeneration = () => {
     if (typingIntervalRef.current) {
@@ -149,7 +198,7 @@ export default function AIAssistant() {
 
   const simulateTyping = (fullText: string, messageId: string) => {
     let currentIndex = 0;
-    const typingSpeed = .5;
+    const typingSpeed = .5; // Faster typing speed
     
     if (typingIntervalRef.current) {
       clearInterval(typingIntervalRef.current);
@@ -255,6 +304,7 @@ export default function AIAssistant() {
 
     setMessages(prev => [...prev, userMessage]);
     setInputText('');
+    setInputHeight(0);
     setIsLoading(true);
 
     try {
@@ -292,9 +342,13 @@ export default function AIAssistant() {
     setCurrentContext(context);
     
     const messagesMap: Record<string, string> = {
+      mentor: "I need guidance on my medical studies and career path. Can you provide personalized mentorship?",
+      rotations: "Tell me about clinical rotations scheduling and requirements.",
+      resources: "What medical textbooks and study resources do you recommend?",
+      exams: "Help me create a study plan for my upcoming medical exams.",
+      research: "I need assistance with my medical research project or thesis.",
       evaluation: "Show me my evaluation status and what requirements I need to complete.",
       calendar: "What events are on my calendar?",
-      materials: "What learning materials are available to me?",
       requirements: "What requirements do I need to complete?"
     };
 
@@ -341,10 +395,16 @@ export default function AIAssistant() {
     return `${user.first_name?.charAt(0) || ''}${user.last_name?.charAt(0) || ''}`.toUpperCase() || "U";
   };
 
+  const handleInputContentSizeChange = (event: any) => {
+    const height = event.nativeEvent.contentSize.height;
+    // Limit height to 120 pixels max
+    setInputHeight(Math.min(height, 120));
+  };
+
   const renderMessage = ({ item }: { item: Message }) => (
-    <View className={`flex-row mb-4 ${item.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-      <View className={`flex-row max-w-[80%] ${item.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-        <View className={`w-8 h-8 rounded-full items-center justify-center mx-2 ${
+    <View className={`flex-row mb-5 ${item.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+      <View className={`flex-row max-w-[85%] ${item.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+        <View className={`w-10 h-10 rounded-full items-center justify-center mx-2 ${
           item.sender === 'user' ? 'bg-[#8C2323]' : 'bg-[#2563EB]'
         }`}>
           {item.sender === 'user' ? (
@@ -376,7 +436,7 @@ export default function AIAssistant() {
   const renderQuickLinks = () => (
     <View className="mb-6">
       <Text className="text-lg font-semibold text-gray-800 mb-4 px-4">
-        Quick Access
+        Quick Access for Medical Students
       </Text>
       <ScrollView 
         horizontal 
@@ -422,7 +482,7 @@ export default function AIAssistant() {
               <Text className="text-[#16a34a] font-extrabold">SIS</Text>
               {' '}AI Assistant
             </Text>
-            <Text className="text-sm text-gray-500">Here to help anytime</Text>
+            <Text className="text-sm text-gray-500">Medical Student Support</Text>
           </View>
         </View>
       </View>
@@ -441,8 +501,8 @@ export default function AIAssistant() {
           ListHeaderComponent={renderQuickLinks()}
           ListFooterComponent={isLoading ? (
             <View className="flex-row justify-start mb-4">
-              <View className="flex-row max-w-[80%]">
-                <View className="w-8 h-8 rounded-full bg-[#2563EB] items-center justify-center mx-2">
+              <View className="flex-row max-w-[85%]">
+                <View className="w-10 h-10 rounded-full bg-[#2563EB] items-center justify-center mx-2">
                   <Text className="text-white font-bold text-xs">AI</Text>
                 </View>
                 <View className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 flex-row items-center">
@@ -464,38 +524,54 @@ export default function AIAssistant() {
 
         {/* Input Area */}
         <View className="bg-white border-t border-gray-200 px-4 py-3">
-          <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2">
-            <TextInput
-              className="flex-1 text-gray-800 text-base py-2"
-              placeholder="Type a message..."
-              placeholderTextColor="#9CA3AF"
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-              maxLength={500}
-              editable={!isLoading}
-            />
-            {isLoading ? (
-              <TouchableOpacity
-                onPress={stopGeneration}
-                className="p-2 rounded-full ml-2 bg-gray-500"
-              >
-                <X size={20} color="#fff" />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={handleSend}
-                disabled={!inputText.trim()}
-                className={`p-2 rounded-full ml-2 ${
-                  !inputText.trim() ? 'bg-gray-300' : 'bg-[#8C2323]'
-                }`}
-              >
-                <Send size={20} color="#fff" />
-              </TouchableOpacity>
-            )}
+          <View className="bg-gray-100 rounded-[15px] overflow-hidden">
+            <ScrollView 
+              ref={inputScrollRef}
+              nestedScrollEnabled={true}
+              style={{ maxHeight: 120 }}
+            >
+              <TextInput
+                className="text-gray-800 text-base px-4 py-2"
+                placeholder="Ask MedSIS AI..."
+                placeholderTextColor="#9CA3AF"
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                maxLength={500}
+                editable={!isLoading}
+                onContentSizeChange={handleInputContentSizeChange}
+                style={{ 
+                  height: Math.max(40, inputHeight),
+                  minHeight: 40
+                }}
+              />
+            </ScrollView>
+            <View className="flex-row justify-end items-center px-2 py-1">
+              <Text className="text-xs text-gray-500 mr-2">
+                {inputText.length}/500
+              </Text>
+              {isLoading ? (
+                <TouchableOpacity
+                  onPress={stopGeneration}
+                  className="p-2 rounded-full bg-gray-500"
+                >
+                  <X size={20} color="#fff" />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={handleSend}
+                  disabled={!inputText.trim()}
+                  className={`p-2 rounded-full ${
+                    !inputText.trim() ? 'bg-gray-300' : 'bg-[#8C2323]'
+                  }`}
+                >
+                  <Send size={20} color="#fff" />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
           <Text className="text-xs text-gray-500 text-center mt-2">
-            Quick access to evaluation, calendar, learning materials, and requirements
+           
           </Text>
         </View>
       </KeyboardAvoidingView>

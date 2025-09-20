@@ -5,12 +5,37 @@ import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, Searc
 import { useEffect, useState } from "react";
 import { Dimensions, Modal, Pressable, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-interface Calendar{ 
+interface CalendarEvent {
   id: string;
   title: string;
-  yearLevel: string;
-  
+  start: Date;
+  event: string; 
+  end: Date;
+  color: string;
+  description: string;
+  course: string;
+  location: string;
+  year_level: string;
+}
 
+interface ApiEvent {
+  id: string;
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  color?: string;
+  description?: string;
+  year_level?: string;
+}
+
+type ViewMode = "month" | "week" | "day";
+type NavigationDirection = "prev" | "next";
+
+interface WeekRange {
+  start: Date;
+  end: Date;
+  dates: Date[];
 }
 
 
@@ -24,15 +49,15 @@ const MAROON_THEME = {
 
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState("month");
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [showEventModal, setShowEventModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
-  const [showViewDropdown, setShowViewDropdown] = useState(false);
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("month");
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [showEventModal, setShowEventModal] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [showSearch, setShowSearch] = useState<boolean>(false);
+  const [showViewDropdown, setShowViewDropdown] = useState<boolean>(false);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   
   const { user } = useAuth();
@@ -80,7 +105,7 @@ export default function Calendar() {
       }
       
       // Transform API response to match our expected event format
-      const transformedEvents = eventsData.map(event => ({
+      const transformedEvents: CalendarEvent[] = eventsData.map((event: ApiEvent) => ({
         id: event.id,
         title: event.title,
         start: new Date(`${event.date}T${event.start_time}`),
@@ -89,7 +114,7 @@ export default function Calendar() {
         description: event.description || "No description available",
         course: event.year_level || "GENERAL",
         location: "Location not specified",
-        year_level: event.year_level
+        year_level: event.year_level || "All Years"
       }));
       
       setEvents(transformedEvents);
@@ -113,7 +138,7 @@ export default function Calendar() {
   };
 
   // Helper function to assign colors based on year level (fallback)
-  const getEventColor = (yearLevel) => {
+  const getEventColor = (yearLevel?: string): string => {
     const colorMap = {
       'Year 1': MAROON_THEME.primary,      // maroon
       'Year 2': MAROON_THEME.light,        // light maroon
@@ -142,7 +167,7 @@ export default function Calendar() {
       )
     : events;
 
-  const navigate = (direction) => {
+  const navigate = (direction: NavigationDirection): void => {
     const newDate = new Date(currentDate);
     
     if (viewMode === "month") {
@@ -168,11 +193,11 @@ export default function Calendar() {
     setCurrentDate(newDate);
   };
 
-  const goToToday = () => {
+  const goToToday = (): void => {
     setCurrentDate(new Date());
   };
 
-  const getWeekRange = (date) => {
+  const getWeekRange = (date: Date): WeekRange => {
     const day = date.getDay();
     const startOfWeek = new Date(date);
     startOfWeek.setDate(date.getDate() - day);
@@ -190,7 +215,7 @@ export default function Calendar() {
     };
   };
 
-  const formatDateRange = (start, end) => {
+  const formatDateRange = (start: Date, end: Date): string => {
     if (start.getMonth() === end.getMonth()) {
       return `${months[start.getMonth()]} ${start.getDate()} - ${end.getDate()}`;
     } else {
@@ -201,7 +226,7 @@ export default function Calendar() {
   // Skeleton loader components
   const SkeletonLoader = () => {
     return (
-      <View className="flex-1 bg-white p-4">
+      <View className="flex-1 bg-white p-4 mt-6">
         {/* Header skeleton */}
         <View className="h-12 bg-gray-200 rounded-md mb-4 animate-pulse"></View>
         
@@ -647,18 +672,9 @@ export default function Calendar() {
       >
         <View className="flex-1 justify-end bg-black/50">
           <View className="bg-white rounded-t-3xl p-6 max-h-3/4">
-            <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-2xl font-bold text-gray-900">{selectedEvent.title}</Text>
-              <Pressable 
-                onPress={() => setShowEventModal(false)}
-                className="p-2 rounded-full bg-gray-100"
-              >
-                <X size={20} color="gray" />
-              </Pressable>
-            </View>
-            
+                
             <View className="space-y-5">
-              <View className="flex-row items-center">
+              <View className="flex-row mb-3  items-center ">
                 <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{backgroundColor: `${selectedEvent.color}20`}}>
                   <CalendarIcon size={20} color={selectedEvent.color} />
                 </View>
@@ -668,7 +684,7 @@ export default function Calendar() {
                 </View>
               </View>
               
-              <View className="flex-row items-center">
+              <View className="flex-row mb-3 items-center">
                 <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{backgroundColor: `${selectedEvent.color}20`}}>
                   <Text className="text-xs font-bold" style={{color: selectedEvent.color}}>⏰</Text>
                 </View>
@@ -678,26 +694,6 @@ export default function Calendar() {
                     {selectedEvent.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
                     {selectedEvent.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Text>
-                </View>
-              </View>
-              
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{backgroundColor: `${selectedEvent.color}20`}}>
-                  <Text className="text-xs font-bold" style={{color: selectedEvent.color}}>📚</Text>
-                </View>
-                <View>
-                  <Text className="text-gray-500 text-sm">Year Level</Text>
-                  <Text className="text-gray-900">{selectedEvent.year_level || "All Years"}</Text>
-                </View>
-              </View>
-              
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{backgroundColor: `${selectedEvent.color}20`}}>
-                  <Text className="text-xs font-bold" style={{color: selectedEvent.color}}>📍</Text>
-                </View>
-                <View>
-                  <Text className="text-gray-500 text-sm">Location</Text>
-                  <Text className="text-gray-900">{selectedEvent.location}</Text>
                 </View>
               </View>
               
@@ -732,7 +728,7 @@ export default function Calendar() {
         <Text className="text-lg text-red-500 mb-4 text-center">{error}</Text>
         <TouchableOpacity 
           className="px-4 py-2 bg-blue-500 rounded-md"
-          onPress={() => window.location.reload()}
+          onPress={() => fetchEvents()}
         >
           <Text className="text-white">Try Again</Text>
         </TouchableOpacity>
@@ -745,17 +741,16 @@ export default function Calendar() {
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="p-5 bg-white shadow-sm">
-        <Text className="text-2xl font-bold text-gray-900">Events Calendar</Text>
-        
-        {/* Button to navigate to School Calendar */}
-        <TouchableOpacity 
-          className="flex-row items-center justify-end mt-2 bg-[#be2e2e] px-4 py-2 rounded-md self-end"
-          style={{backgroundColor: MAROON_THEME.primary}}
-          onPress={() => router.push('/screens/school-calendar')}
-        >
-          <Text className="text-white text-sm font-medium">View School Calendar</Text>
-        </TouchableOpacity>
+      <View className="p-3 pt-25 mt-10  bg-white shadow-sm">
+        <View className="flex-row items-center">
+          <TouchableOpacity 
+            onPress={() => router.back()}
+            className="mr-3 p-1"
+          >
+            <ChevronLeft size={24} color="#374151" />
+          </TouchableOpacity>
+          <Text className="text-2xl font-bold text-gray-900">Events Calendar</Text>
+        </View>
       </View>
       
       {/* Search Bar */}

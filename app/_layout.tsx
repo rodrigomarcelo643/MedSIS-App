@@ -81,8 +81,8 @@ function MainLayout() {
               options={{ title: "Learning Materials", headerShown: true }}
             />
             <Stack.Screen
-              name="screens/evaluations"
-              options={{ title: "Evaluations", headerShown: true }}
+              name="screens/calendar"
+              options={{ title: "Calendar", headerShown: true }}
             />
             <Stack.Screen
               name="screens/school-calendar"

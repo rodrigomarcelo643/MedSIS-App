@@ -105,29 +105,19 @@ export default function Home() {
     require('../../assets/images/folder.png'),
     require('../../assets/images/folder.png'),
   ];
-
   // Quick links data - Only Evaluations, Learning Materials, and Announcements
   const quickLinks = [
     {
       id: 1,
-      title: 'Evaluations',
-      description: 'View your tests, quizzes and assessments',
+      title: 'Announcements',
+        description: 'Latest updates and important notices',
       color: '#8C2323', 
       count: 5,
       bgImage: folderImages[0],
-      onPress: () => router.push('/screens/evaluations')
+      onPress: () => router.push('/screens/announcements')
     },
         {
       id: 2,
-      title: 'Announcements',
-      description: 'Latest updates and important notices',
-      color: '#8C2323', 
-      count: 3,
-      bgImage: folderImages[2],
-      onPress: () => router.push('/screens/announcements')
-    },
-    {
-      id: 3,
       title: 'Learning Materials',
       description: 'Access course materials and resources',
       color: '#8C2323', 
@@ -135,6 +125,16 @@ export default function Home() {
       bgImage: folderImages[1],
       onPress: () => router.push('/screens/learning-materials')
     },
+        {
+      id: 3,
+      title: 'Events Calendar',
+      description: 'Latest updates and important notices',
+      color: '#8C2323', 
+      count: 3,
+      bgImage: folderImages[2],
+      onPress: () => router.push('/screens/calendar')
+    },
+
        {
       id: 4,
       title: 'School Calendar',

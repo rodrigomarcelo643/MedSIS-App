@@ -2,8 +2,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
-import { AlertTriangle, Bell, Check, ChevronLeft, Clock, X } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import { AlertTriangle, Bell, Check, ChevronLeft, Clock, ArrowUp, X } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
   Alert,
   Modal,
@@ -11,7 +11,9 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Animated,
+  ActivityIndicator
 } from 'react-native';
 
 interface Notifications {
@@ -61,24 +63,59 @@ const NotificationsScreen = () => {
   const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [notifications, setNotifications] = useState<Notifications[]>([]);
+  const [displayedNotifications, setDisplayedNotifications] = useState<Notifications[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [clearAllModalVisible, setClearAllModalVisible] = useState(false);
   const [markAllReadModalVisible, setMarkAllReadModalVisible] = useState(false);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [displayLimit, setDisplayLimit] = useState(10);
+  const [hasMoreNotifications, setHasMoreNotifications] = useState(true);
+  
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Handle scroll events to show/hide back to top button
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    {
+      listener: (event) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        // Show back to top button when scrolled down 300 pixels
+        setShowBackToTop(offsetY > 300);
+      },
+      useNativeDriver: false
+    }
+  );
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: true });
+    }
+  };
 
   // Fetch notifications from API
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (loadMore = false) => {
     try {
       if (!user) {
         setLoading(false);
         return;
       }
       
+      if (loadMore) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+      
       console.log('Fetching notifications for user ID:', user.id);
       
       const response = await axios.get(`${API_BASE_URL}/get_student_notifications.php`, {
         params: {
-          user_id: user.id
+          user_id: user.id,
+          limit: loadMore ? displayLimit + 10 : displayLimit
         },
         timeout: 10000 // 10 second timeout
       });
@@ -98,6 +135,19 @@ const NotificationsScreen = () => {
         }));
         
         setNotifications(transformedNotifications);
+        
+        // Check if we have more notifications to load
+        if (loadMore) {
+          setDisplayLimit(prevLimit => prevLimit + 10);
+        } else {
+          setDisplayLimit(10);
+        }
+        
+        // Update displayed notifications based on current limit
+        setDisplayedNotifications(transformedNotifications.slice(0, displayLimit));
+        
+        // Check if there are more notifications to load
+        setHasMoreNotifications(transformedNotifications.length > displayLimit);
       } else {
         Alert.alert('Error', response.data.message || 'Failed to fetch notifications');
       }
@@ -118,6 +168,14 @@ const NotificationsScreen = () => {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingMore(false);
+    }
+  };
+
+  // Load more notifications when reaching the end
+  const loadMoreNotifications = () => {
+    if (hasMoreNotifications && !loadingMore) {
+      fetchNotifications(true);
     }
   };
 
@@ -202,6 +260,12 @@ const NotificationsScreen = () => {
     }
   }, [user]);
 
+  // Update displayed notifications when displayLimit changes
+  useEffect(() => {
+    setDisplayedNotifications(notifications.slice(0, displayLimit));
+    setHasMoreNotifications(notifications.length > displayLimit);
+  }, [displayLimit, notifications]);
+
   // Refresh when screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -220,9 +284,12 @@ const NotificationsScreen = () => {
   const markAsRead = async (id: number) => {
     try {
       // Update locally first for immediate feedback
-      setNotifications(notifications.map(n => 
+      const updatedNotifications = notifications.map(n => 
         n.id === id ? { ...n, read: true } : n
-      ));
+      );
+      
+      setNotifications(updatedNotifications);
+      setDisplayedNotifications(updatedNotifications.slice(0, displayLimit));
       
       // Send update to server
       await axios.post(`${API_BASE_URL}/update_notification_status.php`, {
@@ -232,9 +299,12 @@ const NotificationsScreen = () => {
     } catch (error: any) {
       console.error('Error marking notification as read:', error);
       // Revert local change if server update fails
-      setNotifications(notifications.map(n => 
+      const originalNotifications = notifications.map(n => 
         n.id === id ? { ...n, read: false } : n
-      ));
+      );
+      
+      setNotifications(originalNotifications);
+      setDisplayedNotifications(originalNotifications.slice(0, displayLimit));
     }
   };
 
@@ -245,6 +315,7 @@ const NotificationsScreen = () => {
           user_id: user.id
         });
         setNotifications([]);
+        setDisplayedNotifications([]);
         setClearAllModalVisible(false);
         Alert.alert('Success', 'All notifications cleared');
       }
@@ -258,7 +329,10 @@ const NotificationsScreen = () => {
   const handleMarkAllAsRead = async () => {
     try {
       // Update locally first
-      setNotifications(notifications.map(n => ({ ...n, read: true })));
+      const updatedNotifications = notifications.map(n => ({ ...n, read: true }));
+      
+      setNotifications(updatedNotifications);
+      setDisplayedNotifications(updatedNotifications.slice(0, displayLimit));
       
       // Send update to server
       if (user) {
@@ -270,7 +344,6 @@ const NotificationsScreen = () => {
     } catch (error: any) {
       console.error('Error marking all notifications as read:', error);
       // Revert local changes if server update fails
-      setNotifications(notifications.map(n => ({ ...n, read: n.read })));
       setMarkAllReadModalVisible(false);
       Alert.alert('Error', error.response?.data?.message || 'Failed to mark all as read');
     }
@@ -399,6 +472,31 @@ const NotificationsScreen = () => {
     </View>
   );
 
+  // Load More Component
+  const LoadMoreComponent = () => {
+    if (!hasMoreNotifications) {
+      return (
+        <View className="py-4 items-center">
+          <Text className="text-gray-500 dark:text-gray-400 text-sm">
+            No more notifications
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View className="py-4 items-center">
+        {loadingMore ? (
+          <ActivityIndicator size="small" color="#8C2323" />
+        ) : (
+          <TouchableOpacity onPress={loadMoreNotifications}>
+            <Text className="text-[#8C2323] font-medium">Load more</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
   if (loading) {
     return (
       <View className="flex-1 bg-white dark:bg-gray-900">
@@ -431,17 +529,17 @@ const NotificationsScreen = () => {
               Notifications
             </Text>
           </View>
-          {notifications.length > 0 && (
+          {displayedNotifications.length > 0 && (
             <TouchableOpacity onPress={() => setMarkAllReadModalVisible(true)}>
               <Text className="text-[#8C2323] font-medium">Mark all as read</Text>
             </TouchableOpacity>
           )}
         </View>
         
-        {notifications.length > 0 && (
+        {displayedNotifications.length > 0 && (
           <View className="flex-row justify-between items-center">
             <Text className="text-gray-600 dark:text-gray-300">
-              {notifications.filter(n => !n.read).length} unread
+              {displayedNotifications.filter(n => !n.read).length} unread
             </Text>
             <TouchableOpacity onPress={() => setClearAllModalVisible(true)}>
               <Text className="text-gray-500 dark:text-gray-400">Clear all</Text>
@@ -452,7 +550,10 @@ const NotificationsScreen = () => {
    
       {/* Notifications List */}
       <ScrollView
+        ref={scrollViewRef}
         className="mt-1"
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -461,8 +562,12 @@ const NotificationsScreen = () => {
             tintColor={colorScheme === 'dark' ? '#8C2323' : '#8C2323'}
           />
         }
+        onMomentumScrollEnd={() => {
+          // Load more when reaching the end of the list
+          loadMoreNotifications();
+        }}
       >
-        {notifications.length === 0 ? (
+        {displayedNotifications.length === 0 ? (
           <View className="flex-1 items-center justify-center py-20 px-5">
             <View className="items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
               <Bell size={32} color="#9CA3AF" />
@@ -475,40 +580,58 @@ const NotificationsScreen = () => {
             </Text>
           </View>
         ) : (
-          notifications.map((notification) => (
-            <TouchableOpacity
-              key={notification.id}
-              className={`flex-row items-start p-5 border-b border-gray-100 dark:border-gray-800 ${
-                !notification.read ? 'bg-blue-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'
-              }`}
-              onPress={() => markAsRead(notification.id)}
-            >
-              <View className={`p-3 rounded-full mr-4 ${getIconBackground(notification.type)}`}>
-                {getIcon(notification.type)}
-              </View>
-              
-              <View className="flex-1">
-                <View className="flex-row items-start justify-between">
-                  <Text className="font-semibold dark:text-white text-base flex-1">
-                    {notification.title}
-                  </Text>
-                  {!notification.read && (
-                    <View className="w-2 h-2 rounded-full bg-[#8C2323] ml-2 mt-1" />
-                  )}
+          <>
+            {displayedNotifications.map((notification) => (
+              <TouchableOpacity
+                key={notification.id}
+                className={`flex-row items-start p-5 border-b border-gray-100 dark:border-gray-800 ${
+                  !notification.read ? 'bg-blue-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'
+                }`}
+                onPress={() => markAsRead(notification.id)}
+              >
+                <View className={`p-3 rounded-full mr-4 ${getIconBackground(notification.type)}`}>
+                  {getIcon(notification.type)}
                 </View>
                 
-                <Text className="mt-1 text-gray-600 dark:text-gray-300 text-sm">
-                  {notification.message}
-                </Text>
-                
-                <Text className="mt-2 text-xs text-gray-400 dark:text-gray-500">
-                  {notification.time}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))
+                <View className="flex-1">
+                  <View className="flex-row items-start justify-between">
+                    <Text className="font-semibold dark:text-white text-base flex-1">
+                      {notification.title}
+                    </Text>
+                    {!notification.read && (
+                      <View className="w-2 h-2 rounded-full bg-[#8C2323] ml-2 mt-1" />
+                    )}
+                  </View>
+                  
+                  <Text className="mt-1 text-gray-600 dark:text-gray-300 text-sm">
+                    {notification.message}
+                  </Text>
+                  
+                  <Text className="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                    {notification.time}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+            
+            <LoadMoreComponent />
+          </>
         )}
       </ScrollView>
+
+      {/* Back to Top Button */}
+  {/* Back to Top Button */}
+    {showBackToTop && (
+      <View className="absolute bottom-0 left-0 right-0 items-center py-4 bg-transparent">
+        <TouchableOpacity
+          onPress={scrollToTop}
+          className="w-12 h-12 rounded-full bg-[#8C2323] items-center justify-center shadow-lg"
+          style={{ elevation: 5 }}
+        >
+          <ArrowUp size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+    )}
 
       {/* Confirmation Modals */}
       <ConfirmationModal
