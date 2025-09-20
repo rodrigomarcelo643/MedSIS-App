@@ -1,50 +1,114 @@
-# Welcome to your Expo app 👋
+# MSIS - Mobile Student Information System 📱
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native mobile application built with Expo for managing student information and academic resources.
 
-## Get started
+## Project Structure
+
+```
+MedSIS App/
+├── app/                          # Main application screens (file-based routing)
+│   ├── (tabs)/                   # Tab-based navigation screens
+│   │   ├── _layout.tsx          # Tab layout configuration
+│   │   ├── ai-assistant.tsx     # AI chatbot interface
+│   │   ├── calendar.tsx         # Academic calendar view
+│   │   ├── folder.tsx           # File management system
+│   │   ├── home.tsx             # Dashboard/home screen
+│   │   └── profile.tsx          # User profile management
+│   ├── auth/                    # Authentication screens
+│   │   ├── login.tsx            # Login interface
+│   │   ├── otp-verification.tsx # OTP verification
+│   │   └── policy-acceptance.tsx # Terms acceptance
+│   ├── notifications/           # Notification screens
+│   │   └── index.tsx            # Notifications list
+│   ├── screens/                 # Additional app screens
+│   │   ├── announcements.tsx    # School announcements
+│   │   ├── evaluations.tsx      # Student evaluations
+│   │   ├── learning-materials.tsx # Educational resources
+│   │   └── school-calendar.tsx   # Calendar details
+│   ├── _layout.tsx              # Root layout configuration
+│   └── +not-found.tsx           # 404 error page
+├── assets/                      # Static assets
+│   ├── fonts/                   # Custom fonts
+│   ├── images/                  # App images and icons
+│   └── styles/                  # Global styles
+├── components/                  # Reusable UI components
+│   ├── ui/                      # Platform-specific UI components
+│   └── *.tsx                    # Common components (Avatar, Card, etc.)
+├── constants/                   # App constants
+│   └── Colors.ts                # Color definitions
+├── contexts/                    # React contexts
+│   └── AuthContext.tsx          # Authentication state management
+├── hooks/                       # Custom React hooks
+├── lib/                         # Utility functions
+├── android/                     # Android-specific configuration
+└── Configuration files          # Package.json, tsconfig, etc.
+```
+
+## Key Files Explained
+
+### Core Application
+- **app/_layout.tsx** - Root layout with navigation setup and authentication checks
+- **app/(tabs)/_layout.tsx** - Tab navigation configuration with custom styling
+- **contexts/AuthContext.tsx** - Global authentication state and user session management
+
+### Main Features
+- **app/(tabs)/home.tsx** - Dashboard with announcements, quick actions, and academic overview
+- **app/(tabs)/profile.tsx** - User profile with editable personal and academic information
+- **app/(tabs)/ai-assistant.tsx** - AI-powered chatbot for student assistance
+- **app/(tabs)/folder.tsx** - Document management and file organization system
+- **app/(tabs)/calendar.tsx** - Academic calendar with events and schedules
+
+### Authentication Flow
+- **app/auth/login.tsx** - Student login with ID and password
+- **app/auth/otp-verification.tsx** - Two-factor authentication via OTP
+- **app/auth/policy-acceptance.tsx** - Terms and conditions acceptance
+
+### Additional Screens
+- **app/screens/announcements.tsx** - Detailed view of school announcements
+- **app/screens/evaluations.tsx** - Student grade and evaluation management
+- **app/screens/learning-materials.tsx** - Educational resources and materials
+- **app/notifications/index.tsx** - Push notification management
+
+### UI Components
+- **components/ui/** - Platform-specific components for iOS/Android
+- **components/Avatar.tsx** - User profile picture component
+- **components/Card.tsx** - Reusable card layout component
+- **components/SplashScreen.tsx** - App loading screen
+
+## Get Started
 
 1. Install dependencies
-
    ```bash
    npm install
    ```
 
-2. Start the app
-
+2. Start the development server
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. Run on device/emulator
+   - Press `a` for Android emulator
+   - Press `i` for iOS simulator
+   - Scan QR code with Expo Go app
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Technology Stack
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **Framework**: Expo (React Native)
+- **Language**: TypeScript
+- **Styling**: NativeWind (Tailwind CSS for React Native)
+- **Navigation**: Expo Router (file-based routing)
+- **State Management**: React Context API
+- **UI Components**: Custom components with Lucide React icons
 
-## Get a fresh project
+## Features
 
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- 🔐 Secure authentication with OTP verification
+- 👤 Comprehensive user profile management
+- 📅 School and Events calendar integration
+- 🤖 AI-powered student assistant
+- 📁 Document and file management
+- 📢 Real-time announcements
+- 📊 Grade and evaluation tracking
+- 📚 Learning materials access
+- 🔔 Push notifications
