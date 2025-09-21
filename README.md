@@ -5,43 +5,65 @@ A React Native mobile application built with Expo for managing student informati
 ## Project Structure
 
 ```
-MedSIS App/
+IntegratedProject/
 ├── app/                          # Main application screens (file-based routing)
 │   ├── (tabs)/                   # Tab-based navigation screens
 │   │   ├── _layout.tsx          # Tab layout configuration
 │   │   ├── ai-assistant.tsx     # AI chatbot interface
-│   │   ├── calendar.tsx         # Academic calendar view
+│   │   ├── evaluations.tsx      # Student evaluations
 │   │   ├── folder.tsx           # File management system
 │   │   ├── home.tsx             # Dashboard/home screen
 │   │   └── profile.tsx          # User profile management
 │   ├── auth/                    # Authentication screens
 │   │   ├── login.tsx            # Login interface
-│   │   ├── otp-verification.tsx # OTP verification
-│   │   └── policy-acceptance.tsx # Terms acceptance
+│   │   ├── otp-verification.tsx # Enhanced OTP verification with password requirements
+│   │   └── policy-acceptance.tsx # Comprehensive privacy policy acceptance
 │   ├── notifications/           # Notification screens
-│   │   └── index.tsx            # Notifications list
+│   │   └── index.tsx            # Notifications with Philippine time and feedback handling
 │   ├── screens/                 # Additional app screens
-│   │   ├── announcements.tsx    # School announcements
-│   │   ├── evaluations.tsx      # Student evaluations
+│   │   ├── announcements.tsx    # School announcements with lazy loading
+│   │   ├── calendar.tsx         # Enhanced calendar with Philippine timezone
+│   │   ├── change-password.tsx  # Password change functionality
 │   │   ├── learning-materials.tsx # Educational resources
 │   │   └── school-calendar.tsx   # Calendar details
 │   ├── _layout.tsx              # Root layout configuration
 │   └── +not-found.tsx           # 404 error page
 ├── assets/                      # Static assets
-│   ├── fonts/                   # Custom fonts
-│   ├── images/                  # App images and icons
-│   └── styles/                  # Global styles
+│   ├── fonts/                   # Custom fonts (Montserrat, SpaceMono)
+│   ├── images/                  # App images and icons (including swu-head.png)
+│   ├── sounds/                  # Notification sounds
+│   └── styles/                  # Global styles and layouts
 ├── components/                  # Reusable UI components
 │   ├── ui/                      # Platform-specific UI components
-│   └── *.tsx                    # Common components (Avatar, Card, etc.)
+│   │   ├── IconSymbol.tsx       # Icon symbol components
+│   │   ├── RotatingDots.tsx     # Loading animations
+│   │   └── TabBarBackground.tsx # Tab bar styling
+│   ├── Avatar.tsx               # User profile picture component
+│   ├── Card.tsx                 # Reusable card layout component
+│   ├── Input.tsx                # Form input components
+│   ├── SplashScreen.tsx         # App loading screen
+│   └── *.tsx                    # Other common components
 ├── constants/                   # App constants
-│   └── Colors.ts                # Color definitions
+│   └── Colors.ts                # Color definitions and themes
 ├── contexts/                    # React contexts
-│   └── AuthContext.tsx          # Authentication state management
+│   └── AuthContext.tsx          # Authentication state with live data fetching
 ├── hooks/                       # Custom React hooks
+│   ├── useColorScheme.ts        # Theme management
+│   └── useThemeColor.ts         # Color theme utilities
 ├── lib/                         # Utility functions
+│   └── utils.ts                 # Common utility functions
+├── services/                    # External services
+│   └── notificationService.ts   # Push notification handling
+├── scripts/                     # Build and utility scripts
+│   └── reset-project.js         # Project reset utilities
 ├── android/                     # Android-specific configuration
-└── Configuration files          # Package.json, tsconfig, etc.
+│   ├── app/                     # Android app configuration
+│   └── gradle/                  # Gradle build system
+├── .expo/                       # Expo development files
+├── Configuration files          # Package.json, tsconfig, etc.
+├── global.css                   # Global CSS styles
+├── tailwind.config.js           # Tailwind CSS configuration
+└── nativewind-env.d.ts          # NativeWind type definitions
 ```
 
 ## Key Files Explained
@@ -60,14 +82,15 @@ MedSIS App/
 
 ### Authentication Flow
 - **app/auth/login.tsx** - Student login with ID and password
-- **app/auth/otp-verification.tsx** - Two-factor authentication via OTP
-- **app/auth/policy-acceptance.tsx** - Terms and conditions acceptance
+- **app/auth/otp-verification.tsx** - Two-factor authentication via OTP with enhanced password requirements
+- **app/auth/policy-acceptance.tsx** - Comprehensive privacy policy and terms acceptance
 
 ### Additional Screens
-- **app/screens/announcements.tsx** - Detailed view of school announcements
+- **app/screens/announcements.tsx** - Detailed view of school announcements with lazy loading and back-to-top navigation
 - **app/screens/evaluations.tsx** - Student grade and evaluation management
 - **app/screens/learning-materials.tsx** - Educational resources and materials
-- **app/notifications/index.tsx** - Push notification management
+- **app/screens/calendar.tsx** - Enhanced calendar with accurate time alignment for Philippine timezone
+- **app/notifications/index.tsx** - Push notification management with Philippine time conversion and feedback handling
 
 ### UI Components
 - **components/ui/** - Platform-specific components for iOS/Android
@@ -98,21 +121,49 @@ MedSIS App/
 - **Language**: TypeScript
 - **Styling**: NativeWind (Tailwind CSS for React Native)
 - **Navigation**: Expo Router (file-based routing)
-- **State Management**: React Context API
+- **State Management**: React Context API with live data fetching
 - **UI Components**: Custom components with Lucide React icons
+- **Image Handling**: Expo ImagePicker with fallback system
+- **Time Management**: Philippine timezone integration
+- **Data Loading**: Lazy loading and pagination support
 
 ## Features
 
-- 🔐 Secure authentication with OTP verification
-- 👤 Comprehensive user profile management
-- 📅 School and Events calendar integration
+### Authentication & Security
+- 🔐 Enhanced OTP verification with strengthened password requirements
+- 🔑 Password validation including uppercase, numbers, special characters, and length requirements
+- 📋 Comprehensive privacy policy acceptance with detailed terms
+- 🛡️ Secure session management with live data fetching
+
+### User Experience
+- 👤 Advanced profile management with live avatar fetching and SWU head fallback
+- 📅 Accurate calendar system with Philippine timezone support
+- 🔔 Smart notifications with feedback separation and time conversion
+- 📁 Enhanced document management with image viewer improvements
+- 📢 Announcements with lazy loading (10 items per batch) and back-to-top navigation
+
+### Core Functionality
 - 🤖 AI-powered student assistant
-- 📁 Document and file management
-- 📢 Real-time announcements
 - 📊 Grade and evaluation tracking
 - 📚 Learning materials access
-- 🔔 Push notifications
+- ⏰ Real-time calendar events with proper time alignment
+- 🖼️ Image viewing without loading delays
+- 🔄 Pull-to-refresh functionality across screens
 
+
+## Recent Updates
+
+### Version 2.0 Features
+- ✅ Enhanced password security with number requirements
+- ✅ Comprehensive privacy policy with detailed sections
+- ✅ Philippine timezone integration for accurate time display
+- ✅ Improved avatar system with SWU head fallback
+- ✅ Lazy loading for announcements (10 items per batch)
+- ✅ Back-to-top navigation for better UX
+- ✅ Live data fetching with pull-to-refresh
+- ✅ Enhanced notification system with feedback separation
+- ✅ Improved calendar time alignment
+- ✅ Optimized image loading and viewing
 
 # MSIS - Medical Student Information System 📱
-# Click the Link for the website version  https://msis.eduisync.io/
+# Click the Link for the website version: https://msis.eduisync.io/
