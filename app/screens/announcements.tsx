@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useRouter } from 'expo-router';
 import {
   AlertTriangle,
+  ArrowUp,
   Bell,
   BookOpen,
   Calendar,
@@ -15,7 +16,7 @@ import {
   Megaphone,
   User
 } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Modal, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 // Types based on your database schema
@@ -124,6 +125,8 @@ const AnnouncementsScreen: React.FC = () => {
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [scrollViewRef, setScrollViewRef] = useState<ScrollView | null>(null);
   const itemsPerPage = 10;
 
   const availablePriorities = [
@@ -217,12 +220,33 @@ const AnnouncementsScreen: React.FC = () => {
 
   // Load more items for lazy loading
   const loadMore = () => {
-    if (displayedAnnouncements.length < filteredAnnouncements.length) {
+    if (displayedAnnouncements.length < filteredAnnouncements.length && !loadingMore) {
       setLoadingMore(true);
       setTimeout(() => {
         setPage(page + 1);
         setLoadingMore(false);
       }, 500);
+    }
+  };
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    if (scrollViewRef) {
+      scrollViewRef.scrollTo({ y: 0, animated: true });
+    }
+  };
+
+  // Handle scroll events
+  const handleScroll = (event: any) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    
+    // Show back to top button when scrolled down 300 pixels
+    setShowBackToTop(contentOffset.y > 300);
+    
+    // Check if we've scrolled to the bottom for lazy loading
+    const paddingToBottom = 20;
+    if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
+      loadMore();
     }
   };
 
@@ -352,20 +376,14 @@ const AnnouncementsScreen: React.FC = () => {
       <PriorityDropdown />
 
       <ScrollView
+        ref={scrollViewRef}
+        ref={setScrollViewRef}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         className="flex-1"
-        onScroll={({nativeEvent}) => {
-          // Check if we've scrolled to the bottom
-          const {layoutMeasurement, contentOffset, contentSize} = nativeEvent;
-          const paddingToBottom = 20;
-          if (layoutMeasurement.height + contentOffset.y >= 
-              contentSize.height - paddingToBottom) {
-            loadMore();
-          }
-        }}
-        scrollEventThrottle={400}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {displayedAnnouncements.length === 0 ? (
           <View className="flex-1 justify-center items-center py-20 px-5">
@@ -445,6 +463,31 @@ const AnnouncementsScreen: React.FC = () => {
           </View>
         )}
       </ScrollView>
+
+      {/* Back to Top Button */}
+      {showBackToTop && (
+        <View className="absolute bottom-4 right-4">
+          <TouchableOpacity
+            onPress={scrollToTop}
+            className="w-12 h-12 rounded-full bg-[#800000] items-center justify-center shadow-lg"
+            style={{ elevation: 5 }}
+          >
+            <ArrowUp size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      )}
+      {/* Back to Top Button */}
+      {showBackToTop && (
+        <View className="absolute bottom-4 right-4">
+          <TouchableOpacity
+            onPress={scrollToTop}
+            className="w-12 h-12 rounded-full bg-[#800000] items-center justify-center shadow-lg"
+            style={{ elevation: 5 }}
+          >
+            <ArrowUp size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };

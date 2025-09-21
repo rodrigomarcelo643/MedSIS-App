@@ -18,8 +18,8 @@ interface User {
   evaluation_status: string;
   academic_year: string;
   avatar?: string;
-  avatar_url?: string; // New field for avatar URL
-  avatar_data?: string; // New field for base64 avatar data
+  avatar_url?: string;
+  avatar_data?: string; 
   contact_number?: string;
   joinDate?: string;
   policy_accepted?: number;
@@ -37,6 +37,7 @@ interface AuthContextType {
   updateUserPolicyStatus: (accepted: boolean) => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -48,6 +49,7 @@ const AuthContext = createContext<AuthContextType>({
   updateUserPolicyStatus: async () => {},
   updateUser: async () => {},
   refreshUser: async () => {},
+  changePassword: async () => false,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -86,11 +88,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    // Add default values for optional fields with proper avatar handling
+    // default values for optional fields with proper avatar handling
     const userWithDefaults = {
       ...userData,
-      avatar: userData.avatar || userData.avatar_url || "https://i.pravatar.cc/150", // Use avatar_url if available
-      avatar_url: userData.avatar_url || userData.avatar || null, // Ensure both fields are populated
+      avatar: userData.avatar || userData.avatar_url || "https://msis.eduisync.io/swu-head.png",
+      avatar_url: userData.avatar_url || userData.avatar || null, 
       avatar_data: userData.avatar_data || null,
       contact_number: userData.contact_number || "Not provided",
       joinDate: userData.joinDate || "Member since 2023",
@@ -180,6 +182,55 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Change user password
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://msis.eduisync.io/api";
+      const response = await fetch(`${API_URL}/change_password.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          current_password: currentPassword,
+          new_password: newPassword
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Password updated successfully',
+          position: 'top',
+        });
+        return true;
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: data.message || 'Failed to change password',
+          position: 'top',
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Network error. Please try again.',
+        position: 'top',
+      });
+      return false;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -189,7 +240,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       clearUser,
       updateUserPolicyStatus,
       updateUser,
-      refreshUser
+      refreshUser,
+      changePassword
     }}>
       {children}
     </AuthContext.Provider>

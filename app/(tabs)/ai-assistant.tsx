@@ -23,6 +23,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Image,
   View
 } from "react-native";
 
@@ -473,14 +474,17 @@ export default function AIAssistant() {
       {/* Header */}
       <View className="bg-white px-6 py-4 border-b border-gray-200">
         <View className="flex-row items-center">
-          <View className="w-10 h-10 bg-[#8C2323] rounded-full items-center justify-center mr-3">
-            <Brain size={20} color="#fff" />
+          <View className="w-10 h-10 rounded-full items-center justify-center mr-3">
+            <Image
+                source={require("../../assets/images/chatbot-app.png")}
+                className="w-10 h-10"
+            />
           </View>
           <View>
             <Text className="text-xl font-bold text-gray-900">
               <Text className="text-[#af1616] font-extrabold">Med</Text>
               <Text className="text-[#16a34a] font-extrabold">SIS</Text>
-              {' '}AI Assistant
+              {' '}AI
             </Text>
             <Text className="text-sm text-gray-500">Medical Student Support</Text>
           </View>

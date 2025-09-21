@@ -8,6 +8,7 @@
     "scheme": "integratedproject",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "projectId": "e4d72644-5c96-430c-babd-6066a17d7337",
     "splash": {
       "image": "./assets/images/swu-head.png",
       "resizeMode": "contain",
@@ -29,7 +30,8 @@
           "resizeMode": "contain",
           "backgroundColor": "transparent"
         }
-      }
+      },
+      "usesApplePushNotifications": true
     },
     "android": {
       "adaptiveIcon": {
@@ -57,10 +59,11 @@
         }
       },
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.CAMERA"
+        "RECEIVE_BOOT_COMPLETED",
+        "WAKE_LOCK"
       ],
-      "package": "com.marcelo12345.MSIS"
+      "package": "com.marcelo12345.MSIS",
+      "useNextNotificationsApi": true
     },
     "web": {
       "bundler": "metro",
@@ -70,7 +73,15 @@
     "plugins": [
       "expo-router",
       "expo-splash-screen",
-      "expo-barcode-scanner"
+      "expo-barcode-scanner",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#8C2323",
+          "sounds": ["./assets/notification-sound.mp3"]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

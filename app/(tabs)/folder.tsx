@@ -11,16 +11,19 @@ import {
   Download,
   Eye,
   File,
-  Printer,
+  Info,
+  RotateCcw,
   Search,
   Trash2,
-  X
+  X,
+  ZoomIn,
+  ZoomOut
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
-  Alert,
+  Animated,
   Image,
   Modal,
   Pressable,
@@ -29,35 +32,76 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Toast from "react-native-toast-message";
 
+interface UploadedFile {
+  id: string;
+  name: string;
+  size: number;
+  uri: string;
+  type: 'image' | 'pdf' | 'word' | 'document';
+  mimeType: string;
+  uploaded_at?: string;
+  status?: string;
+  feedback?: string;
+}
+
+interface Requirement {
+  id: string;
+  name: string;
+  completed: boolean;
+  file_count: number;
+  uploadedFiles: UploadedFile[];
+}
+
+interface FileInfo {
+  name: string;
+  size: number;
+  uri: string;
+  type: 'image' | 'pdf' | 'word' | 'document';
+  mimeType: string;
+}
+
+type FilterType = 'all' | 'completed' | 'not-completed';
+
 export default function FolderScreen() {
   const { user } = useAuth();
-  console.log("User Logged in", user);
-
+  
   // State for requirements
-  const [requirements, setRequirements] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   // UI states
-  const [filter, setFilter] = useState("all");
-  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [viewingImage, setViewingImage] = useState(null);
-  const [downloadingFile, setDownloadingFile] = useState(null);
-  const [showFileTypeModal, setShowFileTypeModal] = useState(false);
-  const [selectedRequirement, setSelectedRequirement] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [filter, setFilter] = useState<FilterType>("all");
+  const [showFilterDropdown, setShowFilterDropdown] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
+  const [showFileTypeModal, setShowFileTypeModal] = useState<boolean>(false);
+  const [selectedRequirement, setSelectedRequirement] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [printingFiles, setPrintingFiles] = useState<boolean>(false);
+  const [showDownloadConfirmModal, setShowDownloadConfirmModal] = useState<boolean>(false);
   
   // Delete confirmation modal state
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [fileToDelete, setFileToDelete] = useState(null);
-  const [requirementToDelete, setRequirementToDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [fileToDelete, setFileToDelete] = useState<UploadedFile | null>(null);
+  const [requirementToDelete, setRequirementToDelete] = useState<string | null>(null);
+  
+  // Feedback modal state
+  const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
+  const [selectedFeedback, setSelectedFeedback] = useState<string>("");
+  
+  // Image viewing state
+  const [imageLoading, setImageLoading] = useState<boolean>(false);
+  const [imageScale] = useState(new Animated.Value(1));
+  const [imageRotation] = useState(new Animated.Value(0));
+  const [currentRotation, setCurrentRotation] = useState<number>(0);
 
   // Fetch requirements based on student's nationality
   const fetchRequirements = async () => {
@@ -71,8 +115,6 @@ export default function FolderScreen() {
         setLoading(false);
         return;
       }
-
-      console.log("Fetching requirements for user:", user.id);
 
       const response = await axios.post(
         "https://msis.eduisync.io/api/student_requirements.php",
@@ -88,7 +130,6 @@ export default function FolderScreen() {
         }
       );
 
-      console.log("API Response:", response.data);
 
       if (response.data.success) {
         const transformedRequirements = response.data.requirements.map(
@@ -186,7 +227,7 @@ export default function FolderScreen() {
   });
 
   // Handle file selection modal
-  const openFileTypeModal = (reqId) => {
+  const openFileTypeModal = (reqId: string) => {
     setSelectedRequirement(reqId);
     setShowFileTypeModal(true);
   };
@@ -476,28 +517,129 @@ export default function FolderScreen() {
     }
   };
 
-  // Handle print (static)
-  const handlePrint = () => {
-    const completedReqs = requirements.filter((req) => req.completed);
-    const incompleteReqs = requirements.filter((req) => !req.completed);
+  // Handle download all files as one PDF
+  const handleDownloadAll = async () => {
+    try {
+      setPrintingFiles(true);
+      
+      const allFiles = requirements.flatMap(req => 
+        req.uploadedFiles.map(file => ({ ...file, requirementId: req.id, requirementName: req.name }))
+      );
+      
+      if (allFiles.length === 0) {
+        Toast.show({
+          type: "info",
+          text1: "No Files",
+          text2: "No files available to download",
+        });
+        return;
+      }
 
-    let printContent = "=== Student Requirements ===\n\n";
-    printContent += "COMPLETED REQUIREMENTS:\n";
-    completedReqs.forEach((req) => {
-      printContent += `- ${req.name}\n`;
-      req.uploadedFiles.forEach((file) => {
-        printContent += `  • ${file.name} (${file.size})\n`;
+      Toast.show({
+        type: "info",
+        text1: "Compiling PDF",
+        text2: `Combining ${allFiles.length} files into one PDF...`,
       });
-    });
 
-    printContent += "\nINCOMPLETE REQUIREMENTS:\n";
-    incompleteReqs.forEach((req) => {
-      printContent += `- ${req.name} (${req.uploadedFiles.length}/${req.file_count} files)\n`;
-    });
+      // Try to call API to compile all files into one PDF
+      try {
+        const response = await axios.post(
+          "https://msis.eduisync.io/api/generate_compiled_pdf.php",
+          {
+            user_id: user.id,
+            files: allFiles.map(file => ({
+              requirement_id: file.requirementId,
+              requirement_name: file.requirementName,
+              file_id: file.id,
+              file_name: file.name,
+              file_path: file.file_path
+            }))
+          },
+          {
+            timeout: 60000,
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
 
-    printContent += `\nCompletion Status: ${completionPercentage}%`;
+        if (response.data.success && response.data.pdf_url) {
+          // Download the compiled PDF
+          const pdfFileName = `Student_Requirements_${user.first_name}_${user.last_name}_${Date.now()}.pdf`;
+          const pdfUri = FileSystem.documentDirectory + pdfFileName;
+          
+          await FileSystem.downloadAsync(response.data.pdf_url, pdfUri);
+          
+          // Share the compiled PDF
+          await Sharing.shareAsync(pdfUri, {
+            mimeType: 'application/pdf',
+            dialogTitle: 'Download Compiled Requirements PDF',
+          });
 
-    Alert.alert("Print Summary", printContent, [{ text: "OK" }]);
+          Toast.show({
+            type: "success",
+            text1: "PDF Ready",
+            text2: `All files compiled into one PDF successfully`,
+          });
+          return;
+        }
+      } catch (apiError) {
+        console.log("PDF compilation API not available, falling back to individual downloads");
+      }
+
+      // Fallback: Download all files individually
+      Toast.show({
+        type: "info",
+        text1: "Downloading Files",
+        text2: `Preparing ${allFiles.length} files for download...`,
+      });
+
+      const downloadPromises = allFiles.map(async (file) => {
+        try {
+          const downloadUrl = `https://msis.eduisync.io/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${file.requirementId}&file_path=${encodeURIComponent(file.file_path)}`;
+          const fileUri = FileSystem.documentDirectory + file.name;
+          const { uri } = await FileSystem.downloadAsync(downloadUrl, fileUri);
+          return uri;
+        } catch (error) {
+          console.error(`Error downloading ${file.name}:`, error);
+          return null;
+        }
+      });
+
+      const downloadedFileUris = (await Promise.all(downloadPromises)).filter(Boolean);
+      
+      if (downloadedFileUris.length === 0) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to download files",
+        });
+        return;
+      }
+
+      // Share files one by one (Expo Sharing limitation)
+      for (let i = 0; i < downloadedFileUris.length; i++) {
+        await Sharing.shareAsync(downloadedFileUris[i], {
+          dialogTitle: `File ${i + 1} of ${downloadedFileUris.length}`,
+        });
+      }
+
+      Toast.show({
+        type: "success",
+        text1: "Download Complete",
+        text2: `${downloadedFileUris.length} files downloaded successfully`,
+      });
+    } catch (error) {
+      console.error("Error in download process:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to download files",
+      });
+    } finally {
+      setPrintingFiles(false);
+    }
   };
 
   // View file handler
@@ -728,16 +870,23 @@ export default function FolderScreen() {
           </View>
         </View>
 
-        {/* Print and Filter Row */}
+        {/* Download and Filter Row */}
         <View className="flex-row items-center gap-3 justify-between mb-4">
-          {/* Print Button */}
+          {/* Download All Button */}
           <TouchableOpacity
-            className="bg-[#be2e2e] px-5 py-2 rounded-lg flex-row items-center justify-center"
-            onPress={handlePrint}
+            className={`px-5 py-2 rounded-lg flex-row items-center justify-center ${
+              printingFiles ? "bg-gray-400" : "bg-[#be2e2e]"
+            }`}
+            onPress={() => setShowDownloadConfirmModal(true)}
+            disabled={printingFiles}
           >
-            <Printer size={16} color="white" />
+            {printingFiles ? (
+              <ActivityIndicator size={16} color="white" />
+            ) : (
+              <Download size={16} color="white" />
+            )}
             <Text className="text-white ml-2 text-xs font-medium">
-              Print All
+              {printingFiles ? "Compiling..." : "Download All"}
             </Text>
           </TouchableOpacity>
 
@@ -840,24 +989,29 @@ export default function FolderScreen() {
                       {/* File Info with Status */}
                       <View className="flex-row items-center flex-1">
                         {/* Status Indicator */}
-                        <View
-                          className={`w-2 h-8 rounded-l ${
-                            file.status === "approved"
-                              ? "bg-green-500"
-                              : file.status === "pending"
-                                ? "bg-orange-500"
+                      <View
+                        className={`w-2 h-8 rounded-l ${
+                          file.status === "approved"
+                            ? "bg-green-500"
+                            : file.status === "pending"
+                              ? "bg-orange-500"
+                              : file.status === "rejected"
+                                ? "bg-red-500"
                                 : "bg-gray-400"
-                          }`}
-                        />
+                        }`}
+                      />
+
 
                         <View className="flex-row items-center flex-1 ml-2">
                           <View
-                            className={`p-2 rounded ${
+                               className={`p-2 rounded ${
                               file.status === "approved"
                                 ? "bg-green-50"
                                 : file.status === "pending"
                                   ? "bg-orange-50"
-                                  : "bg-gray-50"
+                                  : file.status === "rejected"
+                                    ? "bg-red-50"
+                                    : "bg-gray-50"
                             }`}
                           >
                             <FileIcon type={file.type} />
@@ -874,31 +1028,48 @@ export default function FolderScreen() {
                               <Text className="text-gray-500 text-xs mr-2">
                                 {file.size}
                               </Text>
-                              <View
-                                className={`px-2 py-1 rounded-full ${
+                              <TouchableOpacity
+                                className={`px-2 py-1 rounded-full flex-row items-center ${
                                   file.status === "approved"
                                     ? "bg-green-100"
                                     : file.status === "pending"
                                       ? "bg-orange-100"
-                                      : "bg-gray-100"
+                                      : file.status === "rejected"
+                                        ? "bg-red-100"
+                                        : "bg-gray-100"
                                 }`}
+                                onPress={() => {
+                                  if (file.status === "rejected" && file.feedback) {
+                                    setSelectedFeedback(file.feedback);
+                                    setShowFeedbackModal(true);
+                                  }
+                                }}
+                                disabled={file.status !== "rejected" || !file.feedback}
                               >
                                 <Text
-                                  className={`text-xs font-medium ${
+                                  className={`text-xs mr-1 font-medium ${
                                     file.status === "approved"
                                       ? "text-green-800"
                                       : file.status === "pending"
                                         ? "text-orange-800"
-                                        : "text-gray-800"
+                                        : file.status === "rejected"
+                                          ? "text-red-800"
+                                          : "text-gray-800"
                                   }`}
                                 >
                                   {file.status === "approved"
                                     ? "Approved"
                                     : file.status === "pending"
                                       ? "Pending"
-                                      : file.status || "Uploaded"}
+                                      : file.status === "rejected"
+                                        ? "Rejected"
+                                        : file.status || "Uploaded"}
                                 </Text>
-                              </View>
+                                {file.status === "rejected" && file.feedback && (
+                                  <Info size={12} color="#991b1b" className="ml-3 " />
+                                )}
+                              </TouchableOpacity>
+
                             </View>
                           </View>
                         </View>
@@ -1011,6 +1182,56 @@ export default function FolderScreen() {
         </View>
       </Modal>
 
+      {/* Download Confirmation Modal */}
+      <Modal
+        visible={showDownloadConfirmModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDownloadConfirmModal(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-center items-center p-4">
+          <View className="bg-white rounded-xl p-6 w-full max-w-md">
+            <View className="items-center mb-4">
+              <View className="bg-blue-100 p-4 rounded-full">
+                <Download size={32} color="#3b82f6" />
+              </View>
+            </View>
+            
+            <Text className="text-xl font-bold text-gray-800 text-center mb-2">
+              Download All Files
+            </Text>
+            
+            <Text className="text-gray-600 text-center mb-6">
+              This will download all your uploaded files. Are you sure you want to proceed?
+            </Text>
+
+            <View className="flex-row justify-between gap-4">
+              <TouchableOpacity
+                className="flex-1 bg-gray-200 py-4 rounded-lg"
+                onPress={() => setShowDownloadConfirmModal(false)}
+              >
+                <Text className="text-gray-800 text-center font-medium">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                className="flex-1 bg-[#be2e2e] py-4 rounded-lg flex-row items-center justify-center"
+                onPress={() => {
+                  setShowDownloadConfirmModal(false);
+                  handleDownloadAll();
+                }}
+              >
+                <Download size={18} color="white" />
+                <Text className="text-white text-center font-medium ml-2">
+                  Download
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Delete Confirmation Modal */}
       <Modal
         visible={showDeleteModal}
@@ -1100,29 +1321,152 @@ export default function FolderScreen() {
         </View>
       </Modal>
 
-      {/* Image View Modal */}
+      {/* Enhanced Image View Modal */}
       <Modal
         visible={viewingImage !== null}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setViewingImage(null)}
+        onRequestClose={() => {
+          setViewingImage(null);
+          imageScale.setValue(1);
+          imageRotation.setValue(0);
+          setCurrentRotation(0);
+        }}
       >
-        <View className="flex-1 bg-black/90 items-center justify-center p-4">
-          <View className="w-full h-4/5 ">
-            <Image
-              source={{ uri: viewingImage }}
-              className="w-full h-full "
-            />
+        <View className="flex-1 bg-black/90 items-center justify-center">
+          {/* Control Buttons */}
+          <View className="absolute top-12 left-4 right-4 flex-row justify-between items-center z-10">
+            <TouchableOpacity
+              className="bg-white/20 p-3 rounded-full"
+              onPress={() => {
+                setViewingImage(null);
+                imageScale.setValue(1);
+                imageRotation.setValue(0);
+                setCurrentRotation(0);
+              }}
+            >
+              <X size={24} color="white" />
+            </TouchableOpacity>
+            
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                className="bg-white/20 p-3 rounded-full"
+                onPress={() => {
+                  Animated.spring(imageScale, {
+                    toValue: Math.min(imageScale._value + 0.5, 3),
+                    useNativeDriver: true,
+                  }).start();
+                }}
+              >
+                <ZoomIn size={20} color="white" />
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                className="bg-white/20 p-3 rounded-full"
+                onPress={() => {
+                  Animated.spring(imageScale, {
+                    toValue: Math.max(imageScale._value - 0.5, 0.5),
+                    useNativeDriver: true,
+                  }).start();
+                }}
+              >
+                <ZoomOut size={20} color="white" />
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                className="bg-white/20 p-3 rounded-full"
+                onPress={() => {
+                  const newRotation = currentRotation + 90;
+                  setCurrentRotation(newRotation);
+                  Animated.spring(imageRotation, {
+                    toValue: newRotation,
+                    useNativeDriver: true,
+                  }).start();
+                }}
+              >
+                <RotateCcw size={20} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
-          <TouchableOpacity
-            className="absolute top-10 right-6 -top-1 bg-white/20 p-2 rounded-full"
-            onPress={() => setViewingImage(null)}
-          >
-            <X size={24} color="white" />
-          </TouchableOpacity>
-      
+
+          {/* Image Container */}
+          <View className="flex-1 w-full items-center justify-center p-4">
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => {
+                // Tap to zoom
+                const currentScale = imageScale._value;
+                const newScale = currentScale === 1 ? 2 : 1;
+                Animated.spring(imageScale, {
+                  toValue: newScale,
+                  useNativeDriver: true,
+                }).start();
+              }}
+              className="w-full h-4/5"
+            >
+              <Animated.View
+                style={{
+                  transform: [
+                    { scale: imageScale },
+                    { rotate: imageRotation.interpolate({
+                      inputRange: [0, 360],
+                      outputRange: ['0deg', '360deg']
+                    }) }
+                  ]
+                }}
+                className="w-full h-full"
+              >
+                <Image
+                  source={{ uri: viewingImage }}
+                  className="w-full h-full"
+                  resizeMode="contain"
+                />
+              </Animated.View>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
+      {/* Feedback Modal */}
+      <Modal
+        visible={showFeedbackModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFeedbackModal(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-center items-center p-4">
+          <View className="bg-white rounded-xl p-6 w-full max-w-md">
+            <View className="items-center mb-4">
+              <View className="bg-red-100 p-4 rounded-full">
+                <AlertTriangle size={32} color="#ef4444" />
+              </View>
+            </View>
+            
+            <Text className="text-xl font-bold text-gray-800 text-center mb-2">
+              Rejection Feedback
+            </Text>
+            
+            <Text className="text-gray-600 text-center mb-4">
+              Reason for rejection:
+            </Text>
+            
+            <View className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <Text className="text-red-800 text-sm leading-5">
+                {selectedFeedback}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              className="bg-[#be2e2e] py-4 rounded-lg"
+              onPress={() => setShowFeedbackModal(false)}
+            >
+              <Text className="text-white text-center font-medium">
+                Close
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Toast />
     </View>
   );

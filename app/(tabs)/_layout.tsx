@@ -11,7 +11,7 @@ import {
   ClipboardList,
   User as UserIcon
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Animated,
   Easing,
@@ -28,8 +28,7 @@ import Reanimated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-
-interface Layout {}
+import { Audio } from 'expo-av';
 
 const Skeleton = ({ width, height, borderRadius = 4, style = {} }) => {
   return (
@@ -57,19 +56,97 @@ const Skeleton = ({ width, height, borderRadius = 4, style = {} }) => {
 
 export default function TabLayout() {
   const router = useRouter();
-  const segments = useSegments(); // gives the active route segments
+  const segments = useSegments(); 
   const colorScheme = useColorScheme();
   const tintColor = "#be2e2e";
   const { width } = useWindowDimensions();
   const [isLoading, setIsLoading] = useState(true);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const { user } = useAuth(); // Only get user from auth context
+  const { user } = useAuth(); 
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [isFirstFetch, setIsFirstFetch] = useState(true);
+  const soundRef = useRef<Audio.Sound | null>(null);
 
   const isWeb = Platform.OS === "web";
   const iconSize = 26;
 
   // Track header visibility
   const [showHeader, setShowHeader] = useState(true);
+
+  // Load notification sound
+  useEffect(() => {
+    const loadSound = async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          require('@/assets/sounds/notification-sound.mp3')
+        );
+        soundRef.current = sound;
+      } catch (error) {
+        console.error("Error loading notification sound:", error);
+      }
+    };
+
+    loadSound();
+
+    return () => {
+      if (soundRef.current) {
+        soundRef.current.unloadAsync();
+      }
+    };
+  }, []);
+
+  // Play notification sound when count increases
+  const playNotificationSound = async () => {
+    try {
+      if (soundRef.current) {
+        await soundRef.current.replayAsync();
+      }
+    } catch (error) {
+      console.error("Error playing notification sound:", error);
+    }
+  };
+
+  // Fetch notification count
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchNotificationCount = async () => {
+      try {
+        const response = await fetch(
+          `https://msis.eduisync.io/api/get_student_notifications.php?user_id=${user.id}`
+        );
+        const data = await response.json();
+        
+        if (data.success) {
+          // Count only unread notifications (status !== 'read')
+          const unreadCount = data.notifications.filter(
+            (notification: any) => notification.status !== 'read'
+          ).length;
+          
+          // Check if notification count increased (but not on first fetch)
+          if (!isFirstFetch && unreadCount > notificationCount) {
+            playNotificationSound();
+          }
+          
+          setNotificationCount(unreadCount);
+          
+          // After first successful fetch, mark as not first fetch anymore
+          if (isFirstFetch) {
+            setIsFirstFetch(false);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotificationCount();
+    
+    // Set up interval to periodically check for new notifications
+    const intervalId = setInterval(fetchNotificationCount, 3000); // Check every 3 seconds
+    
+    return () => clearInterval(intervalId);
+  }, [user?.id, notificationCount, isFirstFetch]);
 
   useEffect(() => {
     const currentRoute = segments[segments.length - 1]; // get last active tab
@@ -129,6 +206,20 @@ export default function TabLayout() {
     );
   };
 
+  const renderNotificationBadge = () => {
+    if (notificationCount <= 0) return null;
+    
+    const displayCount = notificationCount > 99 ? "99+" : notificationCount;
+    
+    return (
+      <View className="absolute -right-2 -top-1 min-w-[18px] h-[18px] rounded-full bg-red-500 justify-center items-center">
+        <Text className="text-xs text-white font-bold px-1">
+          {displayCount}
+        </Text>
+      </View>
+    );
+  };
+
   const renderHeader = () => (
     <View className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200">
       <View className="flex-row items-center">
@@ -178,8 +269,8 @@ export default function TabLayout() {
             <Skeleton width={24} height={24} borderRadius={12} />
           ) : (
             <>
-              <BellIcon size={22} color={Colors[colorScheme ?? "light"].text} />
-              <View className="absolute right-[2px] top-[1px] w-2 h-2  rounded-full bg-red-500" />
+              <BellIcon size={24} color={Colors[colorScheme ?? "light"].text} />
+              {renderNotificationBadge()}
             </>
           )}
         </TouchableOpacity>
@@ -327,7 +418,7 @@ export default function TabLayout() {
           <Tabs.Screen
             name="evaluations"
             options={{
-              title: "Evaluations",
+              title: "Evaluation",
               tabBarIcon: ({ color }) =>
                 isLoading ? (
                   <Skeleton width={26} height={26} borderRadius={13} />
@@ -360,7 +451,7 @@ export default function TabLayout() {
               width: tabWidth,
               height: 50,
               borderRadius: 10,
-              backgroundColor: "rgba(140, 35, 35, 0.08)", // subtle tint
+              backgroundColor: "rgba(140, 35, 35, 0.08)", 
             },
             highlightStyle,
           ]}

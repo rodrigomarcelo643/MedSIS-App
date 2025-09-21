@@ -105,17 +105,30 @@ export default function Calendar() {
       }
       
       // Transform API response to match our expected event format
-      const transformedEvents: CalendarEvent[] = eventsData.map((event: ApiEvent) => ({
-        id: event.id,
-        title: event.title,
-        start: new Date(`${event.date}T${event.start_time}`),
-        end: new Date(`${event.date}T${event.end_time}`),
-        color: event.color || getEventColor(event.year_level), // Use color from DB or fallback
-        description: event.description || "No description available",
-        course: event.year_level || "GENERAL",
-        location: "Location not specified",
-        year_level: event.year_level || "All Years"
-      }));
+      const transformedEvents: CalendarEvent[] = eventsData.map((event: ApiEvent) => {
+        // Create proper date objects with Philippine timezone consideration
+        const eventDate = new Date(event.date);
+        const startTime = event.start_time.split(':');
+        const endTime = event.end_time.split(':');
+        
+        const startDate = new Date(eventDate);
+        startDate.setHours(parseInt(startTime[0]), parseInt(startTime[1]), 0, 0);
+        
+        const endDate = new Date(eventDate);
+        endDate.setHours(parseInt(endTime[0]), parseInt(endTime[1]), 0, 0);
+        
+        return {
+          id: event.id,
+          title: event.title,
+          start: startDate,
+          end: endDate,
+          color: event.color || getEventColor(event.year_level),
+          description: event.description || "No description available",
+          course: event.year_level || "GENERAL",
+          location: "Location not specified",
+          year_level: event.year_level || "All Years"
+        };
+      });
       
       setEvents(transformedEvents);
     } catch (err) {
@@ -498,12 +511,16 @@ export default function Calendar() {
                 <View className="flex-1 flex-row border-l border-gray-200">
                   {dates.map((date, i) => {
                     const dayEvents = filteredEvents.filter(event => {
-                      const eventDate = new Date(event.start);
+                      const eventStart = new Date(event.start);
                       const eventEnd = new Date(event.end);
+                      const eventStartHour = eventStart.getHours();
+                      const eventEndHour = eventEnd.getHours();
+                      const eventEndMinutes = eventEnd.getMinutes();
+                      
                       return (
-                        eventDate.toDateString() === date.toDateString() &&
-                        eventDate.getHours() <= hour && 
-                        eventEnd.getHours() >= hour
+                        eventStart.toDateString() === date.toDateString() &&
+                        hour >= eventStartHour && 
+                        hour <= eventEndHour
                       );
                     }).sort((a, b) => a.start.getTime() - b.start.getTime());
                     
@@ -523,7 +540,7 @@ export default function Calendar() {
                               {event.title}
                             </Text>
                             <Text className="text-white text-[10px] opacity-90">
-                              {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                             </Text>
                           </TouchableOpacity>
                         ))}
@@ -578,10 +595,14 @@ export default function Calendar() {
               const hourEvents = dayEvents.filter(event => {
                 const eventStartHour = event.start.getHours();
                 const eventEndHour = event.end.getHours();
+                const eventStartMinutes = event.start.getMinutes();
                 const eventEndMinutes = event.end.getMinutes();
                 
                 // Check if event spans this hour
-                return hour >= eventStartHour && hour <= (eventEndMinutes > 0 ? eventEndHour : eventEndHour - 1);
+                const eventStartTime = eventStartHour + (eventStartMinutes / 60);
+                const eventEndTime = eventEndHour + (eventEndMinutes / 60);
+                
+                return hour >= eventStartHour && hour <= eventEndHour;
               });
               
               return (
@@ -606,14 +627,21 @@ export default function Calendar() {
                       
                       // Calculate the vertical position based on start time
                       const startMinutes = event.start.getMinutes();
-                      const positionOffset = (startMinutes / 60) * 64;
+                      const endMinutes = event.end.getMinutes();
+                      const positionOffset = isFirstHour ? (startMinutes / 60) * 64 : 0;
                       
-                      // Calculate the height for the last hour based on end time
-                      let finalHeight = height;
-                      if (isLastHour) {
-                        const endMinutes = event.end.getMinutes();
-                        const endPosition = (endMinutes / 60) * 64;
-                        finalHeight = (hour - event.start.getHours()) * 64 + endPosition - positionOffset;
+                      // Calculate the height more accurately
+                      let finalHeight = 64; // Default to one hour
+                      
+                      if (isFirstHour && isLastHour) {
+                        // Event starts and ends in the same hour
+                        finalHeight = ((endMinutes - startMinutes) / 60) * 64;
+                      } else if (isFirstHour) {
+                        // First hour of multi-hour event
+                        finalHeight = ((60 - startMinutes) / 60) * 64;
+                      } else if (isLastHour) {
+                        // Last hour of multi-hour event
+                        finalHeight = (endMinutes / 60) * 64;
                       }
                       
                       return (
@@ -637,8 +665,8 @@ export default function Calendar() {
                                 {event.title}
                               </Text>
                               <Text className="text-white text-xs opacity-90">
-                                {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
-                                {event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - 
+                                {event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                               </Text>
                             </>
                           )}
@@ -674,10 +702,16 @@ export default function Calendar() {
           <View className="bg-white rounded-t-3xl p-6 max-h-3/4">
                 
             <View className="space-y-5">
+                
+                <View className="border-b-2 border-gray-300 mb-5 ">
+                  <Text className="text-[#be2e2e] py-3 font-bold text-lg">{selectedEvent.title}</Text>
+                
+                </View>
               <View className="flex-row mb-3  items-center ">
                 <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{backgroundColor: `${selectedEvent.color}20`}}>
                   <CalendarIcon size={20} color={selectedEvent.color} />
                 </View>
+                
                 <View>
                   <Text className="text-gray-500 text-sm">Date</Text>
                   <Text className="text-gray-900">{selectedEvent.start.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</Text>

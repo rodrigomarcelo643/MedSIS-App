@@ -88,6 +88,10 @@ function MainLayout() {
               name="screens/school-calendar"
               options={{ title: "School Calendar", headerShown: true }}
             />
+              <Stack.Screen
+              name="screens/change-password"
+              options={{ title: "ChangePassword", headerShown: true }}
+            />
           </>
         )}
       </Stack>

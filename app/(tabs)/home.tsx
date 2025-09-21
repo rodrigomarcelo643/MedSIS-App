@@ -3,16 +3,48 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
+  ImageSourcePropType,
   Platform,
   ScrollView,
   Text,
   TouchableOpacity,
   useWindowDimensions,
-  View
+  View,
+  ViewStyle
 } from 'react-native';
 
+interface SkeletonLoaderProps {
+  width: number | string;
+  height: number | string;
+  borderRadius?: number;
+  style?: ViewStyle;
+  children?: React.ReactNode;
+}
+
+interface QuickLinkCardProps {
+  title: string;
+  onPress: () => void;
+  color: string;
+  bgImage: ImageSourcePropType;
+}
+
+interface WelcomeHeaderProps {
+  user: any;
+  onProfilePress: () => void;
+}
+
+interface QuickLink {
+  id: number;
+  title: string;
+  description: string;
+  color: string;
+  count: number;
+  bgImage: ImageSourcePropType;
+  onPress: () => void;
+}
+
 // Skeleton Loader Component
-const SkeletonLoader = ({ width, height, borderRadius = 4, style = {}, children }) => {
+const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ width, height, borderRadius = 4, style = {}, children }) => {
   return (
     <View 
       className="bg-gray-100 dark:bg-gray-800 mb-2 overflow-hidden"
@@ -43,7 +75,7 @@ const SkeletonPulse = () => {
   );
 };
 
-const QuickLinkCard = ({ title, onPress, color, bgImage }) => {
+const QuickLinkCard: React.FC<QuickLinkCardProps> = ({ title, onPress, color, bgImage }) => {
   return (
     <TouchableOpacity 
       onPress={onPress}
@@ -57,7 +89,6 @@ const QuickLinkCard = ({ title, onPress, color, bgImage }) => {
           source={bgImage}
           className="w-full h-full absolute shadow-3xl"
           resizeMode="cover"
-        
         />
         {/* Content Overlay */}
       <View className="flex-1 p-6 justify-center  items-center">
@@ -74,7 +105,7 @@ const QuickLinkCard = ({ title, onPress, color, bgImage }) => {
   );
 };
 
-const WelcomeHeader = ({ user, onProfilePress }) => {
+const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ user, onProfilePress }) => {
   return (
     <View className="flex-row justify-between p-2 items-center mb-4">
       <View className="flex-1">
@@ -106,7 +137,7 @@ export default function Home() {
     require('../../assets/images/folder.png'),
   ];
   // Quick links data - Only Evaluations, Learning Materials, and Announcements
-  const quickLinks = [
+  const quickLinks: QuickLink[] = [
     {
       id: 1,
       title: 'Announcements',
@@ -187,40 +218,34 @@ export default function Home() {
   // Show the skeleton loader if loading 
   if (isLoading) {
     return (
-      <ScrollView className={`flex-1 p-6 bg-white dark:bg-gray-900 ${isLargeWeb ? 'max-w-4xl mx-auto' : ''}`}>
-        {/* Welcome Section Skeleton */}
-        <View className="flex-row justify-between items-center mb-8">
-          <View>
-            <SkeletonLoader width={120} height={20}>
+      <ScrollView className={`flex-1 bg-gray-50 dark:bg-gray-900 ${isLargeWeb ? 'p-4 max-w-4xl mx-auto' : 'p-3'}`}>
+        {/* Welcome Header Skeleton */}
+        <View className="flex-row justify-between p-2 items-center mb-4">
+          <View className="flex-1">
+            <SkeletonLoader width={120} height={16}>
               <SkeletonPulse />
             </SkeletonLoader>
-            <SkeletonLoader width={180} height={32} className="mt-2">
-              <SkeletonPulse />
-            </SkeletonLoader>
-            <SkeletonLoader width={100} height={16} className="mt-2">
-              <SkeletonPulse />
-            </SkeletonLoader>
-          </View>
-          <View className="flex-row space-x-3">
-            <SkeletonLoader width={40} height={40} borderRadius={20}>
-              <SkeletonPulse />
-            </SkeletonLoader>
-            <SkeletonLoader width={40} height={40} borderRadius={20}>
+            <SkeletonLoader width={200} height={32} style={{ marginTop: 4 }}>
               <SkeletonPulse />
             </SkeletonLoader>
           </View>
         </View>
 
-        {/* Quick Links Header Skeleton */}
-        <SkeletonLoader width={150} height={28} className="mb-6">
-          <SkeletonPulse />
-        </SkeletonLoader>
+        {/* Section Title Skeleton */}
+        <View className="mb-6 ml-2">
+          <SkeletonLoader width={120} height={24}>
+            <SkeletonPulse />
+          </SkeletonLoader>
+          <SkeletonLoader width={200} height={16} style={{ marginTop: 4 }}>
+            <SkeletonPulse />
+          </SkeletonLoader>
+        </View>
 
-        {/* Quick Link Skeletons in grid layout */}
+        {/* Quick Links Grid Skeleton */}
         <View className="flex-row flex-wrap justify-between">
-          {[1, 2, 3].map((item) => (
-            <View key={item} style={{ width: '48%', marginHorizontal: '1%', marginBottom: 24 }}>
-              <SkeletonLoader width="100%" height={180} borderRadius={16}>
+          {[1, 2, 3, 4].map((item) => (
+            <View key={item} className="mb-0 -mt-2 rounded-2xl overflow-hidden" style={{ width: '48%', marginHorizontal: '1%' }}>
+              <SkeletonLoader width="100%" height={145} borderRadius={16}>
                 <SkeletonPulse />
               </SkeletonLoader>
             </View>

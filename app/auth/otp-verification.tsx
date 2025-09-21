@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Check, Eye, EyeOff, Lock, X } from "lucide-react-native";
+import { ArrowLeft, Check, Eye, EyeOff, Lock, X, Key } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
@@ -34,10 +34,13 @@ const OTPVerification = () => {
     showConfirmPassword: false,
     isNewPasswordFocused: false,
     isConfirmPasswordFocused: false,
+    canResend: false,
+    resendCountdown: 180, // 3 minutes in seconds
   });
   
   const [passwordValidation, setPasswordValidation] = useState({
     hasUpperCase: false,
+    hasNumber: false,
     hasSpecialChar: false,
     hasMinLength: false,
     isNotCommon: true,
@@ -55,9 +58,32 @@ const OTPVerification = () => {
     validatePassword(passwords.new_password);
   }, [passwords.new_password]);
 
+  useEffect(() => {
+    // Start countdown timer for resend OTP
+    if (state.resendCountdown > 0 && !state.canResend) {
+      const timer = setTimeout(() => {
+        setState(prev => ({ 
+          ...prev, 
+          resendCountdown: prev.resendCountdown - 1 
+        }));
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    } else if (state.resendCountdown === 0 && !state.canResend) {
+      setState(prev => ({ ...prev, canResend: true }));
+    }
+  }, [state.resendCountdown, state.canResend]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
   const validatePassword = (password: string) => {
     const validations = {
       hasUpperCase: /[A-Z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
       hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
       hasMinLength: password.length >= 8,
       isNotCommon: !commonPasswords.includes(password.toLowerCase()),
@@ -160,6 +186,56 @@ const OTPVerification = () => {
     }
   };
 
+  const resendOTP = async () => {
+    setState(prev => ({ ...prev, loading: true }));
+    
+    try {
+      const requestData = {
+        student_id,
+      };
+
+      const response = await axios.post(APP_URL, requestData, {
+        headers: { "Content-Type": "application/json" },
+        timeout: 10000,
+      });
+
+      const result = response.data;
+
+      if (result.success) {
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: result.message || "OTP sent successfully",
+          position: "top",
+        });
+        
+        // Reset countdown
+        setState(prev => ({ 
+          ...prev, 
+          canResend: false, 
+          resendCountdown: 180,
+          loading: false 
+        }));
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: result.message || "Failed to resend OTP",
+          position: "top",
+        });
+        setState(prev => ({ ...prev, loading: false }));
+      }
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Request Error",
+        text2: error.response?.data?.message || error.message || "Something went wrong",
+        position: "top",
+      });
+      setState(prev => ({ ...prev, loading: false }));
+    }
+  };
+
   const validateForm = () => {
     if (otp.some(digit => !digit)) {
       Toast.show({
@@ -186,6 +262,16 @@ const OTPVerification = () => {
         type: "error",
         text1: "Validation Error",
         text2: "Password must contain at least one uppercase letter",
+        position: "top",
+      });
+      return false;
+    }
+    
+    if (!passwordValidation.hasNumber) {
+      Toast.show({
+        type: "error",
+        text1: "Validation Error",
+        text2: "Password must contain at least one number",
         position: "top",
       });
       return false;
@@ -366,7 +452,7 @@ const OTPVerification = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-white"
     >
-      <ScrollView className="flex-1 px-6 py-6 mt-10" keyboardShouldPersistTaps="handled">
+      <ScrollView className="flex-1 px-3 py-6 mt-10" keyboardShouldPersistTaps="handled">
         {/* Header */}
         <View className="flex-row items-center mb-6">
           <TouchableOpacity onPress={() => router.back()} className="mr-4 p-2 rounded-full bg-gray-100">
@@ -378,35 +464,52 @@ const OTPVerification = () => {
         <View className="bg-white p-3 mt-10 rounded-xl shadow-sm">
           {/* Message */}
           {message && (
-            <Text className="text-center text-gray-600 mb-6 text-base">
-              {typeof message === "string" ? message : "Check your email for OTP to set your password"}
+            <Text className="text-center text-green-600 mb-6 text-base font-medium">
+              {typeof message === "string" ? message : "OTP sent to your email"}
             </Text>
           )}
-
           {/* OTP Inputs */}
-          <View className="mb-8">
+          <View className="mb-3">
             <Text className="text-sm text-gray-600 mb-3">Enter OTP Code</Text>
-            <View className="flex-row justify-between">
+            <View className="flex-row justify-between items-center">
               {otp.map((digit, index) => (
-                <TextInput
-                  key={index}
-                  ref={ref => (inputs.current[index] = ref)}
-                  className={`w-12 h-12 border ${digit ? 'border-[#af1616]' : 'border-gray-300'} rounded-lg text-center text-lg font-bold`}
-                  value={digit}
-                  onChangeText={value => handleOtpChange(value, index)}
-                  onKeyPress={e => handleKeyPress(e, index)}
-                  keyboardType="numeric"
-                  maxLength={6} // Allow pasting multiple digits
-                  selectTextOnFocus
-                  onFocus={() => {
-                    // Select all text when focused for easy replacement
-                    inputs.current[index]?.setNativeProps({
-                      selection: { start: 0, end: otp[index].length }
-                    });
-                  }}
-                />
+                <View key={index} className="justify-center items-center">
+                  <TextInput
+                    ref={ref => (inputs.current[index] = ref)}
+                    className={`w-14 h-14 border ${digit ? 'border-[#af1616]' : 'border-gray-300'} rounded-lg text-center text-lg font-bold`}
+                    value={digit}
+                    onChangeText={value => handleOtpChange(value, index)}
+                    onKeyPress={e => handleKeyPress(e, index)}
+                    keyboardType="numeric"
+                    maxLength={6} // Allow pasting multiple digits
+                    selectTextOnFocus
+                    onFocus={() => {
+                      // Select all text when focused for easy replacement
+                      inputs.current[index]?.setNativeProps({
+                        selection: { start: 0, end: otp[index].length }
+                      });
+                    }}
+                  />
+                </View>
               ))}
             </View>
+            
+            {/* Resend OTP Section */}
+            <View className="mt-4 flex-row justify-center items-center">
+              <Text className="text-gray-600 text-sm mr-2">
+                Didn't receive the code?
+              </Text>
+              {state.canResend ? (
+                <TouchableOpacity onPress={resendOTP} disabled={state.loading}>
+                  <Text className="text-[#af1616] font-semibold">Resend OTP</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text className="text-gray-500 text-sm">
+                  Resend in {formatTime(state.resendCountdown)}
+                </Text>
+              )}
+            </View>
+            
             <TouchableOpacity 
               onPress={() => {
                 Alert.prompt(
@@ -434,7 +537,7 @@ const OTPVerification = () => {
                 New Password
               </Animated.Text>
               <View className={`flex-row items-center border ${passwordValidation.allValid ? 'border-green-500' : state.isNewPasswordFocused ? "border-[#af1616]" : "border-gray-300"} rounded-lg px-3 py-2 mt-1`}>
-                <Lock size={20} color={passwordValidation.allValid ? '#10b981' : '#6b7280'} className="mr-2" />
+                <Key size={20} color={passwordValidation.allValid ? '#10b981' : '#6b7280'} className="mr-2" />
                 <TextInput
                   className="flex-1 text-[#1f2937] py-2"
                   value={passwords.new_password}
@@ -455,8 +558,6 @@ const OTPVerification = () => {
                 </TouchableOpacity>
               </View>
             </View>
-            
-            
           </View>
 
           {/* Confirm Password Input */}
@@ -466,7 +567,7 @@ const OTPVerification = () => {
                 Confirm Password
               </Animated.Text>
               <View className={`flex-row items-center border ${passwords.new_password === passwords.confirm_password && passwords.confirm_password ? 'border-green-500' : state.isConfirmPasswordFocused ? "border-[#af1616]" : "border-gray-300"} rounded-lg px-3 py-2 mt-1`}>
-                <Lock size={20} color={passwords.new_password === passwords.confirm_password && passwords.confirm_password ? '#10b981' : '#6b7280'} className="mr-2" />
+                <Key size={20} color={passwords.new_password === passwords.confirm_password && passwords.confirm_password ? '#10b981' : '#6b7280'} className="mr-2" />
                 <TextInput
                   className="flex-1 text-[#1f2937] py-2"
                   value={passwords.confirm_password}
@@ -511,6 +612,14 @@ const OTPVerification = () => {
                       <X size={14} color="#ef4444" />}
                     <Text className={`text-xs ml-2 ${passwordValidation.hasUpperCase ? 'text-green-600' : 'text-red-600'}`}>
                       At least one uppercase letter
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center mb-1">
+                    {passwordValidation.hasNumber ? 
+                      <Check size={14} color="#10b981" /> : 
+                      <X size={14} color="#ef4444" />}
+                    <Text className={`text-xs ml-2 ${passwordValidation.hasNumber ? 'text-green-600' : 'text-red-600'}`}>
+                      At least one number
                     </Text>
                   </View>
                   <View className="flex-row items-center mb-1">

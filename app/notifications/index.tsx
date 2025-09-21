@@ -110,7 +110,7 @@ const NotificationsScreen = () => {
         setLoading(true);
       }
       
-      console.log('Fetching notifications for user ID:', user.id);
+     
       
       const response = await axios.get(`${API_BASE_URL}/get_student_notifications.php`, {
         params: {
@@ -120,8 +120,7 @@ const NotificationsScreen = () => {
         timeout: 10000 // 10 second timeout
       });
       
-      console.log('API Response:', response.data);
-      
+ 
       if (response.data.success) {
         // Transform API data to match our frontend structure
         const transformedNotifications = response.data.notifications.map((notif: any) => ({
@@ -228,11 +227,14 @@ const NotificationsScreen = () => {
     return avatars[Math.floor(Math.random() * avatars.length)];
   };
 
-  // Format time to relative time
+  // Format time to Philippine time and relative time
   const formatTime = (timestamp: string): string => {
+    // Convert to Philippine time (UTC+8)
+    const philippineTime = new Date(timestamp);
+    philippineTime.setHours(philippineTime.getHours() + 8);
+    
     const now = new Date();
-    const notificationTime = new Date(timestamp);
-    const diffInMs = now.getTime() - notificationTime.getTime();
+    const diffInMs = now.getTime() - philippineTime.getTime();
     const diffInSeconds = Math.floor(diffInMs / 1000);
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     const diffInHours = Math.floor(diffInMinutes / 60);
@@ -244,8 +246,13 @@ const NotificationsScreen = () => {
     if (diffInDays === 1) return 'Yesterday';
     if (diffInDays < 7) return `${diffInDays} days ago`;
     
-    // For older notifications, show the actual date
-    return notificationTime.toLocaleDateString();
+    // For older notifications, show the actual Philippine date
+    return philippineTime.toLocaleDateString('en-PH', {
+      timeZone: 'Asia/Manila',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   useEffect(() => {
@@ -531,7 +538,7 @@ const NotificationsScreen = () => {
           </View>
           {displayedNotifications.length > 0 && (
             <TouchableOpacity onPress={() => setMarkAllReadModalVisible(true)}>
-              <Text className="text-[#8C2323] font-medium">Mark all as read</Text>
+              <Text className="text-[#be2e2e] font-medium">Mark all as read</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -581,38 +588,56 @@ const NotificationsScreen = () => {
           </View>
         ) : (
           <>
-            {displayedNotifications.map((notification) => (
-              <TouchableOpacity
-                key={notification.id}
-                className={`flex-row items-start p-5 border-b border-gray-100 dark:border-gray-800 ${
-                  !notification.read ? 'bg-blue-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'
-                }`}
-                onPress={() => markAsRead(notification.id)}
-              >
-                <View className={`p-3 rounded-full mr-4 ${getIconBackground(notification.type)}`}>
-                  {getIcon(notification.type)}
-                </View>
-                
-                <View className="flex-1">
-                  <View className="flex-row items-start justify-between">
-                    <Text className="font-semibold dark:text-white text-base flex-1">
-                      {notification.title}
-                    </Text>
-                    {!notification.read && (
-                      <View className="w-2 h-2 rounded-full bg-[#8C2323] ml-2 mt-1" />
-                    )}
+            {displayedNotifications.map((notification) => {
+              const feedbackIndex = notification.message.indexOf('Feedback:');
+              const isFeedback = feedbackIndex !== -1;
+              const mainMessage = isFeedback ? notification.message.substring(0, feedbackIndex).trim() : notification.message;
+              const feedbackText = isFeedback ? notification.message.substring(feedbackIndex + 9).trim() : '';
+              
+              return (
+                <TouchableOpacity
+                  key={notification.id}
+                  className={`flex-row items-start p-5 border-b border-gray-100 dark:border-gray-800 ${
+                    isFeedback ? 'bg-red-50 dark:bg-red-900/10' : (!notification.read ? 'bg-blue-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900')
+                  }`}
+                  onPress={() => markAsRead(notification.id)}
+                >
+                  <View className={`p-3 rounded-full mr-4 ${getIconBackground(notification.type)}`}>
+                    {getIcon(notification.type)}
                   </View>
                   
-                  <Text className="mt-1 text-gray-600 dark:text-gray-300 text-sm">
-                    {notification.message}
-                  </Text>
-                  
-                  <Text className="mt-2 text-xs text-gray-400 dark:text-gray-500">
-                    {notification.time}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+                  <View className="flex-1">
+                    <View className="flex-row items-start justify-between">
+                      <Text className="font-semibold dark:text-white text-base flex-1">
+                        {notification.title}
+                      </Text>
+                      {!notification.read && (
+                        <View className="w-2 h-2 rounded-full bg-[#8C2323] ml-2 mt-1" />
+                      )}
+                    </View>
+                    
+                    <Text className="mt-1 text-gray-600 dark:text-gray-300 text-sm">
+                      {mainMessage}
+                    </Text>
+                    
+                    {isFeedback && feedbackText && (
+                      <View className="mt-3 p-3 bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 rounded-r-lg">
+                        <Text className="text-red-800 dark:text-red-300 text-sm font-medium mb-1">
+                          Feedback:
+                        </Text>
+                        <Text className="text-red-700 dark:text-red-400 text-sm">
+                          {feedbackText}
+                        </Text>
+                      </View>
+                    )}
+                    
+                    <Text className="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                      {notification.time}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
             
             <LoadMoreComponent />
           </>
@@ -620,18 +645,18 @@ const NotificationsScreen = () => {
       </ScrollView>
 
       {/* Back to Top Button */}
-  {/* Back to Top Button */}
-    {showBackToTop && (
-      <View className="absolute bottom-0 left-0 right-0 items-center py-4 bg-transparent">
-        <TouchableOpacity
-          onPress={scrollToTop}
-          className="w-12 h-12 rounded-full bg-[#8C2323] items-center justify-center shadow-lg"
-          style={{ elevation: 5 }}
-        >
-          <ArrowUp size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-    )}
+      {showBackToTop && (
+        <View className="absolute bottom-4 right-4">
+          <TouchableOpacity
+            onPress={scrollToTop}
+            className="w-12 h-12 rounded-full bg-[#be2e2e] items-center justify-center shadow-lg"
+            style={{ elevation: 5 }}
+          >
+            <ArrowUp size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      )}
+
 
       {/* Confirmation Modals */}
       <ConfirmationModal
