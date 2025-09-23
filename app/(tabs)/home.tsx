@@ -1,5 +1,11 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from 'expo-router';
+import {
+  Bell,
+  BookOpen,
+  Calendar,
+  CalendarDays
+} from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
@@ -26,6 +32,7 @@ interface QuickLinkCardProps {
   onPress: () => void;
   color: string;
   bgImage: ImageSourcePropType;
+  icon: React.ReactNode;
 }
 
 interface WelcomeHeaderProps {
@@ -41,6 +48,7 @@ interface QuickLink {
   count: number;
   bgImage: ImageSourcePropType;
   onPress: () => void;
+  icon: React.ReactNode;
 }
 
 // Skeleton Loader Component
@@ -75,31 +83,41 @@ const SkeletonPulse = () => {
   );
 };
 
-const QuickLinkCard: React.FC<QuickLinkCardProps> = ({ title, onPress, color, bgImage }) => {
+const QuickLinkCard: React.FC<QuickLinkCardProps> = ({ title, onPress, color, bgImage, icon }) => {
   return (
     <TouchableOpacity 
       onPress={onPress}
-      className="mb-0 -mt-2 rounded-2xl  overflow-hidden"
+      className="mb-0 -mt-2 rounded-2xl overflow-hidden"
       activeOpacity={0.8}
       style={{ width: '48%', marginHorizontal: '1%'}}
     >
-      <View className="rounded-2xl overflow-hidden" style={{ height: 145  }}>
+      <View className="rounded-2xl overflow-hidden" style={{ height: 145 }}>
         {/* Background Image */}
         <Image 
           source={bgImage}
-          className="w-full h-full absolute shadow-3xl"
+          className="w-full h-full absolute "
           resizeMode="cover"
         />
+        
+        {/* Dark Overlay for better text readability */}
+        <View className="absolute inset-0 " />
+        
         {/* Content Overlay */}
-      <View className="flex-1 p-6 justify-center  items-center">
-        <View className="flex-row items-center justify-center">
-          <View className="flex-1  items-center">
-            <Text className="text-md font-semibold whitespace-nowrap text-white  text-center">
-              {title}
-            </Text>       
+        <View className="flex-1 p-6 ustify-center items-center">
+          <View className="flex-col mt-5  items-center justify-center">
+            {/* Icon Container */}
+            <View className="mb-3 bg-white/20 p-3 rounded-full">
+              {icon}
+            </View>
+            
+            {/* Title */}
+            <View className="flex-1 items-center">
+              <Text className="text-md font-semibold whitespace-nowrap text-white text-center">
+                {title}
+              </Text>       
+            </View>
           </View>
         </View>
-      </View>
       </View>
     </TouchableOpacity>
   );
@@ -136,47 +154,49 @@ export default function Home() {
     require('../../assets/images/folder.png'),
     require('../../assets/images/folder.png'),
   ];
-  // Quick links data - Only Evaluations, Learning Materials, and Announcements
+
+  // Quick links data with icons
   const quickLinks: QuickLink[] = [
     {
       id: 1,
       title: 'Announcements',
-        description: 'Latest updates and important notices',
+      description: 'Latest updates and important notices',
       color: '#8C2323', 
       count: 5,
       bgImage: folderImages[0],
-      onPress: () => router.push('/screens/announcements')
+      onPress: () => router.push('/screens/announcements'),
+      icon: <Bell size={28} color="white" />
     },
-        {
+    {
       id: 2,
       title: 'Learning Materials',
       description: 'Access course materials and resources',
       color: '#8C2323', 
       count: 24,
       bgImage: folderImages[1],
-      onPress: () => router.push('/screens/learning-materials')
+      onPress: () => router.push('/screens/learning-materials'),
+      icon: <BookOpen size={28} color="white" />
     },
-        {
+    {
       id: 3,
       title: 'Events Calendar',
       description: 'Latest updates and important notices',
       color: '#8C2323', 
       count: 3,
       bgImage: folderImages[2],
-      onPress: () => router.push('/screens/calendar')
+      onPress: () => router.push('/screens/calendar'),
+      icon: <Calendar size={28} color="white" />
     },
-
-       {
+    {
       id: 4,
       title: 'School Calendar',
-      description: 'University Calendar ',
+      description: 'University Calendar',
       color: '#8C2323', 
       count: 24,
       bgImage: folderImages[1],
-      onPress: () => router.push('/screens/school-calendar')
+      onPress: () => router.push('/screens/school-calendar'),
+      icon: <CalendarDays size={28} color="white" />
     },
-
-
   ];
 
   useEffect(() => {
@@ -256,13 +276,14 @@ export default function Home() {
   }
 
   return (
-    <ScrollView className={`flex-1  bg-gray-50 dark:bg-gray-900 ${isLargeWeb ? 'p-4 max-w-4xl mx-auto' : 'p-3'}`}>
+    <ScrollView className={`flex-1 bg-gray-50 dark:bg-gray-900 ${isLargeWeb ? 'p-4 max-w-4xl mx-auto' : 'p-3'}`}>
       {/* Welcome Header */}
       <WelcomeHeader 
         user={user} 
         onProfilePress={handleProfilePress}      
       />
-        {/* Section Title */}
+      
+      {/* Section Title */}
       <View className="mb-6 ml-2">
         <Text className="text-xl font-bold text-gray-800 dark:text-white">
           Quick Access
@@ -271,6 +292,7 @@ export default function Home() {
           Quickly navigate to important sections
         </Text>
       </View>
+      
       {/* Quick Links Grid */}
       <View className="flex-row flex-wrap justify-between">
         {quickLinks.map((link) => (
@@ -280,6 +302,7 @@ export default function Home() {
             onPress={link.onPress}
             color={link.color}
             bgImage={link.bgImage}
+            icon={link.icon}
           />
         ))}
       </View>
