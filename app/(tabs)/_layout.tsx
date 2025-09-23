@@ -3,15 +3,16 @@ import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useAuth } from "@/contexts/AuthContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { Audio } from 'expo-av';
 import { Tabs, useRouter, useSegments } from "expo-router";
 import {
   Bell as BellIcon,
+  ClipboardList,
   Folder as FolderIcon,
   Home as HomeIcon,
-  ClipboardList,
   User as UserIcon
 } from "lucide-react-native";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -28,7 +29,6 @@ import Reanimated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { Audio } from 'expo-av';
 
 const Skeleton = ({ width, height, borderRadius = 4, style = {} }) => {
   return (
@@ -389,21 +389,21 @@ export default function TabLayout() {
                   <TouchableOpacity
                     className="w-[70px] h-[70px] rounded-full justify-center items-center mt-[-25px]"
                     style={{
-                      backgroundColor: focused ? "#be2e2e" : "#fff",
-                      borderWidth: 2,
-                      borderColor: focused ? "#be2e2e" : "#e5e7eb",
-                      shadowColor: "#000",
+                      backgroundColor: focused ? "" : "#fff",
+                      borderWidth: 1,
+                      borderColor: focused ? "#d66d6d5d" : "#d66d6d5d",
+                      shadowColor: "",
                       shadowOffset: { width: 0, height: 4 },
                       shadowOpacity: 0.25,
-                      shadowRadius: 5,
-                      elevation: 6,
+                      shadowRadius: 3,
+                    
                     }}
                     onPress={handleAIPress}
                   >
                     <Image
-                      source={require("../../assets/images/chatbot-app.png")}
-                      className="w-10 h-10"
-                      style={{ tintColor: focused ? "#fff" : undefined }}
+                      source={require("../../assets/images/chatbot.png")}
+                      className=" w-[50px] h-[50px]"
+                     
                     />
                   </TouchableOpacity>
                 ),
