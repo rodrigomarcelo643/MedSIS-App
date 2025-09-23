@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
-import { useRouter, Link } from "expo-router";
+import * as ImagePicker from 'expo-image-picker';
+import { Link, useRouter } from "expo-router";
 import {
   BookOpen,
   Calendar,
@@ -9,6 +10,7 @@ import {
   ChevronDown,
   ChevronUp,
   Edit2,
+  GalleryVertical,
   Globe,
   GraduationCap,
   IdCard,
@@ -17,30 +19,28 @@ import {
   Phone,
   School,
   Shield,
-  X,
   User,
-  XCircle,
-  Save,
+  X,
+  XCircle
 } from "lucide-react-native";
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  KeyboardTypeOptions,
   Modal,
+  Platform,
   RefreshControl,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Platform,
-  KeyboardTypeOptions,
-  KeyboardAvoidingView,
   TouchableWithoutFeedback,
-  Keyboard,
+  View,
 } from "react-native";
-import * as ImagePicker from 'expo-image-picker';
 
 interface UserData {
   id: string;
@@ -775,9 +775,9 @@ export default function ProfileScreen() {
                   )}
                 </TouchableOpacity>
                 
-                <View className="flex mt-3">
+                <View className="flex   mt-3">
                   <TouchableOpacity
-                    className={`flex-row gap-2 justify-center items-center p-2 rounded-[15px] shadow-md ${isGraduating ? "bg-white" : "bg-[#8C2323]"}`}
+                    className={`flex-row gap-2 justify-center items-center p-2  px-5 rounded-[15px] shadow-md ${isGraduating ? "bg-white" : "bg-[#8C2323]"}`}
                     onPress={startEditing}
                     activeOpacity={0.8}
                   >
@@ -875,10 +875,10 @@ export default function ProfileScreen() {
 
             {/* Save Changes Button */}
             {isEditing && (
-              <View className="bg-white rounded-xl shadow-sm p-5 mb-4">
+              <View className="bg-white rounded-xl  shadow-sm p-5 mb-4">
                 <View className="flex-row justify-between space-x-3">
                   <TouchableOpacity
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg items-center"
+                    className="flex-1 px-4 py-3 border mr-3  border-gray-300 rounded-lg items-center"
                     onPress={cancelEditing}
                     disabled={isLoading}
                     activeOpacity={0.7}
@@ -894,11 +894,11 @@ export default function ProfileScreen() {
                     {isLoading ? (
                       <ActivityIndicator color="white" size="small" className="mr-2" />
                     ) : (
-                      <Save size={16} color="white" className="mr-2" />
-                    )}
-                    <Text className="text-white font-medium">
+                      <Text className="text-white font-medium">
                       {isLoading ? "Saving..." : "Save Changes"}
                     </Text>
+                    )}
+                 
                   </TouchableOpacity>
                 </View>
               </View>
@@ -911,7 +911,7 @@ export default function ProfileScreen() {
               </Text>
 
               <Link href="/screens/change-password" asChild>
-                <TouchableOpacity className="flex-row items-center justify-between py-3 border-b border-gray-100" activeOpacity={0.7}>
+                <TouchableOpacity className="flex-row  items-center justify-between py-3 border-b border-gray-100" activeOpacity={0.7}>
                   <View className="flex-row items-center">
                     <View className="w-8 h-8 bg-green-100 rounded-lg items-center justify-center mr-3">
                       <Shield size={16} color="#10B981" />
@@ -964,12 +964,11 @@ export default function ProfileScreen() {
                       activeOpacity={0.7}
                     >
                       <View className="w-10 h-10 bg-blue-100 rounded-lg items-center justify-center mr-3">
-                        <Image
-                          source={require('@/assets/images/swu-head.png')}
-                          className="w-6 h-6"
+                        <GalleryVertical 
+                          className="w-6 h-6 text-blue-300"
                         />
                       </View>
-                      <Text className="text-blue-800 font-medium">Choose from Gallery</Text>
+                      <Text className="text-blue-600 font-medium">Choose from Gallery</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -1057,7 +1056,7 @@ export default function ProfileScreen() {
 
                   <View className="flex-row justify-between space-x-4">
                     <TouchableOpacity
-                      className="flex-1 py-3 border border-gray-300 rounded-xl items-center"
+                      className="flex-1 py-3 border  mr-3 border-gray-300 rounded-xl items-center"
                       onPress={hideLogoutModal}
                       activeOpacity={0.7}
                     >
