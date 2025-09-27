@@ -106,7 +106,7 @@ const QuickLinkCard: React.FC<QuickLinkCardProps> = ({ title, onPress, color, bg
         <View className="flex-1 p-6 ustify-center items-center">
           <View className="flex-col mt-5  items-center justify-center">
             {/* Icon Container */}
-            <View className="mb-3 bg-white/20 p-3 rounded-full">
+            <View className="mb-0 p-3 rounded-full">
               {icon}
             </View>
             
@@ -185,7 +185,7 @@ export default function Home() {
       count: 3,
       bgImage: folderImages[2],
       onPress: () => router.push('/screens/calendar'),
-      icon: <Calendar size={28} color="white" />
+      icon: <CalendarDays size={28} color="white" />
     },
     {
       id: 4,

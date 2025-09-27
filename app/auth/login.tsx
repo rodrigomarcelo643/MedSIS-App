@@ -386,7 +386,7 @@ const LoginScreen = () => {
         ref={scrollViewRef}
       >
         <View className="flex-1 justify-center px-4 py-6">
-          <View className="bg-white opacity-80 p-8 rounded-2xl shadow-lg border border-gray-100 w-full mx-auto max-w-md">
+          <View className="bg-white opacity-90 p-8 rounded-2xl shadow-lg border border-gray-100 w-full mx-auto max-w-md">
             {/* Logo + Text Animated */}
             <View className="items-center mb-8">
               <Animated.View style={logoStyle}>

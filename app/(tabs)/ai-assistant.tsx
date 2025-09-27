@@ -125,17 +125,9 @@ export default function AIAssistant() {
       action: 'research',
       context: 'research'
     },
+ 
     {
       id: '6',
-      title: 'Evaluation Process',
-      description: 'View your evaluation steps',
-      icon: ClipboardCheck,
-      color: '#8C2323',
-      action: 'evaluation',
-      context: 'evaluation'
-    },
-    {
-      id: '7',
       title: 'School Calendar',
       description: 'Check important events and dates',
       icon: Calendar,
@@ -144,7 +136,7 @@ export default function AIAssistant() {
       context: 'calendar'
     },
     {
-      id: '8',
+      id: '7',
       title: 'Requirements Upload',
       description: 'See required documents to upload',
       icon: Upload,

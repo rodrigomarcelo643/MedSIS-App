@@ -781,11 +781,7 @@ export default function ProfileScreen() {
                     onPress={startEditing}
                     activeOpacity={0.8}
                   >
-                    {isEditing ? (
-                      <X size={16} color={isGraduating ? "#2563EB" : "white"} />
-                    ) : (
-                      <Edit2 size={16} color={isGraduating ? "#2563EB" : "white"} />
-                    )}
+                   
                     <Text className={isGraduating ? "text-blue-600 font-medium" : "text-white font-medium"}>
                       {isEditing ? "Cancel" : "Edit Profile"}
                     </Text>
@@ -796,10 +792,7 @@ export default function ProfileScreen() {
               <Text className={`text-2xl font-bold text-center mb-1 ${isGraduating ? "text-white" : "text-gray-900"}`}>
                 {userData.first_name} {userData.last_name}
               </Text>
-              <Text className={isGraduating ? "text-blue-100" : "text-gray-500"}>
-                {userData.student_id}
-                {isGraduating && " • Graduating Student"}
-              </Text>
+        
             </View>
 
             {/* Personal Information Section */}
