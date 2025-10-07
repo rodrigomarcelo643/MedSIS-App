@@ -943,6 +943,7 @@ export default function FolderScreen() {
         {/* Requirements List */}
         {filteredRequirements.length === 0 ? (
           <View className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8 items-center justify-center">
+            <Image source={require("../../assets/images/no_file.png")} className="w-20 h-20"/>
             <Text className="text-gray-500 text-center">
               No requirements found
             </Text>
@@ -1100,7 +1101,7 @@ export default function FolderScreen() {
                   ))
                 ) : (
                   <View className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 items-center justify-center">
-                    <File size={35} color="#9CA3AF" />
+                    <Image source={require("../../assets/images/no_file.png")} className="w-20 h-20"/>
                     <Text className="text-gray-500 text-center mt-2 text-sm">
                       No files uploaded yet
                     </Text>

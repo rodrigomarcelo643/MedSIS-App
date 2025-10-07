@@ -10,7 +10,9 @@ interface User {
   email: string;
   status: string;
   program?: string;
+  gender?: string;
   nationality?: string;
+  foreigner_specify?: string;
   year_level_id?: string;
   year_level_name?: string;
   account_status?: string;

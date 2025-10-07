@@ -4,17 +4,17 @@
     "slug": "MSIS",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/swu-head.png",
+    "icon": "./assets/images/swu-header.png",
     "scheme": "integratedproject",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "projectId": "e4d72644-5c96-430c-babd-6066a17d7337",
     "splash": {
-      "image": "./assets/images/swu-head.png",
+      "image": "./assets/images/swu-header.png",
       "resizeMode": "contain",
       "backgroundColor": "transparent",
       "dark": {
-        "image": "./assets/images/swu-head.png",
+        "image": "./assets/images/swu-header.png",
         "resizeMode": "contain",
         "backgroundColor": "#121212"
       }
@@ -22,11 +22,11 @@
     "ios": {
       "supportsTablet": true,
       "splash": {
-        "image": "./assets/images/swu-head.png",
+        "image": "./assets/images/swu-header.png",
         "resizeMode": "contain",
         "backgroundColor": "transparent",
         "dark": {
-          "image": "./assets/images/swu-head.png",
+          "image": "./assets/images/swu-header.png",
           "resizeMode": "contain",
           "backgroundColor": "transparent"
         }
@@ -35,25 +35,25 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/swu-head.png",
+        "foregroundImage": "./assets/images/swu-header.png",
         "backgroundColor": "#ffffff"
       },
       "splash": {
-        "ldpi": "./assets/images/swu-head.png",
-        "mdpi": "./assets/images/swu-head.png",
-        "hdpi": "./assets/images/swu-head.png",
-        "xhdpi": "./assets/images/swu-head.png",
-        "xxhdpi": "./assets/images/swu-head.png",
-        "xxxhdpi": "./assets/images/swu-head.png",
+        "ldpi": "./assets/images/swu-header.png",
+        "mdpi": "./assets/images/swu-header.png",
+        "hdpi": "./assets/images/swu-header.png",
+        "xhdpi": "./assets/images/swu-header.png",
+        "xxhdpi": "./assets/images/swu-header.png",
+        "xxxhdpi": "./assets/images/swu-header.png",
         "resizeMode": "contain",
         "backgroundColor": "transparent",
         "dark": {
-          "ldpi": "./assets/images/swu-head.png",
-          "mdpi": "./assets/images/swu-head.png",
-          "hdpi": "./assets/images/swu-head.png",
-          "xhdpi": "./assets/images/swu-head.png",
-          "xxhdpi": "./assets/images/swu-head.png",
-          "xxxhdpi": "./assets/images/swu-head.png",
+          "ldpi": "./assets/images/swu-header.png",
+          "mdpi": "./assets/images/swu-header.png",
+          "hdpi": "./assets/images/swu-header.png",
+          "xhdpi": "./assets/images/swu-header.png",
+          "xxhdpi": "./assets/images/swu-header.png",
+          "xxxhdpi": "./assets/images/swu-header.png",
           "resizeMode": "contain",
           "backgroundColor": "#121212"
         }
@@ -65,23 +65,9 @@
       "package": "com.marcelo12345.MSIS",
       "useNextNotificationsApi": true
     },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/swu-head.png"
-    },
     "plugins": [
       "expo-router",
-      "expo-splash-screen",
-      "expo-barcode-scanner",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#8C2323",
-          "sounds": ["./assets/notification-sound.mp3"]
-        }
-      ]
+      "expo-splash-screen"
     ],
     "experiments": {
       "typedRoutes": true

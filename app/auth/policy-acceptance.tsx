@@ -185,11 +185,11 @@ const PolicyAcceptance = () => {
             <ArrowLeft size={20} color="white" />
           </TouchableOpacity>
           <Text className="text-2xl font-bold text-white flex-1" numberOfLines={1}>
-            Privacy Policy Agreement
+            Data Policy Agreement
           </Text>
         </View>
         <Text className="text-white/90 text-sm ml-12">
-          Please read and accept to continue
+          Please read carefully before accepting
         </Text>
       </View>
 
@@ -208,112 +208,180 @@ const PolicyAcceptance = () => {
                 <FileText size={20} color="#af1616" />
               </View>
               <Text className="text-xl font-bold text-[#af1616]">
-                MedSIS Privacy Policy
-              </Text>
-            </View>
-
-            <Text className="text-base text-gray-700 mb-6 leading-6">
-              Welcome to the Medical Student Information System (MedSIS). To continue, 
-              please review and accept our Privacy Policy. This ensures you understand 
-              how we handle your information.
-            </Text>
-
-            <View className="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-100">
-              <Text className="text-blue-800 font-semibold mb-2">Key Points:</Text>
-              <Text className="text-blue-700 text-sm">
-                • We collect only necessary information for educational purposes{"\n"}
-                • Your data is protected with industry-standard security{"\n"}
-                • We don't share your information without your consent{"\n"}
-                • You have control over your personal data
+                Data Policy Agreement
               </Text>
             </View>
 
             <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Information We Collect
+              Terms and Conditions
             </Text>
             <Text className="text-base text-gray-700 mb-4 leading-6">
-              • Personal identification information (name, student ID, email){"\n"}
-              • Academic records, grades, and course enrollment{"\n"}
-              • Attendance records and academic performance{"\n"}
-              • System usage data for optimization purposes
+              The Medical Student Information System (MSIS) is designed to manage student academic records and documents in accordance with Republic Act No. 10173, also known as the Data Privacy Act of 2012, ensuring the protection of personal and sensitive information.
             </Text>
 
             <Text className="text-lg font-semibold text-gray-800 mb-3">
-              How We Use Your Information
+              System Purpose
             </Text>
             <Text className="text-base text-gray-700 mb-4 leading-6">
-              • To provide and maintain educational services{"\n"}
-              • To manage your academic records and progress{"\n"}
-              • To communicate important announcements{"\n"}
-              • To improve system functionality and user experience
+              MSIS serves as the official repository for student academic documents, grades, and administrative records throughout your medical education journey.
             </Text>
 
             <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Data Protection & Security
+              Document Integrity
             </Text>
             <Text className="text-base text-gray-700 mb-4 leading-6">
-              We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. Your data is stored on secure servers with encryption and regular security audits.
+              All uploaded documents are verified for authenticity and stored with digital timestamps to maintain academic integrity and prevent unauthorized modifications.
             </Text>
 
             <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Your Rights
+              Confidentiality Protection
             </Text>
             <Text className="text-base text-gray-700 mb-4 leading-6">
-              • Right to access your personal data{"\n"}
-              • Right to correct inaccurate information{"\n"}
-              • Right to request data deletion (subject to academic requirements){"\n"}
-              • Right to data portability{"\n"}
-              • Right to withdraw consent where applicable
+              All student records are treated with strict confidentiality. Access is limited to authorized personnel only, including faculty, administrators, and the student themselves.
             </Text>
 
             <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Data Sharing
+              Academic Use Only
             </Text>
             <Text className="text-base text-gray-700 mb-4 leading-6">
-              We do not sell, trade, or rent your personal information to third parties. We may share information only:{"\n"}
-              • With authorized educational personnel{"\n"}
-              • When required by law or regulation{"\n"}
-              • With your explicit consent{"\n"}
-              • For legitimate educational purposes
+              Student information is used exclusively for educational administration, academic evaluation, and institutional compliance purposes.
             </Text>
 
             <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Cookies & Tracking
+              Data Security Measures
             </Text>
             <Text className="text-base text-gray-700 mb-4 leading-6">
-              Our system may use cookies and similar technologies to enhance your experience, remember your preferences, and analyze system usage. You can control cookie settings through your device preferences.
+              All student data is protected through multiple security layers including encryption, access controls, and regular security audits to prevent unauthorized access or data breaches.
             </Text>
 
             <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Contact Information
+              Student Rights
             </Text>
             <Text className="text-base text-gray-700 mb-4 leading-6">
-              If you have questions about this Privacy Policy or your data rights, please contact:{"\n"}
-              • Email: privacy@medsis.edu{"\n"}
-              • Phone: +63 (02) 123-4567{"\n"}
-              • Office: Student Affairs Office, Medical School
+              Students have the right to access, review, and request corrections to their personal information stored in the system, in accordance with data privacy regulations.
             </Text>
 
             <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Policy Updates
+              Student Document Management & Retention Policy
+            </Text>
+            <Text className="text-base text-gray-700 mb-4 leading-6">
+              Your academic documents and records are managed with the highest security standards throughout your medical education journey:
+            </Text>
+
+            <Text className="text-base font-semibold text-gray-800 mb-2">
+              Year 1 to Year 4 Students (Active Enrollment)
+            </Text>
+            <Text className="text-base text-gray-700 mb-4 leading-6">
+              • Full access to all uploaded documents and academic records{"\n"}
+              • Documents are backed up daily with 99.9% uptime guarantee{"\n"}
+              • Real-time synchronization across all authorized devices{"\n"}
+              • Version control for document updates and revisions{"\n"}
+              • Secure download capabilities for personal copies
+            </Text>
+
+            <Text className="text-base font-semibold text-gray-800 mb-2">
+              Post-Graduation (1 Year Recovery Period)
+            </Text>
+            <Text className="text-base text-gray-700 mb-4 leading-6">
+              • Account converted to alumni status with limited access{"\n"}
+              • Document Recovery Window: 1 full year to download all personal documents{"\n"}
+              • Email notifications sent at 6 months and 1 month before deletion{"\n"}
+              • Bulk download feature available for easy document retrieval{"\n"}
+              • Academic transcripts remain accessible through official channels
+            </Text>
+
+            <Text className="text-base font-semibold text-gray-800 mb-2">
+              Document Disposal (After 1 Year Post-Graduation)
+            </Text>
+            <Text className="text-base text-gray-700 mb-4 leading-6">
+              • Secure deletion using DoD 5220.22-M standards (3-pass overwrite){"\n"}
+              • Cryptographic erasure of encrypted data{"\n"}
+              • Physical destruction of backup media{"\n"}
+              • Certificate of destruction provided upon request{"\n"}
+              • Only official academic records retained in university archives
+            </Text>
+
+            <Text className="text-base font-semibold text-gray-800 mb-2">
+              Special Circumstances
+            </Text>
+            <Text className="text-base text-gray-700 mb-4 leading-6">
+              • Dropped/Transferred Students: 6-month recovery period before deletion{"\n"}
+              • Disciplinary Cases: Relevant documents retained for 7 years as per institutional policy{"\n"}
+              • Legal Holds: Documents preserved as required by law or court order{"\n"}
+              • Emergency Access: Family members may request access with proper legal documentation
+            </Text>
+
+            <View className="bg-yellow-50 p-4 rounded-lg mb-4 border border-yellow-200">
+              <Text className="text-yellow-800 font-semibold mb-2">Important:</Text>
+              <Text className="text-yellow-700 text-sm">
+                It is your responsibility to download and secure personal copies of all important documents before the retention period expires. The university is not liable for any documents lost due to failure to retrieve them within the specified timeframe.
+              </Text>
+            </View>
+
+            <Text className="text-lg font-semibold text-gray-800 mb-3">
+              Enhanced Security Measures
+            </Text>
+            <Text className="text-base text-gray-700 mb-4 leading-6">
+              We implement multiple layers of security to protect your data:
+            </Text>
+
+            <Text className="text-base font-semibold text-gray-800 mb-2">
+              Password Protection:
+            </Text>
+            <Text className="text-base text-gray-700 mb-3 leading-6">
+              bcrypt hashing with salt rounds
+            </Text>
+
+            <Text className="text-base font-semibold text-gray-800 mb-2">
+              Authentication:
+            </Text>
+            <Text className="text-base text-gray-700 mb-3 leading-6">
+              • CAPTCHA verification on all logins{"\n"}
+              • OTP Integration{"\n"}
+              • 30-minute session timeout
+            </Text>
+
+            <Text className="text-base font-semibold text-gray-800 mb-2">
+              Data Encryption:
+            </Text>
+            <Text className="text-base text-gray-700 mb-3 leading-6">
+              • AES-256 for data at rest{"\n"}
+              • TLS 1.3 for data in transit
+            </Text>
+
+            <Text className="text-base font-semibold text-gray-800 mb-2">
+              Additional Security:
+            </Text>
+            <Text className="text-base text-gray-700 mb-4 leading-6">
+              • Access Controls: Role-based access with audit logging{"\n"}
+              • Monitoring: 24/7 security monitoring{"\n"}
+              • Backups: Encrypted daily backups{"\n"}
+              • Alumni Data: Segregated storage with additional restrictions{"\n"}
+              • Breach Notification: Affected individuals will be notified within 72 hours of any data breach as required by law
+            </Text>
+
+            <Text className="text-lg font-semibold text-gray-800 mb-3">
+              Data Sharing & Third Parties
+            </Text>
+            <Text className="text-base text-gray-700 mb-4 leading-6">
+              Your data may be shared only under these circumstances:{"\n"}
+              • With government agencies as required by law (CHED, PRC, etc.){"\n"}
+              • For academic research (anonymized/aggregated only){"\n"}
+              • When legally compelled by court order{"\n"}
+              • With alumni associations (opt-out available){"\n\n"}
+              We never sell student or alumni data to third parties. All external sharing undergoes strict review by our Data Protection Officer.
+            </Text>
+
+            <Text className="text-lg font-semibold text-gray-800 mb-3">
+              Policy Updates & Contact Information
             </Text>
             <Text className="text-base text-gray-700 mb-6 leading-6">
-              This Privacy Policy may be updated periodically to reflect changes in our practices or legal requirements. We will notify you of significant changes through the system or email. Continued use of MedSIS after updates constitutes acceptance of the revised policy.
-            </Text>
-           
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Data Security
-            </Text>
-            <Text className="text-base text-gray-700 mb-6 leading-6">
-              We implement appropriate security measures to protect your personal data 
-              against unauthorized access. These include encryption, access controls, 
-              and regular security assessments.
+              This policy may be updated to comply with new regulations or institutional changes. Significant changes will be communicated via official MSIS notifications and email.{"\n\n"}
+              Questions or Concerns: Contact the College of Medicine Data Protection Officer or the MSIS Administrator for any inquiries regarding your document security and privacy rights.
             </Text>
 
             <Text className="text-base text-gray-700 mb-6 leading-6 italic border-l-4 border-[#af1616] pl-4 py-2 bg-gray-50">
-              By accepting this policy, you acknowledge that you have read, 
-              understood, and agree to the collection and use of your information 
-              as described above.
+              By using the Medical Student Information System (MSIS), I acknowledge and agree to the terms outlined above. I understand my rights regarding document access, retention periods, and secure disposal procedures. I consent to the collection and processing of my academic data in accordance with the Data Privacy Act of 2012 (RA 10173) and institutional policies.
             </Text>
           </View>
 
@@ -371,7 +439,7 @@ const PolicyAcceptance = () => {
                     state.policyAccepted ? "text-green-800" : "text-gray-600"
                   }`}
                 >
-                  I accept the Privacy Policy and Terms of Service
+                  I accept the Data Policy Agreement and Terms of Service
                 </Text>
               </TouchableOpacity>
 
