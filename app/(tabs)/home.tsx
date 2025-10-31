@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useRouter } from "expo-router";
 import { BookOpen, CalendarDays, Megaphone } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
@@ -131,13 +132,15 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({
   user,
   onProfilePress,
 }) => {
+    const mutedColor = useThemeColor({}, 'muted');
   return (
+    
     <View className="flex-row justify-between p-2 items-center mb-2">
       <View className="flex-1">
-        <Text className="text-md text-gray-500 dark:text-gray-400 mb-1">
+        <Text style={{ fontSize: 16, color: mutedColor, marginBottom: 4 }}>
           Welcome back,
         </Text>
-        <Text className="text-3xl font-bold text-red-700 dark:text-white">
+        <Text style={{ fontSize: 30, fontWeight: 'bold', color: '#dc2626' }}>
           {user?.first_name} {user?.last_name}
         </Text>
       </View>
@@ -152,6 +155,9 @@ export default function Home() {
   const router = useRouter();
   const isWeb = Platform.OS === "web";
   const isLargeWeb = isWeb && width >= 1024;
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const mutedColor = useThemeColor({}, 'muted');
 
   // Different folder background images for each card
   const folderImages = [
@@ -245,7 +251,8 @@ export default function Home() {
   if (isLoading) {
     return (
       <ScrollView
-        className={`flex-1 bg-gray-50 dark:bg-gray-900 ${isLargeWeb ? "p-4 max-w-4xl mx-auto" : "p-3"}`}
+        style={{ flex: 1, backgroundColor, padding: isLargeWeb ? 16 : 12 }}
+        className={isLargeWeb ? "max-w-4xl mx-auto" : ""}
       >
         {/* Welcome Header Skeleton */}
         <View className="flex-row justify-between p-2 items-center mb-4">
@@ -289,17 +296,18 @@ export default function Home() {
 
   return (
     <ScrollView
-      className={`flex-1 bg-gray-50 dark:bg-gray-900 ${isLargeWeb ? "p-4 max-w-4xl mx-auto" : "p-3"}`}
+      style={{ flex: 1, backgroundColor, padding: isLargeWeb ? 16 : 12 }}
+      className={isLargeWeb ? "max-w-4xl mx-auto" : ""}
     >
       {/* Welcome Header */}
       <WelcomeHeader user={user} onProfilePress={handleProfilePress} />
 
       {/* Section Title */}
       <View className="mb-3 ml-2">
-        <Text className="text-xl font-bold text-gray-800 dark:text-white">
+        <Text style={{ fontSize: 20, fontWeight: 'bold', color: textColor }}>
           Quick Access
         </Text>
-        <Text className="text-sm text-gray-500 dark:text-gray-400">
+        <Text style={{ fontSize: 14, color: mutedColor }}>
           Quickly navigate to important sections
         </Text>
       </View>
