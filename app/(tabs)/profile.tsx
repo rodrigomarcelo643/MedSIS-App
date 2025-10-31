@@ -16,10 +16,12 @@ import {
   IdCard,
   LogOut,
   Mail,
+  Mars,
   Phone,
   School,
   Shield,
   User,
+  Venus,
   X,
   XCircle
 } from "lucide-react-native";
@@ -49,6 +51,7 @@ interface UserData {
   first_name: string;
   last_name: string;
   email: string;
+  gender?: string;
   nationality?: string;
   foreigner_specify?: string;
   contact_number?: string;
@@ -64,6 +67,7 @@ interface UserData {
 interface EditData {
   first_name: string;
   last_name: string;
+  gender: string;
   nationality: string;
   foreigner_specify: string;
   contact_number: string;
@@ -108,6 +112,8 @@ interface SectionProps {
 
 const API_URL =
   process.env.EXPO_PUBLIC_API_URL || "https://msis.eduisync.io/api";
+
+
 export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -123,6 +129,7 @@ export default function ProfileScreen() {
   const [editData, setEditData] = useState<EditData>({
     first_name: "",
     last_name: "",
+    gender: "",
     nationality: "",
     foreigner_specify: "",
     contact_number: "",
@@ -138,7 +145,7 @@ export default function ProfileScreen() {
   const [isUploading, setIsUploading] = useState(false);
   const [hasInitiallyFetched, setHasInitiallyFetched] = useState(false);
 
-  const { user, login, logout, clearUser, refreshUser } = useAuth();
+  const { user, login, logout, clearUser, refreshUser, updateUser } = useAuth();
   const router = useRouter();
   const editDataRef = useRef<EditData>(editData);
   const firstNameInputRef = useRef<TextInput>(null);
@@ -147,33 +154,25 @@ export default function ProfileScreen() {
   const customNationalityRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Stable callback functions
-  const handleTextChange = useCallback((field: keyof EditData, text: string) => {
-    setEditData(prev => ({ ...prev, [field]: text }));
-  }, []);
+
 
   const handleNationalityTypeChange = useCallback((type: string) => {
     setNationalityType(type);
     if (type === "Filipino") {
-      setEditData(prev => ({ 
-        ...prev, 
+      editDataRef.current = { 
+        ...editDataRef.current, 
         nationality: "Filipino",
         foreigner_specify: "" 
-      }));
+      };
     } else {
-      setEditData(prev => ({ 
-        ...prev, 
+      editDataRef.current = { 
+        ...editDataRef.current, 
         nationality: "Foreigner" 
-      }));
-      // Focus on foreigner specify field after a short delay
+      };
       setTimeout(() => {
         customNationalityRef.current?.focus();
       }, 100);
     }
-  }, []);
-
-  const handleForeignerSpecifyChange = useCallback((text: string) => {
-    setEditData(prev => ({ ...prev, foreigner_specify: text }));
   }, []);
 
   // Update ref when editData changes
@@ -233,7 +232,7 @@ export default function ProfileScreen() {
   // Memoized fetch function with live fetch capability
   const fetchUserData = useCallback(async (showLoading = true, forceLiveFetch = false) => {
     const uid = user?.id || user?.user_id;
-    if (!uid) return;
+    if (!uid || isEditing) return; // Don't fetch while editing
 
     if (showLoading) setIsLoading(true);
 
@@ -300,18 +299,19 @@ export default function ProfileScreen() {
       router.replace("/auth/login");
     } else {
       setUserData(user);
-      // Always fetch live data on first load
-      if (!hasInitiallyFetched) {
+      // Always fetch live data on first load, but not while editing
+      if (!hasInitiallyFetched && !isEditing) {
         fetchUserData(true, true); // Live fetch on first load
       }
     }
-  }, [user, hasInitiallyFetched, fetchUserData]);
+  }, [user, hasInitiallyFetched, fetchUserData, isEditing]);
 
   useEffect(() => {
     if (userData && !isEditing) {
       setEditData({
         first_name: userData.first_name || "",
         last_name: userData.last_name || "",
+        gender: userData.gender || "",
         nationality: userData.nationality || "",
         foreigner_specify: userData.foreigner_specify || "",
         contact_number: userData.contact_number || "",
@@ -385,6 +385,7 @@ export default function ProfileScreen() {
       setEditData({
         first_name: userData?.first_name || "",
         last_name: userData?.last_name || "",
+        gender: userData?.gender || "",
         nationality: userData?.nationality || "",
         foreigner_specify: userData?.foreigner_specify || "",
         contact_number: userData?.contact_number || "",
@@ -409,6 +410,7 @@ export default function ProfileScreen() {
     setEditData({
       first_name: userData?.first_name || "",
       last_name: userData?.last_name || "",
+      gender: userData?.gender || "",
       nationality: userData?.nationality || "",
       foreigner_specify: userData?.foreigner_specify || "",
       contact_number: userData?.contact_number || "",
@@ -456,7 +458,16 @@ export default function ProfileScreen() {
   const handleUpdateProfile = async () => {
     if (!user || !userData) return;
 
-    const currentEditData = editDataRef.current;
+    // Get current values from refs
+    const currentEditData = {
+      ...editDataRef.current,
+      first_name: editDataRef.current.first_name || userData.first_name || '',
+      last_name: editDataRef.current.last_name || userData.last_name || '',
+      gender: editDataRef.current.gender || userData.gender || '',
+      nationality: editDataRef.current.nationality || userData.nationality || '',
+      foreigner_specify: editDataRef.current.foreigner_specify || userData.foreigner_specify || '',
+      contact_number: editDataRef.current.contact_number || userData.contact_number || ''
+    };
 
     if (!currentEditData.first_name.trim() || !currentEditData.last_name.trim()) {
       showUpdateModal(false, "First and Last name are required");
@@ -474,6 +485,8 @@ export default function ProfileScreen() {
       changes.first_name = currentEditData.first_name.trim();
     if (currentEditData.last_name !== userData.last_name)
       changes.last_name = currentEditData.last_name.trim();
+    if (currentEditData.gender !== (userData.gender || ""))
+      changes.gender = currentEditData.gender.trim();
     if (currentEditData.nationality !== userData.nationality)
       changes.nationality = currentEditData.nationality.trim();
     if (currentEditData.foreigner_specify !== userData.foreigner_specify)
@@ -525,6 +538,11 @@ export default function ProfileScreen() {
       );
 
       if (response.data.success) {
+        // Update AuthContext with new data
+        if (Object.keys(changes).length > 0) {
+          await updateUser(changes);
+        }
+        
         // Force live fetch to get updated data including avatar
         await fetchUserData(false, true);
         setSelectedImage(null);
@@ -544,31 +562,22 @@ export default function ProfileScreen() {
     }
   };
 
-  // Reusable Info Item component - Fixed to prevent focus loss
-  const InfoItem = React.memo<InfoItemProps>(({
-    icon: Icon,
-    label,
-    value,
-    editable = false,
-    field,
-    inputRef,
-    keyboardType = 'default',
-    autoCapitalize = 'none',
-    multiline = false
-  }) => {
-    const onTextChange = useCallback((text: string) => {
-      if (field) {
-        handleTextChange(field, text);
+  // Simple input component that doesn't re-render
+  const EditableField = ({ icon: Icon, label, value, field, inputRef, keyboardType = 'default', autoCapitalize = 'none' }: any) => {
+    const [localValue, setLocalValue] = useState(value || '');
+    
+    useEffect(() => {
+      if (!isEditing) {
+        setLocalValue(value || '');
       }
-    }, [field, handleTextChange]);
+    }, [value, isEditing]);
 
-    const handleSubmitEditing = useCallback(() => {
-      if (field === 'first_name' && lastNameInputRef.current) {
-        lastNameInputRef.current.focus();
-      } else if (field === 'last_name' && contactInputRef.current) {
-        contactInputRef.current.focus();
+    const handleChange = (text: string) => {
+      setLocalValue(text);
+      if (field) {
+        editDataRef.current = { ...editDataRef.current, [field]: text };
       }
-    }, [field]);
+    };
 
     return (
       <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
@@ -578,28 +587,21 @@ export default function ProfileScreen() {
           </View>
           <View className="flex-1">
             <Text className="text-gray-500 text-sm mb-1">{label}</Text>
-            {isEditing && editable ? (
+            {isEditing ? (
               <TextInput
                 ref={inputRef}
                 className="text-gray-800 font-medium text-base bg-white p-2 rounded-lg border border-gray-200"
-                value={field ? editData[field] || '' : ''}
-                onChangeText={onTextChange}
+                value={localValue}
+                onChangeText={handleChange}
                 placeholder={`Enter ${label.toLowerCase()}`}
                 autoCapitalize={autoCapitalize}
                 autoCorrect={false}
                 keyboardType={keyboardType}
-                onSubmitEditing={handleSubmitEditing}
                 returnKeyType={field === 'contact_number' ? 'done' : 'next'}
                 blurOnSubmit={field === 'contact_number'}
-                multiline={multiline}
-                numberOfLines={multiline ? 3 : 1}
-                textAlignVertical={multiline ? 'top' : 'center'}
               />
             ) : (
-              <Text
-                className="text-gray-800 font-medium text-base"
-                numberOfLines={2}
-              >
+              <Text className="text-gray-800 font-medium text-base" numberOfLines={2}>
                 {value || "Not provided"}
               </Text>
             )}
@@ -607,12 +609,122 @@ export default function ProfileScreen() {
         </View>
       </View>
     );
-  });
+  };
 
-  const NationalityInput = React.memo<NationalityInputProps>(({ value, label }) => {
-    const displayValue = value === "Foreigner" && userData?.foreigner_specify 
-      ? userData.foreigner_specify 
-      : value;
+  const InfoItem = ({ icon: Icon, label, value }: any) => (
+    <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+      <View className="flex-row items-center flex-1">
+        <View className="w-8 h-8 bg-gray-100 rounded-lg items-center justify-center mr-3">
+          <Icon size={16} color="#8C2323" />
+        </View>
+        <View className="flex-1">
+          <Text className="text-gray-500 text-sm mb-1">{label}</Text>
+          <Text className="text-gray-800 font-medium text-base" numberOfLines={2}>
+            {value || "Not provided"}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  const GenderInput = ({ value, label }: { value?: string; label: string }) => {
+    const [selectedGender, setSelectedGender] = useState(value || '');
+    
+    useEffect(() => {
+      if (!isEditing) {
+        setSelectedGender(value || '');
+      }
+    }, [value, isEditing]);
+
+    const handleGenderChange = useCallback((gender: string) => {
+      setSelectedGender(gender);
+      editDataRef.current = { ...editDataRef.current, gender };
+    }, []);
+
+    const getGenderIcon = (gender?: string) => {
+      if (gender === "Male") return <Mars size={16} color="#3B82F6" />;
+      if (gender === "Female") return <Venus size={16} color="#EC4899" />;
+      return <User size={16} color="#8C2323" />;
+    };
+
+    return (
+      <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+        <View className="flex-row items-center flex-1">
+          <View className="w-8 h-8 bg-gray-100 rounded-lg items-center justify-center mr-3">
+            {getGenderIcon(value)}
+          </View>
+          <View className="flex-1">
+            <Text className="text-gray-500 text-sm mb-1">{label}</Text>
+            {isEditing ? (
+              <View className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <TouchableOpacity
+                  className="flex-row justify-between items-center p-3"
+                  onPress={() => handleGenderChange("Male")}
+                >
+                  <View className="flex-row items-center">
+                    <Mars size={16} color="#3B82F6" className="mr-2" />
+                    <Text className="text-gray-800 ml-2">Male</Text>
+                  </View>
+                  <View className="w-5 h-5 rounded-full border-2 border-gray-300 items-center justify-center">
+                    {selectedGender === "Male" && (
+                      <View className="w-3 h-3 rounded-full bg-[#8C2323]" />
+                    )}
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="flex-row justify-between items-center p-3 border-t border-gray-100"
+                  onPress={() => handleGenderChange("Female")}
+                >
+                  <View className="flex-row items-center">
+                    <Venus size={16} color="#EC4899" className="mr-2" />
+                    <Text className="text-gray-800 ml-2">Female</Text>
+                  </View>
+                  <View className="w-5 h-5 rounded-full border-2 border-gray-300 items-center justify-center">
+                    {selectedGender === "Female" && (
+                      <View className="w-3 h-3 rounded-full bg-[#8C2323]" />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <Text className="text-gray-800 font-medium text-base">
+                {value || "Not provided"}
+              </Text>
+            )}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const NationalityInput = ({ value, label }: NationalityInputProps) => {
+    const displayValue = value;
+    const [localNationalityType, setLocalNationalityType] = useState(nationalityType);
+    
+    useEffect(() => {
+      if (!isEditing) {
+        setLocalNationalityType(nationalityType);
+      }
+    }, [nationalityType, isEditing]);
+
+    const handleLocalNationalityTypeChange = useCallback((type: string) => {
+      setLocalNationalityType(type);
+      if (type === "Filipino") {
+        editDataRef.current = { 
+          ...editDataRef.current, 
+          nationality: "Filipino",
+          foreigner_specify: "" 
+        };
+      } else {
+        editDataRef.current = { 
+          ...editDataRef.current, 
+          nationality: "Foreigner" 
+        };
+        setTimeout(() => {
+          customNationalityRef.current?.focus();
+        }, 100);
+      }
+    }, []);
 
     const handleForeignerSubmit = useCallback(() => {
       if (contactInputRef.current) {
@@ -624,7 +736,13 @@ export default function ProfileScreen() {
       <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
         <View className="flex-row items-center flex-1">
           <View className="w-8 h-8 bg-gray-100 rounded-lg items-center justify-center mr-3">
-            <Globe size={16} color="#8C2323" />
+            {value === "Filipino" ? (
+              <Text className="text-lg">🇵🇭</Text>
+            ) : value === "Foreigner" ? (
+              <Text className="text-lg">🌍</Text>
+            ) : (
+              <Globe size={16} color="#8C2323" />
+            )}
           </View>
           <View className="flex-1">
             <Text className="text-gray-500 text-sm mb-1">{label}</Text>
@@ -633,40 +751,42 @@ export default function ProfileScreen() {
                 <View className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-2">
                   <TouchableOpacity
                     className="flex-row justify-between items-center p-3"
-                    onPress={() => handleNationalityTypeChange("Filipino")}
+                    onPress={() => handleLocalNationalityTypeChange("Filipino")}
                   >
-                    <Text className="text-gray-800">Filipino</Text>
+                    <View className="flex-row items-center">
+                      <Text className="text-2xl mr-2">🇵🇭</Text>
+                      <Text className="text-gray-800">Filipino</Text>
+                    </View>
                     <View className="w-5 h-5 rounded-full border-2 border-gray-300 items-center justify-center">
-                      {nationalityType === "Filipino" && (
+                      {localNationalityType === "Filipino" && (
                         <View className="w-3 h-3 rounded-full bg-[#8C2323]" />
                       )}
                     </View>
                   </TouchableOpacity>
                   <TouchableOpacity
                     className="flex-row justify-between items-center p-3 border-t border-gray-100"
-                    onPress={() => handleNationalityTypeChange("Foreigner")}
+                    onPress={() => handleLocalNationalityTypeChange("Foreigner")}
                   >
-                    <Text className="text-gray-800">Foreigner</Text>
+                    <View className="flex-row items-center">
+                      <Text className="text-2xl mr-2">🌍</Text>
+                      <Text className="text-gray-800">Foreigner</Text>
+                    </View>
                     <View className="w-5 h-5 rounded-full border-2 border-gray-300 items-center justify-center">
-                      {nationalityType === "Foreigner" && (
+                      {localNationalityType === "Foreigner" && (
                         <View className="w-3 h-3 rounded-full bg-[#8C2323]" />
                       )}
                     </View>
                   </TouchableOpacity>
                 </View>
                 
-                {nationalityType === "Foreigner" && (
-                  <TextInput
-                    ref={customNationalityRef}
-                    className="text-gray-800 font-medium text-base bg-white p-2 rounded-lg border border-gray-200"
-                    value={editData.foreigner_specify || ''}
-                    onChangeText={handleForeignerSpecifyChange}
-                    placeholder="Specify your nationality"
+                {localNationalityType === "Foreigner" && (
+                  <EditableField
+                    icon={Globe}
+                    label="Specify Nationality"
+                    value={userData.foreigner_specify}
+                    field="foreigner_specify"
+                    inputRef={customNationalityRef}
                     autoCapitalize="words"
-                    autoCorrect={false}
-                    onSubmitEditing={handleForeignerSubmit}
-                    returnKeyType="next"
-                    blurOnSubmit={false}
                   />
                 )}
               </View>
@@ -682,7 +802,7 @@ export default function ProfileScreen() {
         </View>
       </View>
     );
-  });
+  };
 
   const Section: React.FC<SectionProps> = ({ title, icon: Icon, children, isExpanded, onToggle }) => (
     <View className="bg-white rounded-xl shadow-sm p-5 mb-4">
@@ -803,28 +923,19 @@ export default function ProfileScreen() {
               onToggle={() => toggleSection("personal")}
             >
               <InfoItem icon={IdCard} label="Student ID" value={userData.student_id} />
-              <InfoItem
-                icon={User}
-                label="First Name"
-                value={userData.first_name}
-                editable
-                field="first_name"
-                inputRef={firstNameInputRef}
-                autoCapitalize="words"
-              />
-              <InfoItem
-                icon={User}
-                label="Last Name"
-                value={userData.last_name}
-                editable
-                field="last_name"
-                inputRef={lastNameInputRef}
-                autoCapitalize="words"
+              <EditableField icon={User} label="First Name" value={userData.first_name} field="first_name" inputRef={firstNameInputRef} autoCapitalize="words" />
+              <EditableField icon={User} label="Last Name" value={userData.last_name} field="last_name" inputRef={lastNameInputRef} autoCapitalize="words" />
+              <GenderInput
+                label="Sex"
+                value={userData.gender}
               />
               <NationalityInput
                 label="Nationality"
                 value={userData.nationality}
               />
+              {userData.nationality === "Foreigner" && userData.foreigner_specify && (
+                <InfoItem icon={Globe} label="Specified Nationality" value={userData.foreigner_specify} />
+              )}
             </Section>
 
             {/* Academic Information Section */}
@@ -855,15 +966,7 @@ export default function ProfileScreen() {
               onToggle={() => toggleSection("contact")}
             >
               <InfoItem icon={Mail} label="Email" value={userData.email} />
-              <InfoItem
-                icon={Phone}
-                label="Contact Number"
-                value={userData.contact_number}
-                editable
-                field="contact_number"
-                inputRef={contactInputRef}
-                keyboardType="phone-pad"
-              />
+              <EditableField icon={Phone} label="Contact Number" value={userData.contact_number} field="contact_number" inputRef={contactInputRef} keyboardType="phone-pad" />
             </Section>
 
             {/* Save Changes Button */}
