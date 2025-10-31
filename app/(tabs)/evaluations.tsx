@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
@@ -62,6 +63,10 @@ interface EvaluationResponse {
 const Evaluations: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const mutedColor = useThemeColor({}, 'muted');
   const [evaluationData, setEvaluationData] =
     useState<EvaluationResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -184,7 +189,7 @@ const Evaluations: React.FC = () => {
   };
 
   // Animated Circular Progress Component
-  const CircularProgress = ({ percentage, size = 100, strokeWidth = 8 }) => {
+  const CircularProgress = ({ percentage , size = 100, strokeWidth = 8 }) => {
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
     const animatedValue = new Animated.Value(0);
@@ -242,7 +247,7 @@ const Evaluations: React.FC = () => {
           />
         </Svg>
         <View className="absolute items-center justify-center">
-          <Text className="text-2xl font-bold text-gray-800">
+          <Text className="text-2xl font-bold text-gray-800" style={{color: textColor }}>
             {percentage}%
           </Text>
           <Text className="text-xs text-gray-500">Complete</Text>
@@ -257,38 +262,38 @@ const Evaluations: React.FC = () => {
   // Skeleton Loader Component
   const SkeletonLoader = () => {
     return (
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1 bg-gray-100" style={{ backgroundColor }}>
         {/* Header Skeleton */}
-        <View className="bg-white pt-1 pb-4 px-5 flex-row items-center border-b border-gray-200">
-          <View className="w-8 h-8 bg-gray-300 rounded-full mr-4"></View>
-          <View className="h-8 bg-gray-300 rounded w-32"></View>
+        <View className="bg-white pt-1 pb-4 px-5 flex-row items-center border-b border-gray-200" style={{ backgroundColor:cardColor}}>
+          <View className="w-8 h-8 bg-gray-300 rounded-full mr-4" style={{ backgroundColor: cardColor}}></View>
+          <View className="h-8 bg-gray-300 rounded w-32" style={{ backgroundColor: cardColor }}></View>
         </View>
 
         {/* Summary Section Skeleton */}
-        <View className="bg-white p-5 m-3 rounded-lg shadow">
-          <View className="h-6 bg-gray-300 rounded w-2/5 mb-6 mx-auto"></View>
+        <View className="bg-white p-5 m-3 rounded-lg shadow" style={{ backgroundColor }}>
+          <View className="h-6 bg-gray-300 rounded w-2/5 mb-6 mx-auto" style={{ backgroundColor: cardColor }}></View>
 
           <View className="flex-row items-center justify-between mb-6">
             {/* Circular Progress Skeleton */}
             <View className="flex-1 items-center">
-              <View className="w-32 h-32 bg-gray-300 rounded-full"></View>
+              <View className="w-32 h-32 bg-gray-300 rounded-full" style={{ backgroundColor: cardColor }}></View>
             </View>
 
             {/* Stats Skeleton */}
             <View className="flex-1 pl-4">
               <View className="mb-3">
-                <View className="h-7 bg-gray-300 rounded w-12 mb-1"></View>
-                <View className="h-3 bg-gray-300 rounded w-20"></View>
+                <View className="h-7 bg-gray-300 rounded w-12 mb-1" style={{ backgroundColor: cardColor }}></View>
+                <View className="h-3 bg-gray-300 rounded w-20" style={{ backgroundColor: cardColor }}></View>
               </View>
 
               <View className="mb-3">
-                <View className="h-7 bg-gray-300 rounded w-12 mb-1"></View>
-                <View className="h-3 bg-gray-300 rounded w-20"></View>
+                <View className="h-7 bg-gray-300 rounded w-12 mb-1" style={{ backgroundColor: cardColor }}></View>
+                <View className="h-3 bg-gray-300 rounded w-20" style={{ backgroundColor: cardColor }}></View>
               </View>
 
               <View>
-                <View className="h-7 bg-gray-300 rounded w-12 mb-1"></View>
-                <View className="h-3 bg-gray-300 rounded w-20"></View>
+                <View className="h-7 bg-gray-300 rounded w-12 mb-1" style={{ backgroundColor: cardColor}}></View>
+                <View className="h-3 bg-gray-300 rounded w-20" style={{ backgroundColor: cardColor }}></View>
               </View>
             </View>
           </View>
@@ -307,25 +312,27 @@ const Evaluations: React.FC = () => {
           <View
             key={year}
             className="m-3 bg-white rounded-lg overflow-hidden shadow"
+            style={{ backgroundColor }}
           >
-            <View className="bg-gray-400 h-12"></View>
+            <View className="bg-gray-400 h-12" style={{ backgroundColor: cardColor}}></View>
             <View className="p-4">
               {[1, 2, 3].map((course) => (
                 <View
                   key={course}
                   className="bg-gray-50 p-4 rounded mb-3 border-l-4 border-gray-300"
+                  style={{ backgroundColor: cardColor }}
                 >
                   <View className="flex-row justify-between items-center mb-2">
-                    <View className="h-5 bg-gray-300 rounded w-16"></View>
+                    <View className="h-5 bg-gray-300 rounded w-16" style={{ backgroundColor: cardColor }}></View>
                     <View className="flex-row items-center">
-                      <View className="h-3 bg-gray-300 rounded w-12 mr-2"></View>
-                      <View className="h-6 bg-gray-300 rounded-full w-16"></View>
+                      <View className="h-3 bg-gray-300 rounded w-12 mr-2" style={{ backgroundColor: cardColor }}></View>
+                      <View className="h-6 bg-gray-300 rounded-full w-16" style={{ backgroundColor: cardColor }}></View>
                     </View>
                   </View>
-                  <View className="h-4 bg-gray-300 rounded w-4/5 mb-3"></View>
+                  <View className="h-4 bg-gray-300 rounded w-4/5 mb-3" style={{ backgroundColor: cardColor }}></View>
                   <View className="flex-row justify-between">
-                    <View className="h-3 bg-gray-300 rounded w-12"></View>
-                    <View className="h-3 bg-gray-300 rounded w-16"></View>
+                    <View className="h-3 bg-gray-300 rounded w-12" style={{ backgroundColor: cardColor }}></View>
+                    <View className="h-3 bg-gray-300 rounded w-16" style={{ backgroundColor: cardColor }}></View>
                   </View>
                 </View>
               ))}
@@ -336,6 +343,7 @@ const Evaluations: React.FC = () => {
     );
   };
 
+  // Load Skeleton loader if the data is Loading 
   if (loading) {
     return <SkeletonLoader />;
   }
@@ -356,17 +364,15 @@ const Evaluations: React.FC = () => {
 
   return (
     <>
-     
-
       <ScrollView
-        className="flex-1 bg-gray-100"
+        style={{ flex: 1, backgroundColor }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
         {/* Summary Section */}
-        <View className="bg-white p-5 m-3 rounded-lg shadow">
-          <Text className="text-lg font-bold text-gray-800 mb-4 text-center">
+        <View style={{ backgroundColor: cardColor, padding: 20, margin: 12, borderRadius: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor, marginBottom: 16, textAlign: 'center' }}>
             Evaluation Summary
           </Text>
 
@@ -386,21 +392,21 @@ const Evaluations: React.FC = () => {
                 <Text className="text-xl font-bold text-green-600">
                   {evaluationData.summary.passed_courses}
                 </Text>
-                <Text className="text-xs text-gray-500">Passed Courses</Text>
+                <Text style={{ fontSize: 12, color: mutedColor }}>Passed Courses</Text>
               </View>
 
               <View className="mb-3">
                 <Text className="text-xl font-bold text-red-600">
                   {evaluationData.summary.failed_courses}
                 </Text>
-                <Text className="text-xs text-gray-500">Failed Courses</Text>
+                <Text style={{ fontSize: 12, color: mutedColor }}>Failed Courses</Text>
               </View>
 
               <View>
                 <Text className="text-xl font-bold text-[#be2e2e]">
                   {evaluationData.summary.total_courses}
                 </Text>
-                <Text className="text-xs text-gray-500">Total Courses</Text>
+                <Text style={{ fontSize: 12, color: mutedColor }}>Total Courses</Text>
               </View>
             </View>
           </View>
@@ -411,14 +417,14 @@ const Evaluations: React.FC = () => {
               <Text className="text-lg font-bold text-amber-600">
                 {evaluationData.summary.in_progress_courses}
               </Text>
-              <Text className="text-xs text-gray-500">In Progress</Text>
+              <Text style={{ fontSize: 12, color: mutedColor }}>In Progress</Text>
             </View>
 
             <View className="items-center">
               <Text className="text-lg font-bold text-orange-500">
                 {evaluationData.summary.pending_courses}
               </Text>
-              <Text className="text-xs text-gray-500">Pending</Text>
+              <Text style={{ fontSize: 12, color: mutedColor }}>Pending</Text>
             </View>
           </View>
         </View>
@@ -435,6 +441,7 @@ const Evaluations: React.FC = () => {
               <View
                 key={yearLevel}
                 className="m-3 bg-white rounded-lg overflow-hidden shadow"
+                style={{ backgroundColor: cardColor }}
               >
                 <Text className="bg-[#be2e2e] text-white p-4 text-lg font-bold">
                   {formatYearLevel(yearLevel)}
@@ -449,14 +456,16 @@ const Evaluations: React.FC = () => {
                         <TouchableOpacity
                           key={evaluation.curriculum_course_id}
                           className="bg-gray-50 p-4 rounded mb-3 border-l-4 border-[#be2e2e]"
+                          style={{ backgroundColor : cardColor }}
                           onPress={() => showEvaluationDetails(evaluation)}
                         >
                           <View className="flex-row justify-between items-center mb-2">
-                            <Text className="text-base font-bold text-gray-800">
+                            <Text className="text-base font-bold text-gray-800"
+                            style={{ color: textColor }}>
                               {evaluation.code}
                             </Text>
                             <View className="flex-row items-center">
-                              <Text className="text-xs text-gray-500 mr-2">
+                              <Text className="text-xs text-gray-500 mr-2" style={{ color: textColor }}>
                                 {formatTerm(evaluation.term)}
                               </Text>
                               <View
@@ -468,13 +477,13 @@ const Evaluations: React.FC = () => {
                               </View>
                             </View>
                           </View>
-                          <Text className="text-sm text-gray-600 mb-3">
+                          <Text className="text-sm text-gray-600 mb-3" style={{ color: textColor }}>
                             {evaluation.title}
                           </Text>
                           <View className="flex-row justify-between">
                             {/* Don't show units for fourth year courses */}
                             {evaluation.year_level !== "fourth_year" && (
-                              <Text className="text-xs text-gray-500">
+                              <Text className="text-xs text-gray-500" style={{ color: textColor }}>
                                 {evaluation.units} units
                               </Text>
                             )}
@@ -482,14 +491,14 @@ const Evaluations: React.FC = () => {
                               <View className="flex-1" />
                             )}
                             {evaluation.grade && (
-                              <Text className="text-xs text-gray-500">
+                              <Text className="text-xs text-gray-500" style={{ color: textColor }}>
                                 Grade: {evaluation.grade}
                               </Text>
                             )}
                           </View>
                           {evaluation.remarks && (
                             <Text className="text-xs text-gray-500 mt-2">
-                              Remarks: {evaluation.remarks}
+                    
                             </Text>
                           )}
                         </TouchableOpacity>
