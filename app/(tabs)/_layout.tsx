@@ -1,8 +1,9 @@
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
 import { useAuth } from "@/contexts/AuthContext";
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import { messageService } from "@/services/messageService";
 import { Audio } from 'expo-av';
 import { Tabs, useRouter, useSegments } from "expo-router";
 import {
@@ -10,6 +11,7 @@ import {
   ClipboardList,
   Folder as FolderIcon,
   Home as HomeIcon,
+  MessageCircle as MessageIcon,
   User as UserIcon
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
@@ -31,6 +33,12 @@ import Reanimated, {
 } from "react-native-reanimated";
 
 const Skeleton = ({ width, height, borderRadius = 4, style = {} }) => {
+  
+  //Theme Change
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const mutedColor = useThemeColor({}, 'muted');
   return (
     <View
       className="overflow-hidden"
@@ -39,7 +47,7 @@ const Skeleton = ({ width, height, borderRadius = 4, style = {} }) => {
           width,
           height,
           borderRadius,
-          backgroundColor: "#e1e1e1",
+          backgroundColor,
         },
         style,
       ]}
@@ -47,7 +55,7 @@ const Skeleton = ({ width, height, borderRadius = 4, style = {} }) => {
       <Animated.View
         className="w-full h-full"
         style={{
-          backgroundColor: "#f5f5f5",
+          backgroundColor: cardColor,
         }}
       />
     </View>
@@ -57,14 +65,22 @@ const Skeleton = ({ width, height, borderRadius = 4, style = {} }) => {
 export default function TabLayout() {
   const router = useRouter();
   const segments = useSegments(); 
-  const colorScheme = useColorScheme();
+  const { theme } = useTheme();
+  //Theme Change
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const mutedColor = useThemeColor({}, 'muted');
+  
   const tintColor = "#be2e2e";
   const { width } = useWindowDimensions();
   const [isLoading, setIsLoading] = useState(true);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const { user } = useAuth(); 
   const [notificationCount, setNotificationCount] = useState(0);
+  const [messageCount, setMessageCount] = useState(0);
   const [isFirstFetch, setIsFirstFetch] = useState(true);
+  const [isFirstMessageFetch, setIsFirstMessageFetch] = useState(true);
   const soundRef = useRef<Audio.Sound | null>(null);
 
   const isWeb = Platform.OS === "web";
@@ -140,13 +156,37 @@ export default function TabLayout() {
       }
     };
 
+    const fetchMessageCount = async () => {
+      try {
+        const unreadMessages = await messageService.getUnreadCount(user.id);
+        
+        // Check if message count increased (but not on first fetch)
+        if (!isFirstMessageFetch && unreadMessages > messageCount) {
+          playNotificationSound();
+        }
+        
+        setMessageCount(unreadMessages);
+        
+        // After first successful fetch, mark as not first fetch anymore
+        if (isFirstMessageFetch) {
+          setIsFirstMessageFetch(false);
+        }
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }
+    };
+
     fetchNotificationCount();
+    fetchMessageCount();
     
-    // Set up interval to periodically check for new notifications
-    const intervalId = setInterval(fetchNotificationCount, 3000); // Check every 3 seconds
+    // Set up interval to periodically check for new notifications and messages
+    const intervalId = setInterval(() => {
+      fetchNotificationCount();
+      fetchMessageCount();
+    }, 3000);
     
     return () => clearInterval(intervalId);
-  }, [user?.id, notificationCount, isFirstFetch]);
+  }, [user?.id, notificationCount, messageCount, isFirstFetch, isFirstMessageFetch]);
 
   useEffect(() => {
     const currentRoute = segments[segments.length - 1]; // get last active tab
@@ -220,8 +260,22 @@ export default function TabLayout() {
     );
   };
 
+  const renderMessageBadge = () => {
+    if (messageCount <= 0) return null;
+    
+    const displayCount = messageCount > 99 ? "99+" : messageCount;
+    
+    return (
+      <View className="absolute -right-2 -top-1 min-w-[18px] h-[18px] rounded-full bg-red-500 justify-center items-center">
+        <Text className="text-xs text-white font-bold px-1">
+          {displayCount}
+        </Text>
+      </View>
+    );
+  };
+
   const renderHeader = () => (
-    <View className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200">
+    <View style={{ backgroundColor, borderBottomWidth: 1, borderBottomColor: theme === 'dark' ? '#374151' : '#e5e7eb' }} className="flex-row items-center px-4 py-4">
       <View className="flex-row items-center">
         {isLoading ? (
           <Skeleton width={36} height={36} borderRadius={18} />
@@ -262,6 +316,19 @@ export default function TabLayout() {
       <View className="flex-1" />
       <View className="flex-row items-center">
         <TouchableOpacity
+          onPress={() => router.push("/messages")}
+          className="mr-3 relative"
+        >
+          {isLoading ? (
+            <Skeleton width={24} height={24} borderRadius={12} />
+          ) : (
+            <>
+              <MessageIcon size={24} color={textColor} />
+              {renderMessageBadge()}
+            </>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={() => router.push("/notifications")}
           className="mr-3 relative"
         >
@@ -269,7 +336,7 @@ export default function TabLayout() {
             <Skeleton width={24} height={24} borderRadius={12} />
           ) : (
             <>
-              <BellIcon size={24} color={Colors[colorScheme ?? "light"].text} />
+              <BellIcon size={24} color={textColor} />
               {renderNotificationBadge()}
             </>
           )}
@@ -289,7 +356,7 @@ export default function TabLayout() {
                   className="w-4 h-3 mr-1"
                 />
               )}
-              <Text className="text-xs font-medium">
+              <Text className="text-xs font-medium" style={{color: textColor}} >
                 {user.nationality || "N/A"}
               </Text>
             </View>
@@ -339,8 +406,7 @@ export default function TabLayout() {
               marginBottom: 0,
             },
             tabBarActiveTintColor: tintColor,
-            tabBarInactiveTintColor:
-              Colors[colorScheme ?? "light"].tabIconDefault,
+            tabBarInactiveTintColor: theme === 'dark' ? '#9BA1A6' : '#687076',
           }}
           screenListeners={{
             state: (e) => {
@@ -389,7 +455,7 @@ export default function TabLayout() {
                   <TouchableOpacity
                     className="w-[70px] h-[70px] rounded-full justify-center items-center mt-[-25px]"
                     style={{
-                      backgroundColor: focused ? "" : "#fff",
+                      backgroundColor: focused ? cardColor : cardColor ,
                       borderWidth: 1,
                       borderColor: focused ? "#d66d6d5d" : "#d66d6d5d",
                       shadowColor: "",
