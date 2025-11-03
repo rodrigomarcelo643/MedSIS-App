@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import axios from "axios";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
@@ -41,7 +42,7 @@ interface UploadedFile {
   name: string;
   size: number;
   uri: string;
-  type: 'image' | 'pdf' | 'word' | 'document';
+  type: 'image' | 'pdf' | 'word' | 'document' ;
   mimeType: string;
   uploaded_at?: string;
   status?: string;
@@ -68,6 +69,10 @@ type FilterType = 'all' | 'completed' | 'not-completed';
 
 export default function FolderScreen() {
   const { user } = useAuth();
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const mutedColor = useThemeColor({}, 'muted');
   
   // State for requirements
   const [requirements, setRequirements] = useState<Requirement[]>([]);
@@ -717,36 +722,36 @@ export default function FolderScreen() {
   // Skeleton loader component
   const SkeletonLoader = () => {
     return (
-      <View className="flex-1 bg-white p-4">
+      <View className="flex-1 bg-white p-4" style={{ backgroundColor }}>
         {/* Header Skeleton */}
         <View className="mb-6">
-          <View className="h-8 bg-gray-200 rounded w-3/4 mb-2"></View>
-          <View className="h-4 bg-gray-200 rounded w-full"></View>
+          <View className="h-8 bg-gray-200 rounded w-3/4 mb-2" style={{ backgroundColor:cardColor }}></View>
+          <View className="h-4 bg-gray-200 rounded w-full" style={{backgroundColor: cardColor}}></View>
         </View>
 
         {/* Search Bar Skeleton */}
-        <View className="h-12 bg-gray-200 rounded-lg mb-4"></View>
+        <View className="h-12 bg-gray-200 rounded-lg mb-4" style={{ backgroundColor: cardColor }}></View>
 
         {/* Stats Cards Skeleton */}
         <View className="flex-row justify-between mb-4 gap-1">
-          <View className="bg-gray-200 rounded-lg p-4 w-1/3 items-center shadow-md">
-            <View className="h-4 bg-gray-300 rounded w-3/4 mb-2"></View>
-            <View className="h-8 bg-gray-300 rounded w-1/2"></View>
+          <View className="bg-gray-200 rounded-lg p-4 w-1/3 items-center shadow-md" style={{ backgroundColor: cardColor }}>
+            <View className="h-4 bg-gray-300 rounded w-3/4 mb-2" style={{ backgroundColor: cardColor }}></View>
+            <View className="h-8 bg-gray-300 rounded w-1/2" style={{ backgroundColor: cardColor }}></View>
           </View>
-          <View className="bg-gray-200 rounded-lg p-4 w-1/3 items-center shadow-md">
-            <View className="h-4 bg-gray-300 rounded w-3/4 mb-2"></View>
-            <View className="h-8 bg-gray-300 rounded w-1/2"></View>
+          <View className="bg-gray-200 rounded-lg p-4 w-1/3 items-center shadow-md" style={{ backgroundColor: cardColor }}>
+            <View className="h-4 bg-gray-300 rounded w-3/4 mb-2" style={{ backgroundColor: cardColor}} ></View>
+            <View className="h-8 bg-gray-300 rounded w-1/2" style={{ backgroundColor: cardColor }}></View>
           </View>
-          <View className="bg-gray-200 rounded-lg p-4 w-1/3 items-center shadow-md">
-            <View className="h-4 bg-gray-300 rounded w-3/4 mb-2"></View>
-            <View className="h-8 bg-gray-300 rounded w-1/2"></View>
+          <View className="bg-gray-200 rounded-lg p-4 w-1/3 items-center shadow-md" style={{ backgroundColor: cardColor}}> 
+            <View className="h-4 bg-gray-300 rounded w-3/4 mb-2" style={{ backgroundColor: cardColor }}></View>
+            <View className="h-8 bg-gray-300 rounded w-1/2" style={{ backgroundColor: cardColor }}></View>
           </View>
         </View>
 
         {/* Filter Row Skeleton */}
         <View className="flex-row items-center gap-3 justify-between mb-4">
-          <View className="h-10 bg-gray-200 rounded-lg w-1/3"></View>
-          <View className="h-10 bg-gray-200 rounded-lg w-2/3"></View>
+          <View className="h-10 bg-gray-200 rounded-lg w-1/3" style={{ backgroundColor: cardColor }}></View>
+          <View className="h-10 bg-gray-200 rounded-lg w-2/3" style={{ backgroundColor: cardColor }}></View>
         </View>
 
         {/* Requirements List Skeleton */}
@@ -754,20 +759,21 @@ export default function FolderScreen() {
           {[1, 2, 3].map((item) => (
             <View
               key={item}
+              style={{ backgroundColor }}
               className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-4 mb-4"
             >
               <View className="flex-row justify-between items-start mb-4">
-                <View className="h-6 bg-gray-200 rounded w-3/4"></View>
-                <View className="w-6 h-6 bg-gray-200 rounded-md"></View>
+                <View className="h-6 bg-gray-200 rounded w-3/4 " style={{ backgroundColor: cardColor }}></View>
+                <View className="w-6 h-6 bg-gray-200 rounded-md" style={{ backgroundColor: cardColor }}></View>
               </View>
               <View>
                 <View className="flex-row justify-between items-center mb-4">
-                  <View className="h-4 bg-gray-200 rounded w-1/3"></View>
-                  <View className="h-4 bg-gray-200 rounded w-1/6"></View>
+                  <View className="h-4 bg-gray-200 rounded w-1/3" style={{ backgroundColor: cardColor }}></View>
+                  <View className="h-4 bg-gray-200 rounded w-1/6" style={{ backgroundColor: cardColor }}></View>
                 </View>
-                <View className="h-16 bg-gray-100 rounded-lg mb-2"></View>
+                <View className="h-16 bg-gray-100 rounded-lg mb-2" style={{ backgroundColor: cardColor }}></View>
                 <View className="items-end mt-2">
-                  <View className="h-10 bg-gray-200 rounded-lg w-32"></View>
+                  <View className="h-10 bg-gray-200 rounded-lg w-32" style={{ backgroundColor: cardColor }}></View>
                 </View>
               </View>
             </View>
@@ -805,7 +811,7 @@ export default function FolderScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white">
+    <View style={{ flex: 1, backgroundColor }}>
       <ScrollView
         className="p-4"
         refreshControl={
@@ -823,19 +829,19 @@ export default function FolderScreen() {
         {/* Header */}
         <View className="mb-6">
           
-          <Text className="text-gray-600 mt-1">
+          <Text style={{ color: mutedColor, marginTop: 4 }}>
             Upload all required documents. Please ensure all files are clear and
             legible.
           </Text>
         </View>
 
         {/* Search Bar */}
-        <View className="flex-row items-center bg-white rounded-lg px-4 py-0 shadow-sm mb-4 border-2 border-gray-300 ">
+        <View style={{ backgroundColor: cardColor }} className="flex-row items-center bg-white rounded-lg px-4 py-0 shadow-sm mb-4 border-2 border-gray-300 ">
           <Search size={20} color="#6b7280" />
           <TextInput
-            className="ml-2 text-gray-700 flex-1 text-base"
+            style={{ marginLeft: 8, color: textColor, flex: 1, fontSize: 16 }}
             placeholder="Search requirements..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={mutedColor}
             value={searchQuery}
             onChangeText={setSearchQuery}
             clearButtonMode="while-editing"
@@ -850,21 +856,21 @@ export default function FolderScreen() {
 
         {/* Stats Cards */}
         <View className="flex-row justify-between mb-4 gap-1">
-          <View className="bg-white rounded-lg p-4 w-1/3 items-center shadow-md">
+          <View style={{ backgroundColor: cardColor, borderRadius: 8, padding: 16, width: '33%', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
             <Text className="text-gray-500 text-sm">Requirements</Text>
-            <Text className="text-2xl font-bold text-gray-800">
+            <Text  className="text-2xl" style={{ fontWeight: 'bold', color: textColor }}>
               {totalCount}
             </Text>
           </View>
-          <View className="bg-white rounded-lg p-4 w-1/3 items-center shadow-md">
+          <View className="bg-white rounded-lg p-4 w-1/3 items-center shadow-md" style={{ backgroundColor: cardColor, borderRadius: 8, padding: 16, width: '33%', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
             <Text className="text-gray-500 text-sm">Completed</Text>
-            <Text className="text-2xl font-bold text-gray-800">
+            <Text className="text-2xl font-bold text-gray-800" style={{ fontSize: 24, fontWeight: 'bold', color: textColor }}>
               {completedCount}
             </Text>
           </View>
-          <View className="bg-white rounded-lg p-4 w-1/3 items-center shadow-md">
-            <Text className="text-gray-500 text-sm">Completion</Text>
-            <Text className="text-2xl font-bold text-green-600">
+          <View className="bg-white rounded-lg p-4 w-1/3 items-center shadow-md" style={{ backgroundColor: cardColor, borderRadius: 8, padding: 16, width: '33%', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
+            <Text className="text-gray-500 text-sm" >Completion</Text>
+            <Text className="text-2xl font-bold text-green-600" >
               {completionPercentage}%
             </Text>
           </View>
@@ -893,10 +899,11 @@ export default function FolderScreen() {
           {/* Filter Dropdown */}
           <View className="flex-1 relative">
             <Pressable
+              style={{ backgroundColor:cardColor }}
               className="bg-white border border-gray-200 py-2 px-4 rounded-lg flex-row items-center justify-between h-10"
               onPress={() => setShowFilterDropdown(!showFilterDropdown)}
             >
-              <Text className="text-gray-700 text-xs">
+              <Text className="text-gray-700 text-xs" style={{ color: textColor}}>
                 {filter === "all"
                   ? "All"
                   : filter === "completed"
@@ -942,7 +949,7 @@ export default function FolderScreen() {
 
         {/* Requirements List */}
         {filteredRequirements.length === 0 ? (
-          <View className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8 items-center justify-center">
+          <View style={{ backgroundColor: cardColor }} className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8 items-center justify-center">
             <Image source={require("../../assets/images/no_file.png")} className="w-20 h-20"/>
             <Text className="text-gray-500 text-center">
               No requirements found
@@ -952,12 +959,13 @@ export default function FolderScreen() {
           filteredRequirements.map((req) => (
             <View
               key={req.id}
+              style={{ backgroundColor: cardColor }}
               className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-4 mb-4"
             >
               {/* Requirement Info */}
               <View className="flex-row justify-between items-start mb-4">
                 <View className="flex-1">
-                  <Text className="font-bold text-gray-800 text-lg">
+                  <Text className="font-bold text-gray-800 text-lg" style={{ color: textColor }}>
                     {req.name}
                   </Text>
                 </View>
@@ -971,7 +979,7 @@ export default function FolderScreen() {
               {/* Files Section */}
               <View>
                 <View className="flex-row justify-between items-center mb-4">
-                  <Text className="font-medium text-gray-800 text-sm">
+                  <Text className="font-medium text-gray-800 text-sm" style={{ color: textColor }}>
                     Required: {req.file_count} files
                   </Text>
                   <Text
@@ -985,6 +993,7 @@ export default function FolderScreen() {
                   req.uploadedFiles.map((file) => (
                     <View
                       key={file.id}
+                      style={{ backgroundColor: cardColor }}
                       className="flex-row items-center justify-between bg-white p-3 rounded-lg mb-2 border border-gray-200"
                     >
                       {/* File Info with Status */}
@@ -1020,13 +1029,14 @@ export default function FolderScreen() {
 
                           <View className="ml-3 flex-1">
                             <Text
+                              style={{ color: textColor }}
                               className="text-gray-800 text-sm font-medium"
                               numberOfLines={1}
                             >
                               {file.name}
                             </Text>
                             <View className="flex-row items-center mt-1">
-                              <Text className="text-gray-500 text-xs mr-2">
+                              <Text className="text-gray-500 text-xs mr-2" style={{ color: textColor }}>
                                 {file.size}
                               </Text>
                               <TouchableOpacity
@@ -1100,7 +1110,7 @@ export default function FolderScreen() {
                     </View>
                   ))
                 ) : (
-                  <View className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 items-center justify-center">
+                  <View style={{ backgroundColor: cardColor }} className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 items-center justify-center">
                     <Image source={require("../../assets/images/no_file.png")} className="w-20 h-20"/>
                     <Text className="text-gray-500 text-center mt-2 text-sm">
                       No files uploaded yet

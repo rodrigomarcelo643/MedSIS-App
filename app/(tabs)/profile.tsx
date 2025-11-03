@@ -1,4 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import axios from "axios";
 import * as ImagePicker from 'expo-image-picker';
 import { Link, useRouter } from "expo-router";
@@ -17,9 +19,11 @@ import {
   LogOut,
   Mail,
   Mars,
+  Moon,
   Phone,
   School,
   Shield,
+  Sun,
   User,
   Venus,
   X,
@@ -64,6 +68,9 @@ interface UserData {
   avatar_data?: string;
 }
 
+interface User {
+  user_id: number;
+}
 interface EditData {
   first_name: string;
   last_name: string;
@@ -146,6 +153,12 @@ export default function ProfileScreen() {
   const [hasInitiallyFetched, setHasInitiallyFetched] = useState(false);
 
   const { user, login, logout, clearUser, refreshUser, updateUser } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const borderColor = useThemeColor({}, 'border');
+  const mutedColor = useThemeColor({}, 'muted');
   const router = useRouter();
   const editDataRef = useRef<EditData>(editData);
   const firstNameInputRef = useRef<TextInput>(null);
@@ -266,10 +279,6 @@ export default function ProfileScreen() {
           }
         }
       } else {
-        Alert.alert(
-          "Error",
-          response.data.message || "Failed to fetch user data"
-        );
 
         if (response.data.message?.includes("deactivated")) {
           await clearUser();
@@ -281,8 +290,6 @@ export default function ProfileScreen() {
         error.response?.data?.message ||
         error.message ||
         "An unknown error occurred";
-
-      Alert.alert("Error", serverMessage);
 
       if (error.response?.status === 403 || error.response?.status === 404) {
         await clearUser();
@@ -580,20 +587,21 @@ export default function ProfileScreen() {
     };
 
     return (
-      <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: borderColor }}>
         <View className="flex-row items-center flex-1">
-          <View className="w-8 h-8 bg-gray-100 rounded-lg items-center justify-center mr-3">
+          <View style={{ width: 32, height: 32, backgroundColor: theme === 'dark' ? '#f3f4f6' : '#f3f4f6', borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
             <Icon size={16} color="#8C2323" />
           </View>
           <View className="flex-1">
-            <Text className="text-gray-500 text-sm mb-1">{label}</Text>
+            <Text style={{ color: mutedColor, fontSize: 14, marginBottom: 4 }}>{label}</Text>
             {isEditing ? (
               <TextInput
                 ref={inputRef}
-                className="text-gray-800 font-medium text-base bg-white p-2 rounded-lg border border-gray-200"
+                style={{ color: textColor, fontWeight: '500', fontSize: 16, backgroundColor: theme === 'dark' ? '#374151' : '#ffffff', padding: 8, borderRadius: 8, borderWidth: 1, borderColor: borderColor }}
                 value={localValue}
                 onChangeText={handleChange}
                 placeholder={`Enter ${label.toLowerCase()}`}
+                placeholderTextColor={mutedColor}
                 autoCapitalize={autoCapitalize}
                 autoCorrect={false}
                 keyboardType={keyboardType}
@@ -601,7 +609,7 @@ export default function ProfileScreen() {
                 blurOnSubmit={field === 'contact_number'}
               />
             ) : (
-              <Text className="text-gray-800 font-medium text-base" numberOfLines={2}>
+              <Text style={{ color: textColor, fontWeight: '500', fontSize: 16 }} numberOfLines={2}>
                 {value || "Not provided"}
               </Text>
             )}
@@ -612,14 +620,14 @@ export default function ProfileScreen() {
   };
 
   const InfoItem = ({ icon: Icon, label, value }: any) => (
-    <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: borderColor }}>
       <View className="flex-row items-center flex-1">
-        <View className="w-8 h-8 bg-gray-100 rounded-lg items-center justify-center mr-3">
-          <Icon size={16} color="#8C2323" />
+        <View style={{ width: 32, height: 32, backgroundColor: theme === 'dark' ? '#f3f4f6' : '#f3f4f6', borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+          <Icon size={16} color="#8C2323"  />
         </View>
         <View className="flex-1">
-          <Text className="text-gray-500 text-sm mb-1">{label}</Text>
-          <Text className="text-gray-800 font-medium text-base" numberOfLines={2}>
+          <Text style={{ color: mutedColor, fontSize: 14, marginBottom: 4 }}>{label}</Text>
+          <Text style={{ color: textColor, fontWeight: '500', fontSize: 16 }} numberOfLines={2}>
             {value || "Not provided"}
           </Text>
         </View>
@@ -648,22 +656,22 @@ export default function ProfileScreen() {
     };
 
     return (
-      <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: borderColor }}>
         <View className="flex-row items-center flex-1">
-          <View className="w-8 h-8 bg-gray-100 rounded-lg items-center justify-center mr-3">
+          <View style={{ width: 32, height: 32, backgroundColor: theme === 'dark' ? '#374151' : '#f3f4f6', borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
             {getGenderIcon(value)}
           </View>
           <View className="flex-1">
-            <Text className="text-gray-500 text-sm mb-1">{label}</Text>
+            <Text style={{ color: mutedColor, fontSize: 14, marginBottom: 4 }}>{label}</Text>
             {isEditing ? (
-              <View className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <View style={{ backgroundColor: cardColor, borderRadius: 8, borderWidth: 1, borderColor: borderColor, overflow: 'hidden' }}>
                 <TouchableOpacity
                   className="flex-row justify-between items-center p-3"
                   onPress={() => handleGenderChange("Male")}
                 >
                   <View className="flex-row items-center">
                     <Mars size={16} color="#3B82F6" className="mr-2" />
-                    <Text className="text-gray-800 ml-2">Male</Text>
+                    <Text style={{ color: textColor, marginLeft: 8 }}>Male</Text>
                   </View>
                   <View className="w-5 h-5 rounded-full border-2 border-gray-300 items-center justify-center">
                     {selectedGender === "Male" && (
@@ -677,7 +685,7 @@ export default function ProfileScreen() {
                 >
                   <View className="flex-row items-center">
                     <Venus size={16} color="#EC4899" className="mr-2" />
-                    <Text className="text-gray-800 ml-2">Female</Text>
+                    <Text style={{ color: textColor, marginLeft: 8 }}>Female</Text>
                   </View>
                   <View className="w-5 h-5 rounded-full border-2 border-gray-300 items-center justify-center">
                     {selectedGender === "Female" && (
@@ -687,7 +695,7 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
               </View>
             ) : (
-              <Text className="text-gray-800 font-medium text-base">
+              <Text style={{ color: textColor, fontWeight: '500', fontSize: 16 }}>
                 {value || "Not provided"}
               </Text>
             )}
@@ -745,17 +753,17 @@ export default function ProfileScreen() {
             )}
           </View>
           <View className="flex-1">
-            <Text className="text-gray-500 text-sm mb-1">{label}</Text>
+            <Text style={{ color: mutedColor, fontSize: 14, marginBottom: 4 }}>{label}</Text>
             {isEditing ? (
               <View>
-                <View className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-2">
+                <View style={{ backgroundColor: cardColor, borderRadius: 8, borderWidth: 1, borderColor: borderColor, overflow: 'hidden', marginBottom: 8 }}>
                   <TouchableOpacity
                     className="flex-row justify-between items-center p-3"
                     onPress={() => handleLocalNationalityTypeChange("Filipino")}
                   >
                     <View className="flex-row items-center">
                       <Text className="text-2xl mr-2">🇵🇭</Text>
-                      <Text className="text-gray-800">Filipino</Text>
+                      <Text style={{ color: textColor }}>Filipino</Text>
                     </View>
                     <View className="w-5 h-5 rounded-full border-2 border-gray-300 items-center justify-center">
                       {localNationalityType === "Filipino" && (
@@ -769,7 +777,7 @@ export default function ProfileScreen() {
                   >
                     <View className="flex-row items-center">
                       <Text className="text-2xl mr-2">🌍</Text>
-                      <Text className="text-gray-800">Foreigner</Text>
+                      <Text style={{ color: textColor }}>Foreigner</Text>
                     </View>
                     <View className="w-5 h-5 rounded-full border-2 border-gray-300 items-center justify-center">
                       {localNationalityType === "Foreigner" && (
@@ -792,7 +800,7 @@ export default function ProfileScreen() {
               </View>
             ) : (
               <Text
-                className="text-gray-800 font-medium text-base"
+                style={{ color: textColor, fontWeight: '500', fontSize: 16 }}
                 numberOfLines={2}
               >
                 {displayValue || "Not provided"}
@@ -805,7 +813,7 @@ export default function ProfileScreen() {
   };
 
   const Section: React.FC<SectionProps> = ({ title, icon: Icon, children, isExpanded, onToggle }) => (
-    <View className="bg-white rounded-xl shadow-sm p-5 mb-4">
+    <View style={{ backgroundColor: cardColor, borderRadius: 12, padding: 20, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
       <TouchableOpacity
         className="flex-row items-center justify-between mb-4"
         onPress={onToggle}
@@ -815,7 +823,7 @@ export default function ProfileScreen() {
           <View className="w-10 h-10 bg-blue-100 rounded-lg items-center justify-center mr-3">
             <Icon size={20} color="#8C2323" />
           </View>
-          <Text className="text-lg font-semibold text-gray-800">{title}</Text>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: textColor }}>{title}</Text>
         </View>
         {isExpanded ? (
           <ChevronUp size={20} color="#6b7280" />
@@ -858,7 +866,7 @@ export default function ProfileScreen() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           ref={scrollViewRef}
-          className={`flex-1 ${isGraduating ? "bg-blue-50" : "bg-gray-50"}`}
+          style={{ flex: 1, backgroundColor: isGraduating ? '#dbeafe' : backgroundColor }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -909,7 +917,7 @@ export default function ProfileScreen() {
                 </View>
               </View>
 
-              <Text className={`text-2xl font-bold text-center mb-1 ${isGraduating ? "text-white" : "text-gray-900"}`}>
+              <Text className={`text-2xl font-bold text-center mb-1 ${isGraduating ? "text-white" : ""}`} style={{ color:textColor }}>
                 {userData.first_name} {userData.last_name}
               </Text>
         
@@ -971,7 +979,7 @@ export default function ProfileScreen() {
 
             {/* Save Changes Button */}
             {isEditing && (
-              <View className="bg-white rounded-xl  shadow-sm p-5 mb-4">
+              <View className="bg-white rounded-xl  shadow-sm p-5 mb-4" style={{ backgroundColor: cardColor }}>
                 <View className="flex-row justify-between space-x-3">
                   <TouchableOpacity
                     className="flex-1 px-4 py-3 border mr-3  border-gray-300 rounded-lg items-center"
@@ -979,7 +987,7 @@ export default function ProfileScreen() {
                     disabled={isLoading}
                     activeOpacity={0.7}
                   >
-                    <Text className="text-gray-800 font-medium">Cancel</Text>
+                    <Text className="text-gray-800 font-medium" style={{color: textColor }}>Cancel</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     className="flex-1 px-4 py-3 bg-[#8C2323] rounded-lg items-center flex-row justify-center"
@@ -1001,10 +1009,26 @@ export default function ProfileScreen() {
             )}
 
             {/* Account Actions Section */}
-            <View className="bg-white rounded-xl shadow-sm p-5 mb-16">
-              <Text className="text-lg font-semibold text-gray-800 mb-4">
+            <View style={{ backgroundColor: cardColor, borderRadius: 12, padding: 20, marginBottom: 64, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: textColor, marginBottom: 16 }}>
                 Account Actions
               </Text>
+
+              <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+                <View className="flex-row items-center">
+                  <View className="w-8 h-8 bg-blue-100 rounded-lg items-center justify-center mr-3">
+                    <Moon size={16} color="#3B82F6" />
+                  </View>
+                  <Text style={{ color: textColor, fontWeight: '500' }}>Dark Mode</Text>
+                </View>
+                <TouchableOpacity
+                  className={`w-12 h-6 rounded-full p-1 ${theme === 'dark' ? 'bg-blue-500' : 'bg-gray-300'}`}
+                  onPress={toggleTheme}
+                  activeOpacity={0.8}
+                >
+                  <View className={`w-4 h-4 rounded-full bg-white transform transition-transform ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0'}`} />
+                </TouchableOpacity>
+              </View>
 
               <Link href="/screens/change-password" asChild>
                 <TouchableOpacity className="flex-row  items-center justify-between py-3 border-b border-gray-100" activeOpacity={0.7}>
@@ -1012,7 +1036,7 @@ export default function ProfileScreen() {
                     <View className="w-8 h-8 bg-green-100 rounded-lg items-center justify-center mr-3">
                       <Shield size={16} color="#10B981" />
                     </View>
-                    <Text className="text-gray-800 font-medium">Change Password</Text>
+                    <Text className="text-gray-800 font-medium " style={{ color: textColor }}>Change Password</Text>
                   </View>
                 </TouchableOpacity>
               </Link>
