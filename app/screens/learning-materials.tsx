@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
@@ -17,7 +18,7 @@ import {
   X
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Platform, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, RefreshControl, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // Types based on your database schema
 interface LearningMaterial {
@@ -79,6 +80,12 @@ const SkeletonLoader = () => {
 const LearningMaterialsScreen: React.FC = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
+  //Theme Changer 
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const mutedColor = useThemeColor({}, 'muted');
+
   const [materials, setMaterials] = useState<LearningMaterial[]>([]);
   const [filteredMaterials, setFilteredMaterials] = useState<LearningMaterial[]>([]);
   const [loading, setLoading] = useState(true);
@@ -341,36 +348,38 @@ const LearningMaterialsScreen: React.FC = () => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50 pt-10">
-      <View className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200">
+    <View className="flex-1 bg-gray-50 pt-10" style={{ backgroundColor }}>
+      <View className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200" style={{ backgroundColor: cardColor}}>
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
-          <ChevronLeft size={24} color="#800000" />
+          <ChevronLeft size={24} style={{ color: textColor}}/>
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-maroon-800">Learning Materials</Text>
+        <Text className="text-xl font-bold" style={{ color:textColor }}>Learning Materials</Text>
         <View className="flex-1"></View>
         <TouchableOpacity 
           className="flex-row items-center bg-maroon-100 rounded-full px-4 py-2"
           onPress={() => setShowSubjectDropdown(true)}
         >
-          <Filter size={16} color="#800000" />
-          <Text className="ml-2 text-maroon-800 text-sm font-medium">
+          <Filter size={16} style={{ color:textColor }} />
+          <Text className="mr-1  text-sm font-medium" style={{ color:textColor }}>
             {getSelectedSubjectLabel()}
           </Text>
-          <ChevronDown size={16} color="#800000" className="ml-1" />
+          <ChevronDown size={16} style={{ color:textColor }} className="ml-1" />
         </TouchableOpacity>
       </View>
 
       <SubjectDropdown />
 
       {/* Search Bar */}
-      <View className="px-4 py-3 bg-white border-b border-gray-200">
-        <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
+      <View className="px-4 py-3 bg-white border-b border-gray-200" style={{ backgroundColor }}>
+        <View className="flex-row items-center bg-gray-100 rounded-[18px] px-3 py-1" style={{ backgroundColor: cardColor }}>
           <Search size={18} color="#6b7280" />
           <TextInput
             className="flex-1 ml-2 text-gray-700"
             placeholder="Search materials..."
             value={searchQuery}
+            placeholderTextColor={mutedColor}
             onChangeText={setSearchQuery}
+
           />
           {searchQuery ? (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
@@ -406,28 +415,29 @@ const LearningMaterialsScreen: React.FC = () => {
                 <View 
                   key={material.id} 
                   className="bg-white rounded-sm shadow-sm p-4 mb-4 border-l-4 border-[#be2e2e]"
+                  style={{ backgroundColor: cardColor }}
                 >
                   <View className="flex-row justify-between items-center mb-3">
                     <View className="flex-row items-center">
                       <View className="flex-row items-center bg-maroon-100 rounded-full px-3 py-1">
-                        <IconComponent size={14} color="#800000" />
-                        <Text className="ml-2 text-maroon-800 text-sm font-medium">
+                        <Image source={require("../../assets/images/pdf.png")} className="w-5 h-5" />
+                        <Text className="ml-2 text-maroon-800 text-sm font-medium" style={{ color:textColor }}>
                           {material.subject}
                         </Text>
                       </View>
                     </View>
                     
                     <View className="bg-gray-100 rounded-full px-3 py-1">
-                      <Text className="text-xs font-medium text-gray-600">
+                      <Text className="text-xs font-medium text-gray-600" >
                         {formatFileSize(material.file_size)}
                       </Text>
                     </View>
                   </View>
                   
-                  <Text className="text-lg font-semibold text-gray-900 mb-2">{material.title}</Text>
+                  <Text className="text-lg font-semibold text-gray-900 mb-2" style={{ color: textColor}}>{material.title}</Text>
                   
                   {material.description && (
-                    <Text className="text-gray-600 mb-3">{material.description}</Text>
+                    <Text className="text-gray-600 mb-3" style={{ color:textColor }} >{material.description}</Text>
                   )}
                   
                   <View className="flex-row justify-between items-center mt-4">
@@ -438,17 +448,21 @@ const LearningMaterialsScreen: React.FC = () => {
                     
                     <TouchableOpacity 
                       className={`flex-row items-center px-3 rounded-lg ${
-                        downloading === material.id ? 'bg-gray-400' : 'bg-[#be2e2e]'
+                        downloading === material.id ? 'bg-[#be2e2e]' : 'bg-[#be2e2e]'
                       }`}
                       onPress={() => handleDownload(material)}
                       disabled={downloading === material.id}
                     >
                       {downloading === material.id ? (
-                        <ActivityIndicator size="small" color="#ffffff" />
+                        <>
+                        <View className="p-1">
+                          <ActivityIndicator size="small" color="#ffffff"  />
+                        </View>
+                        </>
                       ) : (
                         <>
                           <Download size={14} color="#ffffff" />
-                          <Text className="text-white  px-5 py-2  text-sm font-medium">Download</Text>
+                          <Text className="text-white  px-2 py-2  text-sm font-medium">Download</Text>
                         </>
                       )}
                     </TouchableOpacity>

@@ -45,6 +45,7 @@ const LoginScreen = () => {
   });
 
   const router = useRouter();
+  
   const { login, clearUser, user } = useAuth();
   const scrollViewRef = useRef<ScrollView>(null);
 

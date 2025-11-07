@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
@@ -61,6 +62,13 @@ const NotificationsScreen = () => {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
   const { user } = useAuth();
+  // Theme Change 
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const mutedColor = useThemeColor({}, 'muted');
+  const loadColor = useThemeColor({}, 'loaderCard');
+
   const [refreshing, setRefreshing] = useState(false);
   const [notifications, setNotifications] = useState<Notifications[]>([]);
   const [displayedNotifications, setDisplayedNotifications] = useState<Notifications[]>([]);
@@ -96,80 +104,91 @@ const NotificationsScreen = () => {
     }
   };
 
-  // Fetch notifications from API
-  const fetchNotifications = async (loadMore = false) => {
-    try {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-      
+// Fetch notifications from API
+const fetchNotifications = async (loadMore = false, silent = false) => {
+  try {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // Only show loading indicators if not silent
+    if (!silent) {
       if (loadMore) {
         setLoadingMore(true);
       } else {
         setLoading(true);
       }
-      
-     
-      
-      const response = await axios.get(`${API_BASE_URL}/get_student_notifications.php`, {
-        params: {
-          user_id: user.id,
-          limit: loadMore ? displayLimit + 10 : displayLimit
-        },
-        timeout: 10000 // 10 second timeout
-      });
-      
- 
-      if (response.data.success) {
-        // Transform API data to match our frontend structure
-        const transformedNotifications = response.data.notifications.map((notif: any) => ({
-          id: notif.id,
-          type: mapNotificationType(notif.type),
-          title: notif.title,
-          message: notif.message,
-          time: formatTime(notif.created_at),
-          read: notif.status === 'read',
-          avatar: getAvatarForType(notif.type)
-        }));
-        
-        setNotifications(transformedNotifications);
-        
-        // Check if we have more notifications to load
-        if (loadMore) {
-          setDisplayLimit(prevLimit => prevLimit + 10);
-        } else {
-          setDisplayLimit(10);
-        }
-        
-        // Update displayed notifications based on current limit
-        setDisplayedNotifications(transformedNotifications.slice(0, displayLimit));
-        
-        // Check if there are more notifications to load
-        setHasMoreNotifications(transformedNotifications.length > displayLimit);
-      } else {
-        Alert.alert('Error', response.data.message || 'Failed to fetch notifications');
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/get_student_notifications.php`, {
+      params: {
+        user_id: user.id,
+        limit: loadMore ? displayLimit + 10 : displayLimit
+      },
+      timeout: 10000 // 10 second timeout
+    });
+
+    if (response.data.success) {
+      // Transform API data
+      const transformedNotifications = response.data.notifications.map((notif: any) => ({
+        id: notif.id,
+        type: mapNotificationType(notif.type),
+        title: notif.title,
+        message: notif.message,
+        time: formatTime(notif.created_at),
+        read: notif.status === 'read',
+        avatar: getAvatarForType(notif.type)
+      }));
+
+      setNotifications(transformedNotifications);
+
+      // Only update pagination on manual loads
+      if (loadMore) {
+        setDisplayLimit(prevLimit => prevLimit + 10);
+      } else if (!silent) {
+        setDisplayLimit(10);
       }
-    } catch (error: any) {
-      console.error('Error fetching notifications:', error);
-      
-      // Detailed error logging
-      if (error.response) {
-        // Server responded with error status
-        console.error('Server error:', error.response.status, error.response.data);
-      } else if (error.request) {
-        // Request was made but no response received
-        console.error('No response received:', error.request);
-      } else {
-        // Something else happened
-        console.error('Error:', error.message);
-      }
-    } finally {
+
+      // Update displayed notifications
+      setDisplayedNotifications(transformedNotifications.slice(0, displayLimit));
+
+      // Check for more notifications
+      setHasMoreNotifications(transformedNotifications.length > displayLimit);
+    } else if (!silent) {
+      Alert.alert('Error', response.data.message || 'Failed to fetch notifications');
+    }
+  } catch (error: any) {
+    console.error('Error fetching notifications:', error);
+    if (error.response) {
+      console.error('Server error:', error.response.status, error.response.data);
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+    } else {
+      console.error('Error:', error.message);
+    }
+  } finally {
+    if (!silent) {
       setLoading(false);
       setRefreshing(false);
       setLoadingMore(false);
     }
-  };
+  }
+};
+
+// Start silent polling for new notifications
+const startPolling = useCallback(() => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+  }
+
+  const interval = setInterval(() => {
+    fetchNotifications(false, true); // silent = true
+  }, 1000); // Poll every 1 second
+
+  setPollingInterval(interval);
+  return interval;
+}, [user]);
 
   // Load more notifications when reaching the end
   const loadMoreNotifications = () => {
@@ -177,20 +196,6 @@ const NotificationsScreen = () => {
       fetchNotifications(true);
     }
   };
-
-  // Start polling for new notifications
-  const startPolling = useCallback(() => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-    }
-    
-    const interval = setInterval(() => {
-      fetchNotifications();
-    }, 30000); // Poll every 30 seconds
-    
-    setPollingInterval(interval);
-    return interval;
-  }, [user]);
 
   // Stop polling
   const stopPolling = useCallback(() => {
@@ -521,18 +526,18 @@ const NotificationsScreen = () => {
   }
 
   return (
-    <View className="flex-1 bg-white dark:bg-gray-900">
+    <View className="flex-1 bg-white dark:bg-gray-900" style={{ backgroundColor }}>
       {/* Header */}
-      <View className="pt-[50px] px-5 pb-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+      <View className="pt-[50px] px-5 pb-4 bg-whiteborder-b border-gray-200" style={{ backgroundColor: cardColor}}>
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
             <TouchableOpacity 
               onPress={() => navigation.goBack()}
               className="p-2 -ml-2 mr-2"
             >
-              <ChevronLeft size={24} color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'} />
+              <ChevronLeft size={24} style={{ color: textColor }} />
             </TouchableOpacity>
-            <Text className="text-2xl font-bold text-gray-900 dark:text-white">
+            <Text className="text-2xl font-bold text-gray-900" style={{ color:textColor }}>
               Notifications
             </Text>
           </View>
@@ -597,6 +602,7 @@ const NotificationsScreen = () => {
               return (
                 <TouchableOpacity
                   key={notification.id}
+                  style={{ backgroundColor: cardColor }}
                   className={`flex-row items-start p-5 border-b border-gray-100 dark:border-gray-800 ${
                     isFeedback ? 'bg-red-50 dark:bg-red-900/10' : (!notification.read ? 'bg-blue-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900')
                   }`}
@@ -608,7 +614,7 @@ const NotificationsScreen = () => {
                   
                   <View className="flex-1">
                     <View className="flex-row items-start justify-between">
-                      <Text className="font-semibold dark:text-white text-base flex-1">
+                      <Text className="font-semibold  text-base flex-1" style={{ color: textColor }}>
                         {notification.title}
                       </Text>
                       {!notification.read && (
@@ -616,7 +622,7 @@ const NotificationsScreen = () => {
                       )}
                     </View>
                     
-                    <Text className="mt-1 text-gray-600 dark:text-gray-300 text-sm">
+                    <Text className="mt-1 text-gray-600text-sm" style={{ color: textColor }}>
                       {mainMessage}
                     </Text>
                     

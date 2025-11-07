@@ -55,14 +55,15 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   style = {},
   children,
 }) => {
+  const loadColor = useThemeColor({}, 'loaderCard');
   return (
     <View
       className="bg-gray-100 dark:bg-gray-800 mb-2 overflow-hidden"
-      style={[{ width, height, borderRadius }, style]}
+      style={[{ width, height, borderRadius, backgroundColor: loadColor }, style]}
     >
       <View
         className="w-full h-full mb-2 bg-gray-200 dark:bg-gray-700"
-        style={{ opacity: 0.5 }}
+        style={{ opacity: 0.5, backgroundColor: loadColor }}
       >
         {children}
       </View>
@@ -158,6 +159,7 @@ export default function Home() {
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'muted');
+  const loadColor = useThemeColor({}, 'loaderCard');
 
   // Different folder background images for each card
   const folderImages = [

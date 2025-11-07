@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronUp,
   Edit2,
+  Image as ImageIcon,
   GalleryVertical,
   Globe,
   GraduationCap,
@@ -154,11 +155,14 @@ export default function ProfileScreen() {
 
   const { user, login, logout, clearUser, refreshUser, updateUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
+
+  // Theme Change 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const borderColor = useThemeColor({}, 'border');
   const mutedColor = useThemeColor({}, 'muted');
+
   const router = useRouter();
   const editDataRef = useRef<EditData>(editData);
   const firstNameInputRef = useRef<TextInput>(null);
@@ -626,15 +630,15 @@ export default function ProfileScreen() {
           <Icon size={16} color="#8C2323"  />
         </View>
         <View className="flex-1">
-          <Text style={{ color: mutedColor, fontSize: 14, marginBottom: 4 }}>{label}</Text>
-          <Text style={{ color: textColor, fontWeight: '500', fontSize: 16 }} numberOfLines={2}>
+          <Text style={{ color: mutedColor, fontSize: 13, marginBottom: 4 }}>{label}</Text>
+          <Text style={{ color: textColor, fontWeight: '500', fontSize: 13 }} numberOfLines={2}>
             {value || "Not provided"}
           </Text>
         </View>
       </View>
     </View>
   );
-
+  
   const GenderInput = ({ value, label }: { value?: string; label: string }) => {
     const [selectedGender, setSelectedGender] = useState(value || '');
     
@@ -791,7 +795,7 @@ export default function ProfileScreen() {
                   <EditableField
                     icon={Globe}
                     label="Specify Nationality"
-                    value={userData.foreigner_specify}
+                    value={ userData.foreigner_specify }
                     field="foreigner_specify"
                     inputRef={customNationalityRef}
                     autoCapitalize="words"
@@ -879,7 +883,7 @@ export default function ProfileScreen() {
         >
           <View className="w-full max-w-4xl mx-auto p-4">
             {/* Header with blue background for graduating students */}
-            <View className={`items-center mb-6 ${isGraduating ? "bg-blue-600 p-5 rounded-xl" : ""}`}>
+            <View className={`items-center mb-6 ${isGraduating ? "bg-blue-500 p-5 rounded-3xl " : ""}`}>
               <View className="relative mb-4">
                 <TouchableOpacity onPress={showViewPhotoModal} activeOpacity={0.8}>
                   <View className="w-28 h-28 rounded-full border-4 border-white shadow-lg bg-white items-center justify-center overflow-hidden">
@@ -1014,22 +1018,39 @@ export default function ProfileScreen() {
                 Account Actions
               </Text>
 
-              <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+             <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
                 <View className="flex-row items-center">
-                  <View className="w-8 h-8 bg-blue-100 rounded-lg items-center justify-center mr-3">
-                    <Moon size={16} color="#3B82F6" />
+                  <View
+                    className={`w-8 h-8 rounded-lg items-center justify-center mr-3 ${
+                      theme === 'dark' ? 'bg-blue-100' : 'bg-yellow-100'
+                    }`}
+                  >
+                    {theme === 'dark' ? (
+                      <Moon size={16} color="#3B82F6" />
+                    ) : (
+                      <Sun size={16} color="#F59E0B" />
+                    )}
                   </View>
-                  <Text style={{ color: textColor, fontWeight: '500' }}>Dark Mode</Text>
+
+                  <Text style={{ color: textColor, fontWeight: '500' }}>
+                    {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+                  </Text>
                 </View>
+
                 <TouchableOpacity
-                  className={`w-12 h-6 rounded-full p-1 ${theme === 'dark' ? 'bg-blue-500' : 'bg-gray-300'}`}
+                  className={`w-12 h-6 rounded-full p-1 ${
+                    theme === 'dark' ? 'bg-red-500' : 'bg-gray-300'
+                  }`}
                   onPress={toggleTheme}
                   activeOpacity={0.8}
                 >
-                  <View className={`w-4 h-4 rounded-full bg-white transform transition-transform ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0'}`} />
+                  <View
+                    className={`w-4 h-4 rounded-full bg-white transform transition-transform ${
+                      theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
                 </TouchableOpacity>
               </View>
-
               <Link href="/screens/change-password" asChild>
                 <TouchableOpacity className="flex-row  items-center justify-between py-3 border-b border-gray-100" activeOpacity={0.7}>
                   <View className="flex-row items-center">
@@ -1063,29 +1084,29 @@ export default function ProfileScreen() {
               onRequestClose={hideAvatarModal}
             >
               <View className="flex-1 justify-center items-center bg-black/50 p-4">
-                <View className="bg-white rounded-xl p-6 w-full max-w-md">
+                <View className="bg-white rounded-xl p-6 w-full max-w-md" style={{ backgroundColor: cardColor }}>
                   <View className="items-center mb-4">
                     <View className="bg-blue-100 p-4 rounded-full mb-3">
                       <Camera size={28} color="#2563EB" />
                     </View>
-                    <Text className="text-xl font-bold text-gray-900">
+                    <Text className="text-xl font-bold text-gray-900" style={{ color: textColor}}>
                       Update Profile Picture
                     </Text>
                   </View>
 
-                  <Text className="text-gray-600 text-center mb-6">
+                  <Text className="text-gray-500 text-center mb-6">
                     Choose how you want to update your profile picture
                   </Text>
 
                   <View className="space-y-3">
                     <TouchableOpacity
-                      className="flex-row items-center py-4 px-4 bg-blue-50 rounded-xl"
+                      className="flex-row items-center py-4 px-4 bg-blue-50 mb-3 rounded-xl"
                       onPress={() => pickImage(false)}
                       activeOpacity={0.7}
                     >
                       <View className="w-10 h-10 bg-blue-100 rounded-lg items-center justify-center mr-3">
-                        <GalleryVertical 
-                          className="w-6 h-6 text-blue-300"
+                        <ImageIcon
+                          className="w-6 h-6 text-green-500"
                         />
                       </View>
                       <Text className="text-blue-600 font-medium">Choose from Gallery</Text>

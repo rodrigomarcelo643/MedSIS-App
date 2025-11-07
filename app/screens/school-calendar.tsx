@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as IntentLauncher from "expo-intent-launcher";
@@ -105,6 +106,14 @@ const FileIcon = ({ mimeType }: { mimeType: string }) => {
 const SchoolCalendar: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
+
+  // Theme Change 
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const mutedColor = useThemeColor({}, 'muted');
+  const loadColor = useThemeColor({}, 'loaderCard');
+
   const [calendarData, setCalendarData] =
     useState<SchoolCalendarResponse | null>(null);
   const [filteredCalendars, setFilteredCalendars] = useState<
@@ -320,18 +329,18 @@ const SchoolCalendar: React.FC = () => {
 
   const SkeletonLoader = () => {
     return (
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1 bg-gray-100" style={{ backgroundColor }}>
         <View className="bg-maroon pt-12 pb-4 px-5 flex-row items-center">
           <View className="h-6 w-6 bg-maroon-light rounded mr-3"></View>
           <View className="h-6 bg-maroon-light rounded w-40"></View>
         </View>
         <View className="p-5">
           {[1, 2, 3].map((item) => (
-            <View key={item} className="bg-white p-4 rounded-lg shadow mb-4">
-              <View className="h-6 bg-gray-300 rounded w-3/4 mb-3"></View>
-              <View className="h-4 bg-gray-300 rounded w-1/2 mb-2"></View>
-              <View className="h-4 bg-gray-300 rounded w-2/3 mb-4"></View>
-              <View className="h-12 bg-gray-200 rounded"></View>
+            <View key={item} className="bg-white p-4 rounded-lg shadow mb-4" style={{ backgroundColor: cardColor }}>
+              <View className="h-6 bg-gray-300 rounded w-3/4 mb-3" style={{ backgroundColor: loadColor }}></View>
+              <View className="h-4 bg-gray-300 rounded w-1/2 mb-2" style={{ backgroundColor: loadColor }}></View>
+              <View className="h-4 bg-gray-300 rounded w-2/3 mb-4" style={{ backgroundColor: loadColor }}></View>
+              <View className="h-12 bg-gray-200 rounded" style={{ backgroundColor: loadColor }}></View>
             </View>
           ))}
         </View>
@@ -383,12 +392,12 @@ const SchoolCalendar: React.FC = () => {
   }
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-gray-100" style={{ backgroundColor }}>
       <View className="bg-maroon pt-12 pb-4 px-5 flex-row items-center">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <ChevronLeft size={24} color="black" />
+          <ChevronLeft size={24} style={{ color: textColor }} />
         </TouchableOpacity>
-        <Text className="text-black text-xl font-bold">School Calendar</Text>
+        <Text className="text-black text-xl font-bold" style={{ color:textColor }}>School Calendar</Text>
       </View>
 
       <ScrollView
@@ -404,14 +413,14 @@ const SchoolCalendar: React.FC = () => {
       >
         <View className="p-5">
           {filteredCalendars.length === 0 ? (
-            <View className="bg-white p-6 rounded-lg shadow items-center">
+            <View className="bg-white p-6 rounded-lg shadow items-center" style={{ backgroundColor: cardColor }}>
               <Ionicons
                 name="calendar"
                 size={48}
                 color="#9ca3af"
                 className="mb-4"
               />
-              <Text className="text-gray-500 text-center">
+              <Text className="text-gray-500 text-center" style={{ color: textColor }}>
                 No academic calendars available for your year level.
               </Text>
               <TouchableOpacity
@@ -432,18 +441,15 @@ const SchoolCalendar: React.FC = () => {
               <View
                 key={calendar.id}
                 className="bg-white p-4 rounded-lg shadow mb-4"
+                style={{ backgroundColor: cardColor }}
               >
-                <Text className="text-lg font-bold text-maroon mb-2">
+                <Text className="text-lg font-bold text-maroon mb-2" style={{ color: textColor }}>
                   {calendar.title}
                 </Text>
 
-                <Text className="text-sm text-gray-600 mb-2">
+                <Text className="text-sm text-gray-600 mb-2" style={{ color: textColor }}>
                   {formatDate(calendar.start_date)} -{" "}
                   {formatDate(calendar.end_date)}
-                </Text>
-
-                <Text className="text-xs text-gray-500 mb-3">
-                  For: {formatYearLevel(calendar.year_level)}
                 </Text>
 
                 {calendar.description && (
@@ -454,13 +460,14 @@ const SchoolCalendar: React.FC = () => {
 
                 {calendar.documents && calendar.documents.length > 0 && (
                   <View className="mt-3">
-                    <Text className="text-sm font-medium text-gray-700 mb-2">
+                    <Text className="text-sm font-medium text-gray-700 mb-2" style={{ color: textColor }}>
                       Attached Documents:
                     </Text>
                     {calendar.documents.map((document) => (
                       <View
                         key={document.id}
                         className="flex-row items-center justify-between bg-gray-50 p-3 rounded-lg mb-2 border border-gray-200"
+                        style={{ backgroundColor: loadColor }}
                       >
                         <View className="flex-row items-center flex-1">
                           <View className="mr-3">
@@ -470,6 +477,7 @@ const SchoolCalendar: React.FC = () => {
                           <View className="flex-1">
                             <Text
                               className="text-sm font-medium text-gray-800"
+                              style={{color: textColor }}
                               numberOfLines={1}
                             >
                               {document.file_name}

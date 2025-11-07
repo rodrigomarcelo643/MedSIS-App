@@ -34,7 +34,7 @@ import Reanimated, {
 
 const Skeleton = ({ width, height, borderRadius = 4, style = {} }) => {
   
-  //Theme Change
+  // Theme Change
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
@@ -66,7 +66,7 @@ export default function TabLayout() {
   const router = useRouter();
   const segments = useSegments(); 
   const { theme } = useTheme();
-  //Theme Change
+  // Theme Change
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
@@ -131,6 +131,7 @@ export default function TabLayout() {
         const response = await fetch(
           `https://msis.eduisync.io/api/get_student_notifications.php?user_id=${user.id}`
         );
+
         const data = await response.json();
         
         if (data.success) {

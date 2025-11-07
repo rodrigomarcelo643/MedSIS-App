@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import {
   BookOpen,
   Calendar,
@@ -45,6 +46,12 @@ interface QuickLink {
 
 export default function AIAssistant() {
   const { user } = useAuth();
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const mutedColor = useThemeColor({}, 'muted');
+  const loadColor = useThemeColor({}, 'loaderCard');
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -450,7 +457,7 @@ export default function AIAssistant() {
 
   const renderQuickLinks = () => (
     <View className="mb-6">
-      <Text className="text-lg font-semibold text-gray-800 mb-4 px-4">
+      <Text style={{ fontSize: 18, fontWeight: '600', color: textColor, marginBottom: 16, paddingHorizontal: 16 }}>
         Quick Access for Medical Students
       </Text>
       <ScrollView
@@ -465,6 +472,7 @@ export default function AIAssistant() {
               key={link.id}
               className="bg-white rounded-2xl p-4 mr-3 shadow border border-gray-100 w-44"
               onPress={() => handleQuickLink(link.action, link.context)}
+              style={{ backgroundColor: cardColor }}
               disabled={isLoading}
             >
               <View
@@ -473,7 +481,7 @@ export default function AIAssistant() {
               >
                 <IconComponent size={22} color="#fff" />
               </View>
-              <Text className="font-semibold text-gray-900 text-sm mb-1">
+              <Text className="font-semibold text-gray-900 text-sm mb-1" style={{ color: textColor }}>
                 {link.title}
               </Text>
               <Text className="text-xs text-gray-500 leading-snug">
@@ -487,9 +495,9 @@ export default function AIAssistant() {
   );
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View style={{ flex: 1, backgroundColor }}>
       {/* Header */}
-      <View className="bg-white px-6 py-4 border-b border-gray-200">
+      <View style={{ backgroundColor: cardColor, paddingHorizontal: 24, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: useThemeColor({}, 'border') }}>
         <View className="flex-row items-center">
           <View className="w-10 h-10 rounded-full items-center justify-center mr-3">
             <Image
@@ -498,11 +506,11 @@ export default function AIAssistant() {
             />
           </View>
           <View>
-            <Text className="text-xl font-bold text-gray-900">
+            <Text style={{ fontSize: 20, fontWeight: 'bold', color: textColor }}>
               <Text className="text-[#af1616] font-extrabold">Med</Text>
               <Text className="text-[#16a34a] font-extrabold">SIS</Text> AI
             </Text>
-            <Text className="text-sm text-gray-500">
+            <Text style={{ fontSize: 14, color: mutedColor }}>
               Medical Student Support
             </Text>
           </View>
@@ -551,27 +559,30 @@ export default function AIAssistant() {
         />
 
         {/* Input Area */}
-        <View className="bg-white border-t border-gray-200 px-4 py-3">
-          <View className="bg-gray-100 rounded-[15px] overflow-hidden">
+        <View style={{ backgroundColor, borderTopWidth: 1, borderTopColor: useThemeColor({}, 'border'), paddingHorizontal: 16, paddingVertical: 12 }}>
+          <View className="bg-gray-100 rounded-[15px] overflow-hidden" style={{ backgroundColor: loadColor }}>
             <ScrollView
               ref={inputScrollRef}
               nestedScrollEnabled={true}
               style={{ maxHeight: 120 }}
             >
               <TextInput
-                className="text-gray-800 text-base px-4 py-2"
+                style={{
+                  color: textColor,
+                  fontSize: 16,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  height: Math.max(40, inputHeight),
+                  minHeight: 40,
+                }}
                 placeholder="Ask MedSIS AI..."
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={mutedColor}
                 value={inputText}
                 onChangeText={setInputText}
                 multiline
                 maxLength={500}
                 editable={!isLoading}
                 onContentSizeChange={handleInputContentSizeChange}
-                style={{
-                  height: Math.max(40, inputHeight),
-                  minHeight: 40,
-                }}
               />
             </ScrollView>
             <View className="flex-row justify-end items-center px-2 py-1">
