@@ -1,4 +1,4 @@
-// Message API service with dummy data
+// Message API service with real backend integration
 export interface User {
   id: string;
   name: string;
@@ -6,7 +6,10 @@ export interface User {
   isOnline: boolean;
   lastMessage?: string;
   lastMessageTime?: string;
+  messageStatus?: string;
   unreadCount: number;
+  user_type?: string;
+  unique_key?: string;
 }
 
 export interface Message {
@@ -15,248 +18,172 @@ export interface Message {
   senderId: string;
   receiverId: string;
   timestamp: Date;
-  type: 'text' | 'image' | 'file';
+  type: "text" | "image" | "file";
   fileUrl?: string;
   fileName?: string;
-  isRead: boolean;
+  isSeen: boolean;
+  isCurrentUser?: boolean;
+  isEdited?: boolean;
 }
 
-// Dummy data storage
-let dummyUsers: User[] = [
-  {
-    id: '1',
-    name: 'Dr. Maria Santos',
-    isOnline: true,
-    lastMessage: 'Your lab results are ready',
-    lastMessageTime: '2m ago',
-    unreadCount: 2,
-  },
-  {
-    id: '2',
-    name: 'John Dela Cruz',
-    avatar_url: 'https://via.placeholder.com/40',
-    isOnline: false,
-    lastMessage: 'Thanks for the notes!',
-    lastMessageTime: '1h ago',
-    unreadCount: 0,
-  },
-  {
-    id: '3',
-    name: 'Sarah Johnson',
-    avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-    isOnline: true,
-    lastMessage: 'Can we study together?',
-    lastMessageTime: '3h ago',
-    unreadCount: 1,
-  },
-  {
-    id: '4',
-    name: 'Prof. Rodriguez',
-    isOnline: false,
-    lastMessage: 'Assignment due tomorrow',
-    lastMessageTime: '1d ago',
-    unreadCount: 0,
-  },
-  {
-    id: '5',
-    name: 'Dr. Kim Lee',
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-    isOnline: true,
-    lastMessage: 'Schedule changed',
-    lastMessageTime: '2d ago',
-    unreadCount: 0,
-  },
-  {
-    id: '6',
-    name: 'Anna Martinez',
-    avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-    isOnline: true,
-    lastMessage: 'Group study tonight?',
-    lastMessageTime: '3d ago',
-    unreadCount: 3,
-  },
-  {
-    id: '7',
-    name: 'Mike Chen',
-    isOnline: false,
-    lastMessage: 'Thanks for helping',
-    lastMessageTime: '4d ago',
-    unreadCount: 0,
-  },
-  {
-    id: '8',
-    name: 'Dr. Brown',
-    isOnline: true,
-    lastMessage: 'Office hours updated',
-    lastMessageTime: '5d ago',
-    unreadCount: 1,
-  },
-  {
-    id: '9',
-    name: 'Lisa Wang',
-    isOnline: true,
-    lastMessage: 'Lab report due',
-    lastMessageTime: '6d ago',
-    unreadCount: 0,
-  },
-  {
-    id: '10',
-    name: 'Prof. Davis',
-    isOnline: false,
-    lastMessage: 'Exam postponed',
-    lastMessageTime: '1w ago',
-    unreadCount: 0,
-  },
-  {
-    id: '11',
-    name: 'Tom Wilson',
-    isOnline: true,
-    lastMessage: 'Study materials shared',
-    lastMessageTime: '1w ago',
-    unreadCount: 2,
-  },
-  {
-    id: '12',
-    name: 'Dr. Garcia',
-    isOnline: false,
-    lastMessage: 'Consultation available',
-    lastMessageTime: '2w ago',
-    unreadCount: 0,
-  },
-];
-
-let activeUsers: User[] = dummyUsers.filter(user => user.isOnline);
-
-let dummyMessages: { [chatId: string]: Message[] } = {
-  '1': [
-    {
-      id: '1',
-      text: 'Hi! Your lab results are ready for review.',
-      senderId: '1',
-      receiverId: 'current',
-      timestamp: new Date(Date.now() - 3600000),
-      type: 'text',
-      isRead: false,
-    },
-    {
-      id: '2',
-      text: 'Thank you! When can I pick them up?',
-      senderId: 'current',
-      receiverId: '1',
-      timestamp: new Date(Date.now() - 3000000),
-      type: 'text',
-      isRead: true,
-    },
-  ],
-  '2': [
-    {
-      id: '3',
-      text: 'Hey, can you share your anatomy notes?',
-      senderId: 'current',
-      receiverId: '2',
-      timestamp: new Date(Date.now() - 7200000),
-      type: 'text',
-      isRead: true,
-    },
-    {
-      id: '4',
-      text: 'Sure! Here they are.',
-      senderId: '2',
-      receiverId: 'current',
-      timestamp: new Date(Date.now() - 3600000),
-      type: 'text',
-      isRead: true,
-    },
-  ],
-};
+const API_BASE = "https://msis.eduisync.io/api/messages";
 
 export const messageService = {
   // Get active users
-  getActiveUsers: async (page: number = 1, limit: number = 10): Promise<{ users: User[], hasMore: boolean }> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const users = activeUsers.slice(startIndex, endIndex);
-    const hasMore = endIndex < activeUsers.length;
-    return { users, hasMore };
+  getActiveUsers: async (
+    userId: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ users: User[]; hasMore: boolean }> => {
+    try {
+      const url = `${API_BASE}/get_users.php?current_user_id=${userId}`;
+      console.log('🚀 Frontend: Calling getActiveUsers API:', url);
+      
+      const response = await fetch(url);
+      console.log('📡 Frontend: Response status:', response.status, response.statusText);
+      
+      const text = await response.text();
+      console.log('📄 Frontend: Raw response text:', text.substring(0, 500) + (text.length > 500 ? '...' : ''));
+      
+      const data = JSON.parse(text);
+      console.log('📊 Frontend: Parsed response data:', {
+        hasError: !!data.error,
+        error: data.error,
+        userCount: data.users?.length || 0,
+        totalCount: data.count
+      });
+      
+      if (data.error) throw new Error(data.error);
+      const users = data.users || [];
+      
+      // Log avatar information
+      const usersWithAvatars = users.filter((u: User) => u.avatar_url);
+      const usersWithoutAvatars = users.filter((u: User) => !u.avatar_url);
+      
+      console.log('🖼️ Frontend: Avatar analysis:', {
+        totalUsers: users.length,
+        withAvatars: usersWithAvatars.length,
+        withoutAvatars: usersWithoutAvatars.length
+      });
+      
+      users.forEach((user: User, index: number) => {
+        console.log(`👤 Frontend: User #${index + 1}:`, {
+          id: user.id,
+          name: user.name,
+          userType: user.user_type,
+          uniqueKey: user.unique_key,
+          hasAvatar: !!user.avatar_url,
+          avatarLength: user.avatar_url?.length || 0,
+          avatarPrefix: user.avatar_url?.substring(0, 50) || 'none'
+        });
+      });
+      
+      return { users, hasMore: false };
+    } catch (error) {
+      console.error('❌ Frontend Error in getActiveUsers:', error);
+      return { users: [], hasMore: false };
+    }
   },
-
-  // Get all conversations for current user with pagination
-  getConversations: async (page: number = 1, limit: number = 10): Promise<{ users: User[], hasMore: boolean }> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const users = dummyUsers.slice(startIndex, endIndex);
-    const hasMore = endIndex < dummyUsers.length;
-    return { users, hasMore };
+  
+ /**
+ *  // Get all conversations for current user with pagination
+ */
+  getConversations: async (
+    userId: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ users: User[]; hasMore: boolean }> => {
+    try {
+      const response = await fetch(
+        `${API_BASE}/get_conversations.php?current_user_id=${userId}`
+      );
+      const text = await response.text();
+      const data = JSON.parse(text);
+      
+      if (data.error) throw new Error(data.error);
+      const users = data.users || [];
+      
+      return { users, hasMore: false };
+    } catch (error) {
+      console.error('❌ Error in getConversations:', error);
+      return { users: [], hasMore: false };
+    }
   },
 
   // Get messages for a specific chat
-  getChatMessages: async (chatId: string): Promise<Message[]> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return dummyMessages[chatId] || [];
+  getChatMessages: async (userId: string, chatId: string): Promise<Message[]> => {
+    const response = await fetch(
+      `${API_BASE}/get_messages.php?current_user_id=${userId}&other_user_id=${chatId}`
+    );
+    const data = await response.json();
+    return data.messages.map((msg: any) => ({
+      ...msg,
+      timestamp: new Date(msg.timestamp),
+    }));
   },
 
   // Send a new message
-  sendMessage: async (message: Omit<Message, 'id' | 'timestamp' | 'isRead'>): Promise<Message> => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    const newMessage: Message = {
-      ...message,
-      id: Date.now().toString(),
-      timestamp: new Date(),
-      isRead: false,
+  sendMessage: async (
+    message: Omit<Message, "id" | "timestamp" | "isRead">
+  ): Promise<Message> => {
+    const response = await fetch(`${API_BASE}/send_message.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sender_id: message.senderId,
+        receiver_id: message.receiverId,
+        message: message.text,
+        type: message.type,
+      }),
+    });
+    const data = await response.json();
+    return {
+      ...data.message,
+      timestamp: new Date(data.message.timestamp),
     };
-
-    // Add to dummy storage
-    const chatId = message.receiverId;
-    if (!dummyMessages[chatId]) {
-      dummyMessages[chatId] = [];
-    }
-    dummyMessages[chatId].push(newMessage);
-
-    // Update user's last message
-    const userIndex = dummyUsers.findIndex(u => u.id === chatId);
-    if (userIndex !== -1) {
-      dummyUsers[userIndex].lastMessage = message.text;
-      dummyUsers[userIndex].lastMessageTime = 'now';
-    }
-
-    return newMessage;
   },
 
   // Get unread message count
-  getUnreadCount: async (): Promise<number> => {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    return dummyUsers.reduce((total, user) => total + user.unreadCount, 0);
+  getUnreadCount: async (userId: string): Promise<number> => {
+    try {
+      const response = await fetch(
+        `${API_BASE}/get_conversations.php?current_user_id=${userId}`
+      );
+      const data = await response.json();
+      if (data.error) return 0;
+      return data.users.reduce(
+        (total: number, user: User) => total + user.unreadCount,
+        0
+      );
+    } catch (error) {
+      console.error('Error getting unread count:', error);
+      return 0;
+    }
   },
 
   // Search users
-  searchUsers: async (query: string): Promise<User[]> => {
-    await new Promise(resolve => setTimeout(resolve, 400));
+  searchUsers: async (userId: string, query: string): Promise<User[]> => {
     if (!query.trim()) return [];
-    
-    return dummyUsers.filter(user => 
+    const response = await fetch(
+      `${API_BASE}/get_users.php?current_user_id=${userId}`
+    );
+    const data = await response.json();
+    return data.users.filter((user: User) =>
       user.name.toLowerCase().includes(query.toLowerCase())
     );
   },
 
   // Mark messages as read
-  markAsRead: async (chatId: string): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    if (dummyMessages[chatId]) {
-      dummyMessages[chatId].forEach(msg => {
-        if (msg.receiverId === 'current') {
-          msg.isRead = true;
-        }
-      });
-    }
-
-    // Update unread count
-    const userIndex = dummyUsers.findIndex(u => u.id === chatId);
-    if (userIndex !== -1) {
-      dummyUsers[userIndex].unreadCount = 0;
-    }
+  markAsRead: async (userId: string, chatId: string): Promise<void> => {
+    await fetch(`${API_BASE}/mark_read.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        current_user_id: userId,
+        other_user_id: chatId
+      })
+    });
   },
+
+  // Messages are automatically marked as seen when getChatMessages is called
 };

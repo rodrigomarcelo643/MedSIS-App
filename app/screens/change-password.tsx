@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { ArrowLeft, Check, Eye, EyeOff, Key, X } from "lucide-react-native";
@@ -22,6 +23,13 @@ const API_URL = "https://msis.eduisync.io/api/change_password.php";
 
 const ChangePassword = () => {
   const { user } = useAuth();
+  // Theme Change 
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const borderColor = useThemeColor({}, 'border');
+  const mutedColor = useThemeColor({}, 'muted');
+
   const navigation = useNavigation();
   const [passwords, setPasswords] = useState({
     current_password: "",
@@ -349,6 +357,7 @@ const ChangePassword = () => {
       <ScrollView
         className="flex-1 px-3 py-6 mt-10"
         keyboardShouldPersistTaps="handled"
+        style={{ backgroundColor }}
       >
         {/* Header */}
         <View className="flex-row items-center mb-6">
@@ -363,13 +372,14 @@ const ChangePassword = () => {
           </Text>
         </View>
 
-        <View className="bg-white p-3 mt-10 rounded-xl shadow-sm">
+        <View className="bg-white p-3 mt-10 rounded-xl shadow-sm" style={{ backgroundColor: cardColor }}>
           {/* Current Password Input */}
           <View className="mb-6">
             <View className="relative">
-              <Animated.Text style={currentPasswordLabelStyle}>
+              <Animated.Text style={[currentPasswordLabelStyle, { backgroundColor: cardColor }]}>
                 Current Password
               </Animated.Text>
+
               <View
                 className={`flex-row items-center border ${errors.current_password ? "border-red-500" : state.isCurrentPasswordFocused ? "border-[#af1616]" : "border-gray-300"} rounded-lg px-3 py-2 mt-1`}
               >
@@ -380,6 +390,7 @@ const ChangePassword = () => {
                 />
                 <TextInput
                   className="flex-1 text-[#1f2937] py-2"
+                  style={{color: textColor }}
                   value={passwords.current_password}
                   onChangeText={(value) =>
                     handlePasswordChange("current_password", value)
@@ -421,7 +432,7 @@ const ChangePassword = () => {
           {/* New Password Input */}
           <View className="mb-6">
             <View className="relative">
-              <Animated.Text style={newPasswordLabelStyle}>
+              <Animated.Text style={[newPasswordLabelStyle, { backgroundColor: cardColor }] }>
                 New Password
               </Animated.Text>
               <View
@@ -440,6 +451,7 @@ const ChangePassword = () => {
                 />
                 <TextInput
                   className="flex-1 text-[#1f2937] py-2"
+                  style={{ color: textColor }}
                   value={passwords.new_password}
                   onChangeText={(value) =>
                     handlePasswordChange("new_password", value)
@@ -493,7 +505,7 @@ const ChangePassword = () => {
           {/* Confirm Password Input */}
           <View className="mb-3">
             <View className="relative">
-              <Animated.Text style={confirmPasswordLabelStyle}>
+              <Animated.Text style={[confirmPasswordLabelStyle, { backgroundColor: cardColor }]}>
                 Confirm Password
               </Animated.Text>
               <View
@@ -513,6 +525,7 @@ const ChangePassword = () => {
                 />
                 <TextInput
                   className="flex-1 text-[#1f2937] py-2"
+                  style={{color: textColor }}
                   value={passwords.confirm_password}
                   onChangeText={(value) =>
                     handlePasswordChange("confirm_password", value)

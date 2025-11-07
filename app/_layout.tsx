@@ -1,5 +1,5 @@
 import { SplashScreen as CustomSplashScreen } from "@/components/SplashScreen";
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
   DarkTheme,
   DefaultTheme,
@@ -21,12 +21,13 @@ import "react-native-reanimated";
 import "../global.css";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ThemeProvider as CustomThemeProvider } from "@/contexts/ThemeContext";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
 function MainLayout() {
-  const colorScheme = useColorScheme();
+  const { theme } = useTheme();
   const { user, loading } = useAuth();
 
   console.log("🔄 MainLayout render - user:", user, "loading:", loading);
@@ -45,7 +46,7 @@ function MainLayout() {
   return (
 
     // Wrapped Theme Provider (For future purpose of light and dark mode implementations)
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         {!user ? (
           <>
@@ -88,7 +89,7 @@ function MainLayout() {
               name="screens/school-calendar"
               options={{ title: "School Calendar", headerShown: true }}
             />
-              <Stack.Screen
+            <Stack.Screen
               name="screens/change-password"
               options={{ title: "ChangePassword", headerShown: true }}
             />
@@ -170,21 +171,23 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      {/* Main app content */}
-      <View style={[styles.mainContent, showCustomSplash && styles.hidden]}>
-        <MainLayout />
-      </View>
-
-      {/* Custom splash overlay */}
-      {showCustomSplash && (
-        <View style={styles.splashOverlay}>
-          <CustomSplashScreen
-            onAnimationComplete={handleSplashAnimationComplete}
-          />
+    <CustomThemeProvider>
+      <AuthProvider>
+        {/* Main app content */}
+        <View style={[styles.mainContent, showCustomSplash && styles.hidden]}>
+          <MainLayout />
         </View>
-      )}
-    </AuthProvider>
+
+        {/* Custom splash overlay */}
+        {showCustomSplash && (
+          <View style={styles.splashOverlay}>
+            <CustomSplashScreen
+              onAnimationComplete={handleSplashAnimationComplete}
+            />
+          </View>
+        )}
+      </AuthProvider>
+    </CustomThemeProvider>
   );
 }
 

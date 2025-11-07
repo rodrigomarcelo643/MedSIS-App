@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 import {
@@ -113,6 +114,13 @@ const LazyLoader = () => {
 
 const AnnouncementsScreen: React.FC = () => {
   const { user, logout } = useAuth();
+
+  //Theme Changer 
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const mutedColor = useThemeColor({}, 'muted');
+
   const router = useRouter();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [filteredAnnouncements, setFilteredAnnouncements] = useState<Announcement[]>([]);
@@ -305,7 +313,7 @@ const AnnouncementsScreen: React.FC = () => {
                 ) : (
                   <View className="w-4 h-4" />
                 )}
-                <Text className={`ml-2 ${selectedPriority === priority.value ? 'text-maroon-800 font-semibold' : 'text-gray-700'}`}>
+                <Text className={`ml-2 ${selectedPriority === priority.value ? ' font-semibold' : 'text-gray-700'}`}>
                   {priority.label}
                 </Text>
               </TouchableOpacity>
@@ -354,22 +362,22 @@ const AnnouncementsScreen: React.FC = () => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50 pt-10">
-      <View className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200">
+    <View className="flex-1 bg-gray-50 pt-10" style={{ backgroundColor }}>
+      <View style={{ backgroundColor: cardColor }} className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200">
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
-          <ChevronLeft size={24} color="#800000" />
+          <ChevronLeft size={24} style={{color: textColor }} />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-maroon-800">Announcements</Text>
+        <Text className="text-xl font-bold" style={{color: textColor }} >Announcements</Text>
         <View className="flex-1"></View>
         <TouchableOpacity 
           className="flex-row items-center bg-maroon-100 rounded-full px-4 py-2"
           onPress={() => setShowPriorityDropdown(true)}
         >
-          <Filter size={16} color="#800000" />
-          <Text className="ml-2 text-maroon-800 text-sm font-medium">
+          <Filter size={16} style={{color: textColor }}  />
+          <Text className="mr-1  text-sm font-medium" style={{ color: textColor }}>
             {getSelectedPriorityLabel()}
           </Text>
-          <ChevronDown size={16} color="#800000" className="ml-1" />
+          <ChevronDown size={16}  style={{color: textColor }} className="ml-2" />
         </TouchableOpacity>
       </View>
 
@@ -409,6 +417,7 @@ const AnnouncementsScreen: React.FC = () => {
                 <View 
                   key={announcement.id} 
                   className={`bg-white rounded-sm shadow-sm p-4 mb-4 border-l-4 ${priorityBorderColor}`}
+                  style={{ backgroundColor: cardColor }}
                 >
                   <View className="flex-row justify-between items-center mb-3">
                     <View className="flex-row items-center">
@@ -423,26 +432,26 @@ const AnnouncementsScreen: React.FC = () => {
                   </View>
                   
                   <TouchableOpacity onPress={() => toggleExpand(announcement.id)}>
-                    <Text className="text-lg font-semibold text-gray-900 mb-2">{announcement.title}</Text>
+                    <Text className="text-lg font-semibold text-gray-900 mb-2" style={{ color: textColor }}>{announcement.title}</Text>
                     
                     {(isExpanded || announcement.description.length < 150) ? (
-                      <Text className="text-gray-600 mb-3">{announcement.description}</Text>
+                      <Text className="text-gray-600 mb-3" style={{ color: textColor }}>{announcement.description}</Text>
                     ) : (
-                      <Text className="text-gray-600 mb-3">
+                      <Text className="text-gray-600 mb-3" style={{ color: textColor }}>
                         {announcement.description.substring(0, 150)}...
-                        <Text className="text-maroon-600"> Read more</Text>
+                        <Text className="text-maroon-600" > Read more</Text>
                       </Text>
                     )}
                     
                     <View className="flex-row justify-between items-center mt-2">
                       <View className="flex-row items-center">
                         <User size={14} color="#6b7280" />
-                        <Text className="ml-1 text-gray-500 text-sm">{announcement.author}</Text>
+                        <Text className="ml-1 text-gray-500 text-sm" style={{ color: textColor }}>{announcement.author}</Text>
                       </View>
                       
                       <View className="flex-row items-center">
                         <Clock size={14} color="#6b7280" />
-                        <Text className="ml-1 text-gray-500 text-sm">{formatDate(announcement.created_at)}</Text>
+                        <Text className="ml-1 text-gray-500 text-sm" style={{ color: textColor }}>{formatDate(announcement.created_at)}</Text>
                       </View>
                     </View>
                   </TouchableOpacity>

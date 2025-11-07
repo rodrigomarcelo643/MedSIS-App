@@ -1,4 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react-native";
@@ -48,6 +50,17 @@ const MAROON_THEME = {
 };
 
 export default function Calendar() {
+
+
+  // Theme Change 
+  const { theme } = useTheme();
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const mutedColor = useThemeColor({}, 'muted');
+  const loadColor = useThemeColor({}, 'loaderCard');
+  const gridBorderColor = theme === 'light' ? '#D1D5DB' : mutedColor;
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -239,18 +252,18 @@ export default function Calendar() {
   // Skeleton loader components
   const SkeletonLoader = () => {
     return (
-      <View className="flex-1 bg-white p-4 mt-6">
+      <View className="flex-1 p-4 mt-6" style={{backgroundColor}}>
         {/* Header skeleton */}
-        <View className="h-12 bg-gray-200 rounded-md mb-4 animate-pulse"></View>
+        <View className="h-12 rounded-md mb-4 animate-pulse" style={{backgroundColor: loadColor}}></View>
         
         {/* Navigation skeleton */}
         <View className="flex-row justify-between items-center mb-4">
-          <View className="h-10 w-10 bg-gray-200 rounded-full animate-pulse"></View>
+          <View className="h-10 w-10 rounded-full animate-pulse" style={{backgroundColor: loadColor}}></View>
           <View className="flex-row">
-            <View className="h-10 w-24 bg-gray-200 rounded-md mr-2 animate-pulse"></View>
-            <View className="h-10 w-20 bg-gray-200 rounded-md animate-pulse"></View>
+            <View className="h-10 w-24 rounded-md mr-2 animate-pulse" style={{backgroundColor: loadColor}}></View>
+            <View className="h-10 w-20 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
           </View>
-          <View className="h-10 w-10 bg-gray-200 rounded-full animate-pulse"></View>
+          <View className="h-10 w-10 rounded-full animate-pulse" style={{backgroundColor: loadColor}}></View>
         </View>
         
         {/* Calendar grid skeleton */}
@@ -260,7 +273,7 @@ export default function Calendar() {
             <View className="flex-row mb-2">
               {days.map((_, i) => (
                 <View key={i} className="flex-1 items-center">
-                  <View className="h-6 w-10 bg-gray-200 rounded-md animate-pulse"></View>
+                  <View className="h-6 w-10 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
                 </View>
               ))}
             </View>
@@ -270,7 +283,7 @@ export default function Calendar() {
               <View key={rowIndex} className="flex-row mb-2">
                 {Array.from({ length: 7 }).map((_, colIndex) => (
                   <View key={colIndex} className="flex-1 aspect-square p-1">
-                    <View className="flex-1 bg-gray-200 rounded-md animate-pulse"></View>
+                    <View className="flex-1 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
                   </View>
                 ))}
               </View>
@@ -284,8 +297,8 @@ export default function Calendar() {
             <View className="flex-row mb-2">
               {Array.from({ length: 7 }).map((_, i) => (
                 <View key={i} className="flex-1 items-center">
-                  <View className="h-8 w-8 bg-gray-200 rounded-full mb-1 animate-pulse"></View>
-                  <View className="h-4 w-12 bg-gray-200 rounded-md animate-pulse"></View>
+                  <View className="h-8 w-8 rounded-full mb-1 animate-pulse" style={{backgroundColor: loadColor}}></View>
+                  <View className="h-4 w-12 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
                 </View>
               ))}
             </View>
@@ -294,12 +307,12 @@ export default function Calendar() {
             {Array.from({ length: 24 }).map((_, hourIndex) => (
               <View key={hourIndex} className="flex-row h-16 mb-2">
                 <View className="w-14 items-end pr-2">
-                  <View className="h-4 w-10 bg-gray-200 rounded-md animate-pulse"></View>
+                  <View className="h-4 w-10 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
                 </View>
                 <View className="flex-1 flex-row">
                   {Array.from({ length: 7 }).map((_, dayIndex) => (
-                    <View key={dayIndex} className="flex-1 border border-gray-200 mx-0.5">
-                      <View className="h-12 bg-gray-100 rounded-sm animate-pulse"></View>
+                    <View key={dayIndex} className="flex-1 mx-0.5" style={{borderColor: gridBorderColor, borderWidth: 1}}>
+                      <View className="h-12 rounded-sm animate-pulse" style={{backgroundColor: cardColor}}></View>
                     </View>
                   ))}
                 </View>
@@ -312,23 +325,23 @@ export default function Calendar() {
           <View className="flex-1">
             {/* Day header skeleton */}
             <View className="items-center py-4 mb-4">
-              <View className="h-6 w-48 bg-gray-200 rounded-md mb-2 animate-pulse"></View>
-              <View className="h-4 w-32 bg-gray-200 rounded-md animate-pulse"></View>
+              <View className="h-6 w-48 rounded-md mb-2 animate-pulse" style={{backgroundColor: loadColor}}></View>
+              <View className="h-4 w-32 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
             </View>
             
             {/* Events skeleton */}
             {Array.from({ length: 3 }).map((_, i) => (
-              <View key={i} className="p-4 rounded-xl mb-4 bg-gray-100 animate-pulse">
+              <View key={i} className="p-4 rounded-xl mb-4 animate-pulse" style={{backgroundColor: cardColor}}>
                 <View className="flex-row justify-between items-start mb-3">
-                  <View className="h-5 w-32 bg-gray-200 rounded-md"></View>
-                  <View className="h-6 w-16 bg-gray-200 rounded-md"></View>
+                  <View className="h-5 w-32 rounded-md" style={{backgroundColor: loadColor}}></View>
+                  <View className="h-6 w-16 rounded-md" style={{backgroundColor: loadColor}}></View>
                 </View>
                 <View className="flex-row items-center mb-2">
-                  <View className="w-3 h-3 rounded-full mr-2 bg-gray-200"></View>
-                  <View className="h-4 w-40 bg-gray-200 rounded-md"></View>
+                  <View className="w-3 h-3 rounded-full mr-2" style={{backgroundColor: loadColor}}></View>
+                  <View className="h-4 w-40 rounded-md" style={{backgroundColor: loadColor}}></View>
                 </View>
-                <View className="h-4 w-full bg-gray-200 rounded-md mt-2"></View>
-                <View className="h-4 w-3/4 bg-gray-200 rounded-md mt-1"></View>
+                <View className="h-4 w-full rounded-md mt-2" style={{backgroundColor: loadColor}}></View>
+                <View className="h-4 w-3/4 rounded-md mt-1" style={{backgroundColor: loadColor}}></View>
               </View>
             ))}
           </View>
@@ -348,7 +361,18 @@ export default function Calendar() {
     
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
-      daysArray.push(<View key={`empty-${i}`} className="h-24 border-b border-r border-gray-200 flex-1" />);
+      daysArray.push(
+        <View 
+          key={`empty-${i}`} 
+          className="h-24 flex-1" 
+          style={{
+            borderBottomColor: gridBorderColor,
+            borderRightColor: gridBorderColor,
+            borderBottomWidth: 1,
+            borderRightWidth: 1
+          }} 
+        />
+      );
     }
     
     // Add cells for each day of the month
@@ -364,7 +388,14 @@ export default function Calendar() {
       daysArray.push(
         <View 
           key={`day-${day}`} 
-          className={`border-b border-r border-gray-200 flex-1 ${isToday ? "bg-blue-100" : ""}`}
+          className="flex-1"
+          style={{
+            borderBottomColor: gridBorderColor,
+            borderRightColor: gridBorderColor,
+            borderBottomWidth: 1,
+            borderRightWidth: 1,
+            backgroundColor: isToday ? '#3B82F620' : 'transparent'
+          }}
         >
           <View className="h-24 p-1">
             <TouchableOpacity 
@@ -374,7 +405,13 @@ export default function Calendar() {
               }}
               className="flex-row items-start justify-between"
             >
-              <Text className={`text-sm w-6 h-6 text-center rounded-full flex items-center justify-center ${isToday ? "bg-[#be2e2e] text-white font-bold" : "text-gray-700"}`}>
+              <Text 
+                className="text-sm w-6 h-6 text-center rounded-full flex items-center justify-center font-bold"
+                style={{
+                  backgroundColor: isToday ? '#be2e2e' : 'transparent',
+                  color: isToday ? 'white' : textColor
+                }}
+              >
                 {day}
               </Text>
             </TouchableOpacity>
@@ -390,7 +427,7 @@ export default function Calendar() {
                   }}
                 >
                   <View className="w-1.5 h-1.5 rounded-full mr-1" style={{backgroundColor: event.color}} />
-                  <Text className="text-[10px] text-gray-600" numberOfLines={1}>
+                  <Text className="text-[10px]" style={{color: mutedColor}} numberOfLines={1}>
                     {event.title}
                   </Text>
                 </TouchableOpacity>
@@ -408,7 +445,18 @@ export default function Calendar() {
     // Fill remaining cells to complete the last row (if needed)
     const remainingCells = rowsNeeded * 7 - totalCells;
     for (let i = 0; i < remainingCells; i++) {
-      daysArray.push(<View key={`remaining-${i}`} className="h-24 border-b border-r border-gray-200 flex-1" />);
+      daysArray.push(
+        <View 
+          key={`remaining-${i}`} 
+          className="h-24 flex-1" 
+          style={{
+            borderBottomColor: gridBorderColor,
+            borderRightColor: gridBorderColor,
+            borderBottomWidth: 1,
+            borderRightWidth: 1
+          }} 
+        />
+      );
     }
     
     // Create rows with exactly 7 cells each
@@ -425,10 +473,10 @@ export default function Calendar() {
     return (
       <View className="flex-1">
         {/* Weekday headers */}
-        <View className="flex-row mb-1 bg-white border-b border-gray-200">
+        <View className="flex-row mb-1" style={{backgroundColor, borderBottomColor: gridBorderColor, borderBottomWidth: 1}}>
           {days.map(day => (
             <View key={day} className="flex-1 items-center py-2">
-              <Text className="font-semibold text-gray-600 text-xs">
+              <Text className="font-semibold text-xs" style={{color: mutedColor}}>
                 {day}
               </Text>
             </View>
@@ -466,16 +514,19 @@ export default function Calendar() {
             );
             
             return (
-              <View key={`weekday-${i}`} className="flex-1 items-center py-2 border-r border-gray-200 last:border-r-0">
-                <Text className="text-gray-500 text-xs">{days[i].substring(0, 1)}</Text>
-                <View className={`w-8 h-8 rounded-full ${isToday ? "bg-blue-500" : "bg-gray-100"} items-center justify-center mt-1`}>
-                  <Text className={`${isToday ? "text-white" : "text-gray-800"}`}>
+              <View key={`weekday-${i}`} className="flex-1 items-center py-2" style={{borderRightColor: gridBorderColor, borderRightWidth: i < 6 ? 1 : 0}}>
+                <Text className="text-xs" style={{color: mutedColor}}>{days[i].substring(0, 1)}</Text>
+                <View 
+                  className="w-8 h-8 rounded-full items-center justify-center mt-1"
+                  style={{backgroundColor: isToday ? '#3B82F6' : cardColor}}
+                >
+                  <Text style={{color: isToday ? 'white' : textColor}}>
                     {date.getDate()}
                   </Text>
                 </View>
                 {dayEvents.length > 0 && (
                   <View className="mt-1">
-                    <Text className="text-xs text-blue-500">{dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}</Text>
+                    <Text className="text-xs" style={{color: '#3B82F6'}}>{dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}</Text>
                   </View>
                 )}
               </View>
@@ -502,13 +553,27 @@ export default function Calendar() {
             const isWorkingHours = hour >= 9 && hour <= 17;
             
             return (
-              <View key={`hour-${hour}`} className={`flex-row h-16 border-b border-gray-200 ${isWorkingHours ? "bg-blue-50" : ""}`}>
+              <View 
+                key={`hour-${hour}`} 
+                className="flex-row h-16"
+                style={{
+                  borderBottomColor: gridBorderColor,
+                  borderBottomWidth: 1,
+                  backgroundColor: isWorkingHours ? '#3B82F610' : 'transparent'
+                }}
+              >
                 <View className="w-14 items-end pr-2 pt-1">
-                  <Text className={`text-xs ${hour === 9 || hour === 12 || hour === 17 ? "font-bold text-blue-800" : "text-gray-500"}`}>
+                  <Text 
+                    className="text-xs"
+                    style={{
+                      color: hour === 9 || hour === 12 || hour === 17 ? '#1E40AF' : mutedColor,
+                      fontWeight: hour === 9 || hour === 12 || hour === 17 ? 'bold' : 'normal'
+                    }}
+                  >
                     {time}
                   </Text>
                 </View>
-                <View className="flex-1 flex-row border-l border-gray-200">
+                <View className="flex-1 flex-row" style={{borderLeftColor: gridBorderColor, borderLeftWidth: 1}}>
                   {dates.map((date, i) => {
                     const dayEvents = filteredEvents.filter(event => {
                       const eventStart = new Date(event.start);
@@ -525,7 +590,7 @@ export default function Calendar() {
                     }).sort((a, b) => a.start.getTime() - b.start.getTime());
                     
                     return (
-                      <View key={`cell-${hour}-${i}`} className="flex-1 border-r border-gray-200 last:border-r-0">
+                      <View key={`cell-${hour}-${i}`} className="flex-1" style={{borderRightColor: gridBorderColor, borderRightWidth: i < 6 ? 1 : 0}}>
                         {dayEvents.map(event => (
                           <TouchableOpacity
                             key={event.id}
@@ -563,11 +628,11 @@ export default function Calendar() {
     
     return (
       <View className="flex-1">
-        <View className="items-center py-4 border-b border-gray-200">
-          <Text className="text-xl font-bold text-gray-800">
+        <View className="items-center py-4" style={{borderBottomColor: gridBorderColor, borderBottomWidth: 1}}>
+          <Text className="text-xl font-bold" style={{color: textColor}}>
             {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </Text>
-          <Text className="text-gray-500 mt-1">
+          <Text className="mt-1" style={{color: mutedColor}}>
             {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''} scheduled
           </Text>
         </View>
@@ -606,13 +671,27 @@ export default function Calendar() {
               });
               
               return (
-                <View key={`hour-${hour}`} className={`flex-row min-h-16 border-b border-gray-200 ${isWorkingHours ? "bg-blue-50" : ""}`}>
+                <View 
+                  key={`hour-${hour}`} 
+                  className="flex-row min-h-16"
+                  style={{
+                    borderBottomColor: gridBorderColor,
+                    borderBottomWidth: 1,
+                    backgroundColor: isWorkingHours ? '#3B82F610' : 'transparent'
+                  }}
+                >
                   <View className="w-14 items-end pr-2 pt-3">
-                    <Text className={`text-xs ${hour === 9 || hour === 12 || hour === 17 ? "font-bold text-blue-800" : "text-gray-500"}`}>
+                    <Text 
+                      className="text-xs"
+                      style={{
+                        color: hour === 9 || hour === 12 || hour === 17 ? '#1E40AF' : mutedColor,
+                        fontWeight: hour === 9 || hour === 12 || hour === 17 ? 'bold' : 'normal'
+                      }}
+                    >
                       {time}
                     </Text>
                   </View>
-                  <View className="flex-1 border-l border-gray-200 p-1 relative">
+                  <View className="flex-1 p-1 relative" style={{borderLeftColor: gridBorderColor, borderLeftWidth: 1}}>
                     {hourEvents.map(event => {
                       // Calculate if this is the first hour of a multi-hour event
                       const isFirstHour = event.start.getHours() === hour;
@@ -680,8 +759,8 @@ export default function Calendar() {
           </ScrollView>
         ) : (
           <View className="flex-1 items-center justify-center p-8">
-            <CalendarIcon size={48} color="#D1D5DB" />
-            <Text className="text-lg text-gray-500 mt-4 text-center">No events scheduled for this day</Text>
+            <CalendarIcon size={48} color={mutedColor} />
+            <Text className="text-lg mt-4 text-center" style={{color: mutedColor}}>No events scheduled for this day</Text>
           </View>
         )}
       </View>
@@ -699,13 +778,12 @@ export default function Calendar() {
         onRequestClose={() => setShowEventModal(false)}
       >
         <View className="flex-1 justify-end bg-black/50">
-          <View className="bg-white rounded-t-3xl p-6 max-h-3/4">
+          <View className="rounded-t-3xl p-6 max-h-3/4" style={{backgroundColor}}>
                 
             <View className="space-y-5">
                 
-                <View className="border-b-2 border-gray-300 mb-5 ">
-                  <Text className="text-[#be2e2e] py-3 font-bold text-lg">{selectedEvent.title}</Text>
-                
+                <View className="mb-5" style={{borderBottomColor: mutedColor, borderBottomWidth: 2}}>
+                  <Text className="py-3 font-bold text-lg" style={{color: '#be2e2e'}}>{selectedEvent.title}</Text>
                 </View>
               <View className="flex-row mb-3  items-center ">
                 <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{backgroundColor: `${selectedEvent.color}20`}}>
@@ -713,8 +791,8 @@ export default function Calendar() {
                 </View>
                 
                 <View>
-                  <Text className="text-gray-500 text-sm">Date</Text>
-                  <Text className="text-gray-900">{selectedEvent.start.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</Text>
+                  <Text className="text-sm" style={{color: mutedColor}}>Date</Text>
+                  <Text style={{color: textColor}}>{selectedEvent.start.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</Text>
                 </View>
               </View>
               
@@ -723,8 +801,8 @@ export default function Calendar() {
                   <Text className="text-xs font-bold" style={{color: selectedEvent.color}}>⏰</Text>
                 </View>
                 <View>
-                  <Text className="text-gray-500 text-sm">Time</Text>
-                  <Text className="text-gray-900">
+                  <Text className="text-sm" style={{color: mutedColor}}>Time</Text>
+                  <Text style={{color: textColor}}>
                     {selectedEvent.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
                     {selectedEvent.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Text>
@@ -732,8 +810,8 @@ export default function Calendar() {
               </View>
               
               <View>
-                <Text className="text-gray-500 text-sm mb-2">Description</Text>
-                <Text className="text-gray-900 leading-5">{selectedEvent.description}</Text>
+                <Text className="text-sm mb-2" style={{color: mutedColor}}>Description</Text>
+                <Text className="leading-5" style={{color: textColor}}>{selectedEvent.description}</Text>
               </View>
             </View>
             
@@ -758,10 +836,11 @@ export default function Calendar() {
   // Render error state
   if (error) {
     return (
-      <View className="flex-1 bg-white justify-center items-center p-8">
-        <Text className="text-lg text-red-500 mb-4 text-center">{error}</Text>
+      <View className="flex-1 justify-center items-center p-8" style={{backgroundColor}}>
+        <Text className="text-lg mb-4 text-center" style={{color: '#EF4444'}}>{error}</Text>
         <TouchableOpacity 
-          className="px-4 py-2 bg-blue-500 rounded-md"
+          className="px-4 py-2 rounded-md"
+          style={{backgroundColor: '#3B82F6'}}
           onPress={() => fetchEvents()}
         >
           <Text className="text-white">Try Again</Text>
@@ -773,27 +852,29 @@ export default function Calendar() {
   const weekRange = getWeekRange(currentDate);
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1" style={{backgroundColor}}>
       {/* Header */}
-      <View className="p-3 pt-25 mt-10  bg-white shadow-sm">
+      <View className="p-3 pt-25 mt-10 shadow-sm" style={{backgroundColor, borderBottomColor: gridBorderColor, borderBottomWidth: 1}}>
         <View className="flex-row items-center">
           <TouchableOpacity 
             onPress={() => router.back()}
             className="mr-3 p-1"
           >
-            <ChevronLeft size={24} color="#374151" />
+            <ChevronLeft size={24} color={textColor} />
           </TouchableOpacity>
-          <Text className="text-2xl font-bold text-gray-900">Events Calendar</Text>
+          <Text className="text-2xl font-bold" style={{color: textColor}}>Events Calendar</Text>
         </View>
       </View>
       
       {/* Search Bar */}
       {showSearch && (
-        <View className="flex-row items-center px-4 py-2 border-b border-gray-200 bg-white">
-          <Search size={20} color="#9CA3AF" className="mr-2" />
+        <View className="flex-row items-center px-4 py-2" style={{backgroundColor, borderBottomColor: gridBorderColor, borderBottomWidth: 1}}>
+          <Search size={20} color={mutedColor} className="mr-2" />
           <TextInput
-            className="flex-1 py-2 text-gray-900"
+            className="flex-1 py-2"
+            style={{color: textColor}}
             placeholder="Search events..."
+            placeholderTextColor={mutedColor}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoFocus={true}
@@ -805,51 +886,55 @@ export default function Calendar() {
             }} 
             className="ml-2"
           >
-            <X size={20} color="#9CA3AF" />
+            <X size={20} color={mutedColor} />
           </TouchableOpacity>
         </View>
       )}
       
       {/* Navigation */}
-      <View className="flex-row items-center justify-between p-4 border-b border-gray-200 bg-white">
+      <View className="flex-row items-center justify-between p-4" style={{backgroundColor, borderBottomColor: gridBorderColor, borderBottomWidth: 1}}>
         <TouchableOpacity 
           onPress={() => navigate("prev")}
-          className="p-2 rounded-full bg-gray-100"
+          className="p-2 rounded-full"
+          style={{backgroundColor: cardColor}}
         >
-          <ChevronLeft size={20} color="#374151" />
+          <ChevronLeft size={20} color={textColor} />
         </TouchableOpacity>
         
         <View className="flex-row items-center">
           <View className="relative">
             <TouchableOpacity 
-              className="flex-row items-center px-3 py-1.5 rounded-md bg-gray-100 mr-2"
+              className="flex-row items-center px-3 py-1.5 rounded-md mr-2"
+              style={{backgroundColor: cardColor}}
               onPress={() => setShowViewDropdown(!showViewDropdown)}
             >
-              <Text className="text-gray-700 text-sm font-medium mr-1">
+              <Text className="text-sm font-medium mr-1" style={{color: textColor}}>
                 {viewMode === "month" ? "Month" : viewMode === "week" ? "Week" : "Day"}
               </Text>
-              <ChevronDown size={16} color="#374151" />
+              <ChevronDown size={16} color={textColor} />
             </TouchableOpacity>
             
             {showViewDropdown && (
-              <View className="absolute top-full left-0 mt-1 bg-white rounded-md shadow-lg z-10 min-w-full">
+              <View className="absolute top-full left-0 mt-1 rounded-md shadow-lg z-10 min-w-full" style={{backgroundColor}}>
                 <TouchableOpacity 
-                  className="px-4 py-2 border-b border-gray-100"
+                  className="px-4 py-2"
+                  style={{borderBottomColor: mutedColor, borderBottomWidth: 1}}
                   onPress={() => {
                     setViewMode("month");
                     setShowViewDropdown(false);
                   }}
                 >
-                  <Text className="text-gray-700">Month</Text>
+                  <Text style={{color: textColor}}>Month</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  className="px-4 py-2 border-b border-gray-100"
+                  className="px-4 py-2"
+                  style={{borderBottomColor: mutedColor, borderBottomWidth: 1}}
                   onPress={() => {
                     setViewMode("week");
                     setShowViewDropdown(false);
                   }}
                 >
-                  <Text className="text-gray-700">Week</Text>
+                  <Text style={{color: textColor}}>Week</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   className="px-4 py-2"
@@ -858,7 +943,7 @@ export default function Calendar() {
                     setShowViewDropdown(false);
                   }}
                 >
-                  <Text className="text-gray-700">Day</Text>
+                  <Text style={{color: textColor}}>Day</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -875,21 +960,23 @@ export default function Calendar() {
         <View className="flex-row items-center">
           <TouchableOpacity 
             onPress={() => setShowSearch(true)}
-            className="p-2 rounded-full bg-gray-100 mr-2"
+            className="p-2 rounded-full mr-2"
+            style={{backgroundColor: cardColor}}
           >
-            <Search size={20} color="#374151" />
+            <Search size={20} color={textColor} />
           </TouchableOpacity>
           <TouchableOpacity 
             onPress={() => navigate("next")}
-            className="p-2 rounded-full bg-gray-100"
+            className="p-2 rounded-full"
+            style={{backgroundColor: cardColor}}
           >
-            <ChevronRight size={20} color="#374151" />
+            <ChevronRight size={20} color={textColor} />
           </TouchableOpacity>
         </View>
       </View>
       
-      <View className="flex-row justify-center border-b border-gray-200 bg-white">
-        <Text className="text-lg font-semibold text-gray-900 py-3">
+      <View className="flex-row justify-center py-3" style={{backgroundColor, borderBottomColor: gridBorderColor, borderBottomWidth: 1}}>
+        <Text className="text-lg font-semibold" style={{color: textColor}}>
           {viewMode === "month" && `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
           {viewMode === "week" && `Week of ${formatDateRange(weekRange.start, weekRange.end)}`}
           {viewMode === "day" && currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
