@@ -59,7 +59,7 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   return (
     <View
       className="bg-gray-100 dark:bg-gray-800 mb-2 overflow-hidden"
-      style={[{ width, height, borderRadius, backgroundColor: loadColor }, style]}
+      style={[{ width, height, borderRadius, backgroundColor: loadColor } as ViewStyle, style]}
     >
       <View
         className="w-full h-full mb-2 bg-gray-200 dark:bg-gray-700"
@@ -77,14 +77,7 @@ const SkeletonPulse = () => {
     <View
       className="absolute top-0 left-0 mb-2 right-0 bottom-0 bg-gray-300 dark:bg-gray-600 opacity-20"
       style={{
-        animationDuration: "1.5s",
-        animationIterationCount: "infinite",
-        animationTimingFunction: "ease-in-out",
-        animationKeyframes: {
-          "0%": { opacity: 0.2 },
-          "50%": { opacity: 0.4 },
-          "100%": { opacity: 0.2 },
-        },
+        opacity: 0.3,
       }}
     />
   );
@@ -216,19 +209,24 @@ export default function Home() {
   useEffect(() => {
     // Check if user is authenticated
     const checkAuth = async () => {
-      if (!authLoading && !user) {
-        // No user session found, redirect to login
-        router.replace("/auth/login");
-        return;
-      }
+      try {
+        if (!authLoading && !user) {
+          // No user session found, redirect to login
+          router.replace("/auth/login");
+          return;
+        }
 
-      // Simulate loading delay only if user exists
-      if (user) {
-        const timer = setTimeout(() => {
-          setIsLoading(false);
-        }, 1500);
+        // Simulate loading delay only if user exists
+        if (user) {
+          const timer = setTimeout(() => {
+            setIsLoading(false);
+          }, 1500);
 
-        return () => clearTimeout(timer);
+          return () => clearTimeout(timer);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsLoading(false);
       }
     };
 

@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import axios from "axios";
-import * as ImagePicker from 'expo-image-picker';
+import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync, ImagePickerAsset } from 'expo-image-picker';
 import { Link, useRouter } from "expo-router";
 import {
   BookOpen,
@@ -148,7 +148,7 @@ export default function ProfileScreen() {
     success: false,
     message: "",
   });
-  const [selectedImage, setSelectedImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [selectedImage, setSelectedImage] = useState<ImagePickerAsset | null>(null);
   const [nationalityType, setNationalityType] = useState("Filipino");
   const [isUploading, setIsUploading] = useState(false);
   const [hasInitiallyFetched, setHasInitiallyFetched] = useState(false);
@@ -165,10 +165,10 @@ export default function ProfileScreen() {
 
   const router = useRouter();
   const editDataRef = useRef<EditData>(editData);
-  const firstNameInputRef = useRef<TextInput>(null);
-  const lastNameInputRef = useRef<TextInput>(null);
-  const contactInputRef = useRef<TextInput>(null);
-  const customNationalityRef = useRef<TextInput>(null);
+  const firstNameInputRef = useRef<TextInput | null>(null);
+  const lastNameInputRef = useRef<TextInput | null>(null);
+  const contactInputRef = useRef<TextInput | null>(null);
+  const customNationalityRef = useRef<TextInput | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
 
@@ -236,8 +236,8 @@ export default function ProfileScreen() {
   useEffect(() => {
     (async () => {
       if (Platform.OS !== 'web') {
-        const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-        const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const { status: cameraStatus } = await requestCameraPermissionsAsync();
+        const { status: libraryStatus } = await requestMediaLibraryPermissionsAsync();
         
         if (cameraStatus !== 'granted' || libraryStatus !== 'granted') {
           Alert.alert('Permission Required', 'We need camera and gallery permissions to update your profile picture');
@@ -248,7 +248,7 @@ export default function ProfileScreen() {
 
   // Memoized fetch function with live fetch capability
   const fetchUserData = useCallback(async (showLoading = true, forceLiveFetch = false) => {
-    const uid = user?.id || user?.user_id;
+    const uid = user?.id;
     if (!uid || isEditing) return; // Don't fetch while editing
 
     if (showLoading) setIsLoading(true);
@@ -289,13 +289,14 @@ export default function ProfileScreen() {
           router.replace("/auth/login");
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as any;
       const serverMessage =
-        error.response?.data?.message ||
-        error.message ||
+        err.response?.data?.message ||
+        err.message ||
         "An unknown error occurred";
 
-      if (error.response?.status === 403 || error.response?.status === 404) {
+      if (err.response?.status === 403 || err.response?.status === 404) {
         await clearUser();
         router.replace("/auth/login");
       }
@@ -309,7 +310,7 @@ export default function ProfileScreen() {
       clearUser();
       router.replace("/auth/login");
     } else {
-      setUserData(user);
+      setUserData(user as any);
       // Always fetch live data on first load, but not while editing
       if (!hasInitiallyFetched && !isEditing) {
         fetchUserData(true, true); // Live fetch on first load
@@ -442,15 +443,15 @@ export default function ProfileScreen() {
       let result;
       
       if (useCamera) {
-        result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        result = await launchCameraAsync({
+          mediaTypes: MediaTypeOptions.Images,
           allowsEditing: true,
           aspect: [1, 1],
           quality: 0.8,
         });
       } else {
-        result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        result = await launchImageLibraryAsync({
+          mediaTypes: MediaTypeOptions.Images,
           allowsEditing: true,
           aspect: [1, 1],
           quality: 0.8,
@@ -461,8 +462,9 @@ export default function ProfileScreen() {
         setSelectedImage(result.assets[0]);
         hideAvatarModal();
       }
-    } catch (error: any) {
-      Alert.alert("Error", "Failed to pick image: " + error.message);
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error('Unknown error');
+      Alert.alert("Error", "Failed to pick image: " + err.message);
     }
   };
 
@@ -534,7 +536,7 @@ export default function ProfileScreen() {
           uri: selectedImage.uri,
           name: filename,
           type,
-        } as any);
+        } as unknown as Blob);
       }
 
       const response = await axios.post(
@@ -563,8 +565,9 @@ export default function ProfileScreen() {
       } else {
         showUpdateModal(false, response.data.message || "Failed to update profile");
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message ||
+    } catch (error: unknown) {
+      const err = error as any;
+      const errorMessage = err.response?.data?.message ||
         "An error occurred while updating your profile";
       showUpdateModal(false, errorMessage);
     } finally {
@@ -574,7 +577,15 @@ export default function ProfileScreen() {
   };
 
   // Simple input component that doesn't re-render
-  const EditableField = ({ icon: Icon, label, value, field, inputRef, keyboardType = 'default', autoCapitalize = 'none' }: any) => {
+  const EditableField = ({ icon: Icon, label, value, field, inputRef, keyboardType = 'default', autoCapitalize = 'none' }: {
+    icon: React.ComponentType<{ size: number; color: string }>;
+    label: string;
+    value?: string;
+    field?: keyof EditData;
+    inputRef?: React.RefObject<TextInput | null>;
+    keyboardType?: KeyboardTypeOptions;
+    autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  }) => {
     const [localValue, setLocalValue] = useState(value || '');
     
     useEffect(() => {
@@ -623,7 +634,11 @@ export default function ProfileScreen() {
     );
   };
 
-  const InfoItem = ({ icon: Icon, label, value }: any) => (
+  const InfoItem = ({ icon: Icon, label, value }: {
+    icon: React.ComponentType<{ size: number; color: string }>;
+    label: string;
+    value?: string;
+  }) => (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: borderColor }}>
       <View className="flex-row items-center flex-1">
         <View style={{ width: 32, height: 32, backgroundColor: theme === 'dark' ? '#f3f4f6' : '#f3f4f6', borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
@@ -795,7 +810,7 @@ export default function ProfileScreen() {
                   <EditableField
                     icon={Globe}
                     label="Specify Nationality"
-                    value={ userData.foreigner_specify }
+                    value={ userData?.foreigner_specify || "" }
                     field="foreigner_specify"
                     inputRef={customNationalityRef}
                     autoCapitalize="words"

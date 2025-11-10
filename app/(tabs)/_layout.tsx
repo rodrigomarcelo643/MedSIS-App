@@ -32,7 +32,7 @@ import Reanimated, {
   withTiming,
 } from "react-native-reanimated";
 
-const Skeleton = ({ width, height, borderRadius = 4, style = {} }) => {
+const Skeleton = ({ width, height, borderRadius = 4, style = {} }: { width: number; height: number; borderRadius?: number; style?: object }) => {
   
   // Theme Change
   const backgroundColor = useThemeColor({}, 'background');
@@ -317,7 +317,7 @@ export default function TabLayout() {
       <View className="flex-1" />
       <View className="flex-row items-center">
         <TouchableOpacity
-          onPress={() => router.push("/messages")}
+          onPress={() => router.push("/screens/messages")}
           className="mr-3 relative"
         >
           {isLoading ? (
