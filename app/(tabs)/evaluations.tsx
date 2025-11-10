@@ -193,7 +193,7 @@ const Evaluations: React.FC = () => {
   };
 
   // Animated Circular Progress Component
-  const CircularProgress = ({ percentage , size = 100, strokeWidth = 8 }) => {
+  const CircularProgress = ({ percentage , size = 100, strokeWidth = 8 }: { percentage: number; size?: number; strokeWidth?: number }) => {
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
     const animatedValue = new Animated.Value(0);

@@ -66,7 +66,7 @@ export default function AIAssistant() {
   const [currentContext, setCurrentContext] = useState("general");
   const [inputHeight, setInputHeight] = useState(0);
   const flatListRef = useRef<FlatList>(null);
-  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const typingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const inputScrollRef = useRef<ScrollView>(null);
 

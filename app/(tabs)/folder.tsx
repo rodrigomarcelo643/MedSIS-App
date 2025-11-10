@@ -110,6 +110,7 @@ export default function FolderScreen() {
   const [imageScale] = useState(new Animated.Value(1));
   const [imageRotation] = useState(new Animated.Value(0));
   const [currentRotation, setCurrentRotation] = useState<number>(0);
+  const [currentScale, setCurrentScale] = useState<number>(1);
 
   // Fetch requirements based on student's nationality
   const fetchRequirements = async () => {
@@ -141,7 +142,7 @@ export default function FolderScreen() {
 
       if (response.data.success) {
         const transformedRequirements = response.data.requirements.map(
-          (req) => ({
+          (req: any) => ({
             id: req.id,
             name: req.name,
             completed: req.completed || false,
@@ -156,7 +157,7 @@ export default function FolderScreen() {
       }
     } catch (err) {
       console.error("Error fetching requirements:", err);
-          setError(err.data.message || "Failed to fetch requirements");
+      setError(err instanceof Error ? err.message : "Failed to fetch requirements");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -188,7 +189,7 @@ export default function FolderScreen() {
 
       if (response.data.success) {
         const transformedRequirements = response.data.requirements.map(
-          (req) => ({
+          (req: any) => ({
             id: req.id,
             name: req.name,
             completed: req.completed || false,
@@ -270,7 +271,7 @@ export default function FolderScreen() {
         
         // If mimeType is not provided, try to determine it from the file name
         if (!mimeType && asset.name) {
-          const ext = asset.name.split('.').pop().toLowerCase();
+          const ext = asset.name.split('.').pop()?.toLowerCase();
           console.log("File extension detected:", ext);
           if (ext === 'pdf') mimeType = 'application/pdf';
           else if (ext === 'doc') mimeType = 'application/msword';
@@ -279,9 +280,9 @@ export default function FolderScreen() {
         
         console.log("Final mimeType:", mimeType);
         
-        const fileInfo = {
+        const fileInfo: FileInfo = {
           name: asset.name,
-          size: asset.size,
+          size: asset.size || 0,
           uri: asset.uri,
           type: mimeType?.includes('pdf') ? 'pdf' : 
                 mimeType?.includes('word') ? 'word' : 'document',
@@ -303,7 +304,7 @@ export default function FolderScreen() {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: "Failed to pick document: " + (err.message || "Unknown error"),
+        text2: "Failed to pick document: " + (err instanceof Error ? err.message : "Unknown error"),
       });
     }
   };
@@ -335,7 +336,7 @@ export default function FolderScreen() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
-        const fileInfo = {
+        const fileInfo: FileInfo = {
           name: asset.fileName || `image_${Date.now()}.jpg`,
           size: asset.fileSize || 0,
           uri: asset.uri,
@@ -351,18 +352,22 @@ export default function FolderScreen() {
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: "Failed to pick image: " + (err.message || "Unknown error"),
+        text2: "Failed to pick image: " + (err instanceof Error ? err.message : "Unknown error"),
       });
     }
   };
 
   // Handle file upload to server
-  const handleFileUpload = async (reqId, fileInfo) => {
+  const handleFileUpload = async (reqId: string | null, fileInfo: FileInfo) => {
     try {
       setUploading(true);
       setUploadProgress(0);
       console.log("Starting file upload for requirement:", reqId);
       console.log("File info:", fileInfo);
+
+      if (!user?.id || !reqId) {
+        throw new Error("Missing user ID or requirement ID");
+      }
 
       const formData = new FormData();
       formData.append("user_id", user.id);
@@ -384,7 +389,7 @@ export default function FolderScreen() {
         else if (fileInfo.mimeType.includes('word')) fileExtension = 'docx';
         else if (fileInfo.mimeType.includes('msword')) fileExtension = 'doc';
       } else if (fileInfo.name) {
-        fileExtension = fileInfo.name.split('.').pop();
+        fileExtension = fileInfo.name.split('.').pop() || 'file';
       }
       
       const fileName = `${safeName}_${timestamp}.${fileExtension}`;
@@ -403,7 +408,7 @@ export default function FolderScreen() {
       
       console.log("File object for FormData:", fileObject);
       
-      formData.append("file", fileObject);
+      formData.append("file", fileObject as any);
 
       console.log("FormData prepared, sending to server...");
       console.log("Upload URL: https://msis.eduisync.io/api/upload_requirement.php");
@@ -452,15 +457,15 @@ export default function FolderScreen() {
       console.error("Upload error details:", err);
       let errorMessage = "Failed to upload file. Please try again.";
       
-      if (err.response) {
-        console.error("Server response error:", err.response.data);
-        errorMessage = err.response.data?.message || errorMessage;
-      } else if (err.request) {
-        console.error("No response received:", err.request);
+      if (err && typeof err === 'object' && 'response' in err) {
+        console.error("Server response error:", (err as any).response?.data);
+        errorMessage = (err as any).response?.data?.message || errorMessage;
+      } else if (err && typeof err === 'object' && 'request' in err) {
+        console.error("No response received:", (err as any).request);
         errorMessage = "No response from server. Please check your connection.";
-      } else if (err.message?.includes('network')) {
+      } else if (err instanceof Error && err.message?.includes('network')) {
         errorMessage = "Network error. Please check your connection.";
-      } else if (err.message?.includes('timeout')) {
+      } else if (err instanceof Error && err.message?.includes('timeout')) {
         errorMessage = "Upload timeout. Please try again.";
       }
       
@@ -479,15 +484,19 @@ export default function FolderScreen() {
   };
 
   // Open delete confirmation modal
-  const openDeleteModal = (reqId, fileId, fileName) => {
+  const openDeleteModal = (reqId: string, fileId: string, fileName: string) => {
     setRequirementToDelete(reqId);
-    setFileToDelete({ id: fileId, name: fileName });
+    setFileToDelete({ id: fileId, name: fileName } as UploadedFile);
     setShowDeleteModal(true);
   };
 
   // Handle file removal
   const handleRemoveFile = async () => {
     try {
+      if (!user?.id || !requirementToDelete || !fileToDelete?.id) {
+        throw new Error("Missing required data for file removal");
+      }
+
       const response = await axios.post(
         "https://msis.eduisync.io/api/delete_requirement.php",
         {
@@ -551,6 +560,10 @@ export default function FolderScreen() {
 
       // Try to call API to compile all files into one PDF
       try {
+        if (!user?.id) {
+          throw new Error("User ID not available");
+        }
+
         const response = await axios.post(
           "https://msis.eduisync.io/api/generate_compiled_pdf.php",
           {
@@ -560,7 +573,7 @@ export default function FolderScreen() {
               requirement_name: file.requirementName,
               file_id: file.id,
               file_name: file.name,
-              file_path: file.file_path
+              file_path: (file as any).file_path
             }))
           },
           {
@@ -605,7 +618,8 @@ export default function FolderScreen() {
 
       const downloadPromises = allFiles.map(async (file) => {
         try {
-          const downloadUrl = `https://msis.eduisync.io/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${file.requirementId}&file_path=${encodeURIComponent(file.file_path)}`;
+          if (!user?.id) return null;
+          const downloadUrl = `https://msis.eduisync.io/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${file.requirementId}&file_path=${encodeURIComponent((file as any).file_path)}`;
           const fileUri = FileSystem.documentDirectory + file.name;
           const { uri } = await FileSystem.downloadAsync(downloadUrl, fileUri);
           return uri;
@@ -628,9 +642,12 @@ export default function FolderScreen() {
 
       // Share files one by one (Expo Sharing limitation)
       for (let i = 0; i < downloadedFileUris.length; i++) {
-        await Sharing.shareAsync(downloadedFileUris[i], {
-          dialogTitle: `File ${i + 1} of ${downloadedFileUris.length}`,
-        });
+        const uri = downloadedFileUris[i];
+        if (uri) {
+          await Sharing.shareAsync(uri, {
+            dialogTitle: `File ${i + 1} of ${downloadedFileUris.length}`,
+          });
+        }
       }
 
       Toast.show({
@@ -651,8 +668,12 @@ export default function FolderScreen() {
   };
 
   // View file handler
-  const handleViewFile = async (file, requirementId) => {
+  const handleViewFile = async (file: any, requirementId: string) => {
     try {
+      if (!user?.id) {
+        throw new Error("User ID not available");
+      }
+
       if (file.type === "image") {
         const imageUrl = `https://msis.eduisync.io/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${requirementId}&file_path=${encodeURIComponent(file.file_path)}`;
         setViewingImage(imageUrl);
@@ -676,8 +697,12 @@ export default function FolderScreen() {
   };
 
   // Download file handler
-  const handleDownloadFile = async (file, requirementId) => {
+  const handleDownloadFile = async (file: any, requirementId: string) => {
     try {
+      if (!user?.id) {
+        throw new Error("User ID not available");
+      }
+
       setDownloadingFile(file.name);
       const downloadUrl = `https://msis.eduisync.io/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${requirementId}&file_path=${encodeURIComponent(file.file_path)}`;
       const fileUri = FileSystem.documentDirectory + file.name;
@@ -705,7 +730,7 @@ export default function FolderScreen() {
     }
   };
 
-  const FileIcon = ({ type }) => {
+  const FileIcon = ({ type }: { type: string }) => {
   switch (type) {
     case "pdf":
       return <Image source={require("../../assets/images/pdf.png")} className="w-6 h-6" />;
@@ -1345,6 +1370,7 @@ export default function FolderScreen() {
           imageScale.setValue(1);
           imageRotation.setValue(0);
           setCurrentRotation(0);
+          setCurrentScale(1);
         }}
       >
         <View className="flex-1 bg-black/90 items-center justify-center">
@@ -1357,6 +1383,7 @@ export default function FolderScreen() {
                 imageScale.setValue(1);
                 imageRotation.setValue(0);
                 setCurrentRotation(0);
+                setCurrentScale(1);
               }}
             >
               <X size={24} color="white" />
@@ -1366,8 +1393,10 @@ export default function FolderScreen() {
               <TouchableOpacity
                 className="bg-white/20 p-3 rounded-full"
                 onPress={() => {
+                  const newScale = Math.min(currentScale + 0.5, 3);
+                  setCurrentScale(newScale);
                   Animated.spring(imageScale, {
-                    toValue: Math.min(imageScale._value + 0.5, 3),
+                    toValue: newScale,
                     useNativeDriver: true,
                   }).start();
                 }}
@@ -1378,8 +1407,10 @@ export default function FolderScreen() {
               <TouchableOpacity
                 className="bg-white/20 p-3 rounded-full"
                 onPress={() => {
+                  const newScale = Math.max(currentScale - 0.5, 0.5);
+                  setCurrentScale(newScale);
                   Animated.spring(imageScale, {
-                    toValue: Math.max(imageScale._value - 0.5, 0.5),
+                    toValue: newScale,
                     useNativeDriver: true,
                   }).start();
                 }}
@@ -1409,8 +1440,8 @@ export default function FolderScreen() {
               activeOpacity={1}
               onPress={() => {
                 // Tap to zoom
-                const currentScale = imageScale._value;
                 const newScale = currentScale === 1 ? 2 : 1;
+                setCurrentScale(newScale);
                 Animated.spring(imageScale, {
                   toValue: newScale,
                   useNativeDriver: true,
@@ -1430,11 +1461,13 @@ export default function FolderScreen() {
                 }}
                 className="w-full h-full"
               >
-                <Image
-                  source={{ uri: viewingImage }}
-                  className="w-full h-full"
-                  resizeMode="contain"
-                />
+                {viewingImage && (
+                  <Image
+                    source={{ uri: viewingImage }}
+                    className="w-full h-full"
+                    resizeMode="contain"
+                  />
+                )}
               </Animated.View>
             </TouchableOpacity>
           </View>
