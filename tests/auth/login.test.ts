@@ -1,4 +1,6 @@
 // Test utilities 
+import { API_BASE_URL } from '@/constants/Config';
+
 type MockFunction = {
   mockResolvedValueOnce: (value: any) => void;
   mockRejectedValueOnce: (error: Error) => void;
@@ -70,7 +72,7 @@ describe('Login Authentication Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch(`${process.env.API_BASE_URL}/api/login.php`);
+      const response = await fetch(`${API_BASE_URL}/api/login.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
@@ -88,7 +90,7 @@ describe('Login Authentication Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch(`${process.env.API_BASE_URL}/api/login.php`);
+      const response = await fetch(`${API_BASE_URL}/api/login.php`);
       const data = await response.json();
       
       expect(data.success).toBe(false);

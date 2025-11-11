@@ -11,10 +11,108 @@ import {
   Platform,
   ActivityIndicator,
   Modal,
+  Linking,
 } from 'react-native';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
+import { API_BASE_URL } from '@/constants/Config';
+import {
+  ArrowLeft,
+  Send,
+  Plus,
+  Camera,
+  Image as ImageIcon,
+  File,
+  Info,
+  ArrowDown,
+  MoreVertical,
+  Edit3,
+  Trash2,
+} from 'lucide-react-native';
+import { launchImageLibraryAsync, MediaTypeOptions } from 'expo-image-picker';
+import { getDocumentAsync } from 'expo-document-picker';
+import { messageService, Message } from '@/services/messageService';
 
-const SkeletonLoader = ({ width, height, borderRadius = 4 }) => {
+// File icon component
+const FileIcon = ({ type, fileName }: { type: string; fileName?: string }) => {
+  const getFileType = () => {
+    if (type === 'image') return 'image';
+    if (fileName) {
+      const ext = fileName.split('.').pop()?.toLowerCase();
+      if (ext === 'pdf') return 'pdf';
+      if (ext === 'doc' || ext === 'docx') return 'word';
+      if (ext === 'png') return 'png';
+      if (ext === 'jpg' || ext === 'jpeg') return 'jpg';
+    }
+    return 'document';
+  };
+  
+  const fileType = getFileType();
+  
+  switch (fileType) {
+    case 'pdf':
+      return <Image source={require('../../assets/images/pdf.png')} className="w-4 h-4" />;
+    case 'word':
+      return <Image source={require('../../assets/images/docs.png')} className="w-4 h-4" />;
+    case 'png':
+      return <Image source={require('../../assets/images/png.png')} className="w-4 h-4" />;
+    case 'jpg':
+      return <Image source={require('../../assets/images/jpg.png')} className="w-4 h-4" />;
+    default:
+      return <File size={16} color="#666" />;
+  }
+};
+
+// Link text component
+const LinkText = ({ text, isMyMessage }: { text: string; isMyMessage: boolean }) => {
+  const detectLinks = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}[^\s]*)/g;
+    return text.split(urlRegex);
+  };
+
+  const formatUrl = (url: string): string => {
+    if (!url.match(/^https?:\/\//)) {
+      return `https://${url}`;
+    }
+    return url;
+  };
+
+  const isUrl = (text: string): boolean => {
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}[^\s]*)/;
+    return urlRegex.test(text);
+  };
+
+  const parts = detectLinks(text);
+
+  return (
+    <Text className={`text-base ${isMyMessage ? 'text-white' : 'text-gray-800'}`}>
+      {parts.map((part, index) => {
+        if (isUrl(part)) {
+          return (
+            <Text
+              key={index}
+              className={`underline ${isMyMessage ? 'text-blue-200' : 'text-blue-600'}`}
+              onPress={() => {
+                try {
+                  Linking.openURL(formatUrl(part));
+                } catch (error) {
+                  console.error('Error opening URL:', error);
+                }
+              }}
+            >
+              {part}
+            </Text>
+          );
+        }
+        return <Text key={index}>{part}</Text>;
+      })}
+    </Text>
+  );
+};
+
+
+const SkeletonLoader = ({ width, height, borderRadius = 4 }: { width: number; height: number; borderRadius?: number }) => {
   const mutedColor = useThemeColor({}, 'muted');
   
   return (
@@ -28,28 +126,10 @@ const SkeletonLoader = ({ width, height, borderRadius = 4 }) => {
     />
   );
 };
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
-import {
-  ArrowLeft,
-  Send,
-  Paperclip,
-  Camera,
-  Image as ImageIcon,
-  File,
-  Info,
-  ArrowDown,
-  MoreVertical,
-  Edit3,
-  Trash2,
-} from 'lucide-react-native';
-import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
-import { messageService, Message } from '@/services/messageService';
 
 export default function ChatScreen() {
   const router = useRouter();
-  const { id, name, avatar, user_type } = useLocalSearchParams();
+  const { id, name, avatar, user_type, isOnline } = useLocalSearchParams();
   const { user } = useAuth();
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
@@ -76,6 +156,11 @@ export default function ChatScreen() {
   const [editLoading, setEditLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showUnsendModal, setShowUnsendModal] = useState(false);
+  const [userOnlineStatus, setUserOnlineStatus] = useState(isOnline === 'true');
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [imageCarousel, setImageCarousel] = useState<string[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -88,27 +173,73 @@ export default function ChatScreen() {
     const messageInterval = setInterval(() => {
       if (!editingMessage && !selectedMessage) {
         silentLoadMessages();
+        checkUserOnlineStatus();
+        updateUserSession(); // Update session every 5 seconds when active
       }
     }, 5000);
     
     return () => clearInterval(messageInterval);
   }, []);
 
+  const updateUserSession = async () => {
+    try {
+      if (user?.id) {
+        await fetch(`${API_BASE_URL}/api/login.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ update_session: true, user_id: user.id })
+        });
+      }
+    } catch (error) {
+      console.error('Error updating session:', error);
+    }
+  };
+
+  const checkUserOnlineStatus = async () => {
+    try {
+      const { users } = await messageService.getActiveUsers(user?.id || '', 1, 100);
+      const targetUser = users.find(u => (u.unique_key || u.id) === id);
+      if (targetUser) {
+        setUserOnlineStatus(targetUser.isOnline);
+      }
+    } catch (error) {
+      console.error('Error checking user online status:', error);
+    }
+  };
+
   const loadMessages = async (pageNum = 1, append = false) => {
     try {
       if (!append) setLoading(true);
       else setLoadingMore(true);
       
-      const response = await fetch(`https://msis.eduisync.io/api/messages/get_messages.php?sender_id=${user?.id}&receiver_id=${actualUserId}&page=${pageNum}&limit=20`);
+      const url = `${API_BASE_URL}/api/messages/get_messages.php?sender_id=${user?.id}&receiver_id=${actualUserId}&page=${pageNum}&limit=20`;
+      console.log('Fetching messages from:', url);
+      
+      const response = await fetch(url);
       const data = await response.json();
       
+      console.log('API Response:', data);
+      console.log('Messages count:', data.messages?.length || 0);
+      
       if (data.success) {
-        const newMessages = (data.messages || []).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        const newMessages = (data.messages || []).sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        
+        // Log file messages
+        newMessages.forEach((msg: Message) => {
+          if (msg.type === 'image' || msg.type === 'file') {
+            console.log(`${msg.type} message:`, {
+              id: msg.id,
+              fileName: msg.fileName,
+              fileUrl: msg.fileUrl?.substring(0, 50) + '...',
+              type: msg.type
+            });
+          }
+        });
         
         if (append) {
           setMessages(prev => {
             const combined = [...newMessages, ...prev];
-            return combined.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            return combined.sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
           });
         } else {
           setMessages(newMessages);
@@ -130,18 +261,28 @@ export default function ChatScreen() {
 
   const silentLoadMessages = async () => {
     try {
-      const response = await fetch(`https://msis.eduisync.io/api/messages/get_messages.php?sender_id=${user?.id}&receiver_id=${actualUserId}&page=1&limit=20`);
+      const response = await fetch(`${API_BASE_URL}/api/messages/get_messages.php?sender_id=${user?.id}&receiver_id=${actualUserId}&page=1&limit=20`);
       const data = await response.json();
       
       if (data.success) {
-        const newMessages = (data.messages || []).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        const newMessages = (data.messages || []).sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
         
         setMessages(prev => {
-          const prevIds = new Set(prev.map(m => m.id));
-          const hasNewMessages = newMessages.some(m => !prevIds.has(m.id));
+          // Keep all temporary messages
+          const tempMessages = prev.filter(m => m.id.startsWith('temp_'));
+          // Get existing non-temp messages
+          const existingMessages = prev.filter(m => !m.id.startsWith('temp_'));
+          const existingIds = new Set(existingMessages.map(m => m.id));
           
-          if (hasNewMessages) {
-            return newMessages;
+          // Only add truly new messages from server
+          const actuallyNewMessages = newMessages.filter((m: Message) => !existingIds.has(m.id));
+          
+          if (actuallyNewMessages.length > 0 || tempMessages.length > 0) {
+            // Combine existing messages, new messages, and temp messages
+            const allMessages = [...existingMessages, ...actuallyNewMessages, ...tempMessages].sort((a: Message, b: Message) => 
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+            );
+            return allMessages;
           }
           return prev;
         });
@@ -160,64 +301,131 @@ export default function ChatScreen() {
   };
 
   const sendMessage = async () => {
-    if (!inputText.trim() || sending) return;
+    if (!inputText.trim() || !user?.id) return;
 
     const messageText = inputText;
+    const tempId = `temp_${Date.now()}`;
     setInputText('');
-    setSending(true);
-
-    console.log('Sending message:', {
-      senderId: user?.id,
+    
+    // Create temporary message
+    const tempMessage: Message = {
+      id: tempId,
+      text: messageText,
+      senderId: user.id,
       receiverId: actualUserId,
-      text: messageText
-    });
+      timestamp: new Date(),
+      type: 'text',
+      isSeen: false,
+      isCurrentUser: true,
+      isEdited: false
+    };
+    
+    // Add temporary message immediately
+    setMessages(prev => [...prev, tempMessage]);
+    
+    // Scroll to bottom
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+    
+    // Update session when user sends message
+    updateUserSession();
 
     try {
       const newMessage = await messageService.sendMessage({
         text: messageText,
-        senderId: user?.id || '',
+        senderId: user.id,
         receiverId: actualUserId,
         type: 'text',
+        isSeen: false,
       });
 
-      console.log('Message sent successfully:', newMessage);
-      setMessages(prev => [...prev, newMessage]);
-      
-      // Scroll to bottom
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      // Replace temporary message with real message
+      setMessages(prev => prev.map(msg => 
+        msg.id === tempId ? newMessage : msg
+      ));
     } catch (error) {
       console.error('Error sending message:', error);
+      // Remove temporary message on error
+      setMessages(prev => prev.filter(msg => msg.id !== tempId));
       Alert.alert('Error', 'Failed to send message');
       setInputText(messageText); // Restore text on error
-    } finally {
-      setSending(false);
     }
   };
 
   const pickImage = async () => {
+    if (!user?.id) return;
+    
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      const result = await launchImageLibraryAsync({
+        mediaTypes: MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 0.8,
       });
 
       if (!result.canceled) {
+        const tempId = `temp_${Date.now()}`;
         setSending(true);
-        const newMessage = await messageService.sendMessage({
-          text: 'Image',
-          senderId: user?.id || '',
+        
+        // Create temporary image message
+        const tempMessage: Message = {
+          id: tempId,
+          text: '',
+          senderId: user.id,
           receiverId: actualUserId,
+          timestamp: new Date(),
           type: 'image',
           fileUrl: result.assets[0].uri,
-        });
-
-        setMessages(prev => [...prev, newMessage]);
+          fileName: result.assets[0].fileName || 'image.jpg',
+          isSeen: false,
+          isCurrentUser: true,
+          isEdited: false
+        };
+        
+        // Add temporary message immediately
+        setMessages(prev => [...prev, tempMessage]);
         setShowAttachments(false);
-        setSending(false);
+        
+        // Scroll to bottom
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+        
+        // Convert image to base64
+        const response = await fetch(result.assets[0].uri);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        
+        reader.onloadend = async () => {
+          try {
+            const base64data = reader.result as string;
+            const newMessage = await messageService.sendMessage({
+              text: '',
+              senderId: user.id,
+              receiverId: actualUserId,
+              type: 'image',
+              fileUrl: result.assets[0].uri,
+              fileData: base64data,
+              fileName: result.assets[0].fileName || 'image.jpg',
+              isSeen: false,
+            });
+
+            // Replace temporary message with real message
+            setMessages(prev => prev.map(msg => 
+              msg.id === tempId ? newMessage : msg
+            ));
+          } catch (error) {
+            console.error('Error sending image:', error);
+            // Remove temporary message on error
+            setMessages(prev => prev.filter(msg => msg.id !== tempId));
+            Alert.alert('Error', 'Failed to send image');
+          } finally {
+            setSending(false);
+          }
+        };
+        
+        reader.readAsDataURL(blob);
       }
     } catch (error) {
       console.error('Error sending image:', error);
@@ -227,26 +435,76 @@ export default function ChatScreen() {
   };
 
   const pickDocument = async () => {
+    if (!user?.id) return;
+    
     try {
-      const result = await DocumentPicker.getDocumentAsync({
+      const result = await getDocumentAsync({
         type: '*/*',
         copyToCacheDirectory: true,
       });
 
       if (!result.canceled) {
+        const tempId = `temp_${Date.now()}`;
         setSending(true);
-        const newMessage = await messageService.sendMessage({
-          text: 'Document',
-          senderId: user?.id || '',
+        
+        // Create temporary document message
+        const tempMessage: Message = {
+          id: tempId,
+          text: result.assets[0].name,
+          senderId: user.id,
           receiverId: actualUserId,
+          timestamp: new Date(),
           type: 'file',
           fileName: result.assets[0].name,
           fileUrl: result.assets[0].uri,
-        });
-
-        setMessages(prev => [...prev, newMessage]);
+          isSeen: false,
+          isCurrentUser: true,
+          isEdited: false
+        };
+        
+        // Add temporary message immediately
+        setMessages(prev => [...prev, tempMessage]);
         setShowAttachments(false);
-        setSending(false);
+        
+        // Scroll to bottom
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+        
+        // Convert document to base64
+        const response = await fetch(result.assets[0].uri);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        
+        reader.onloadend = async () => {
+          try {
+            const base64data = reader.result as string;
+            const newMessage = await messageService.sendMessage({
+              text: result.assets[0].name,
+              senderId: user.id,
+              receiverId: actualUserId,
+              type: 'file',
+              fileName: result.assets[0].name,
+              fileUrl: result.assets[0].uri,
+              fileData: base64data,
+              isSeen: false,
+            });
+
+            // Replace temporary message with real message
+            setMessages(prev => prev.map(msg => 
+              msg.id === tempId ? newMessage : msg
+            ));
+          } catch (error) {
+            console.error('Error sending document:', error);
+            // Remove temporary message on error
+            setMessages(prev => prev.filter(msg => msg.id !== tempId));
+            Alert.alert('Error', 'Failed to send document');
+          } finally {
+            setSending(false);
+          }
+        };
+        
+        reader.readAsDataURL(blob);
       }
     } catch (error) {
       console.error('Error sending document:', error);
@@ -255,13 +513,16 @@ export default function ChatScreen() {
     }
   };
 
+
+
   const getInitials = (name: string) => {
+    if (!name || typeof name !== 'string') return 'U';
     return name
       .split(' ')
       .map(word => word.charAt(0))
       .join('')
       .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 2) || 'U';
   };
 
   const loadMoreMessages = () => {
@@ -302,7 +563,7 @@ export default function ChatScreen() {
     setEditLoading(true);
     setShowEditModal(true);
     try {
-      const response = await fetch('https://msis.eduisync.io/api/messages/edit_message.php', {
+      const response = await fetch(`${API_BASE_URL}/api/messages/edit_message.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -323,9 +584,12 @@ export default function ChatScreen() {
       
       const data = JSON.parse(text);
       if (data.success) {
+        // Immediately show edited message
         setMessages(prev => prev.map(msg => 
           msg.id === editingMessage ? { ...msg, text: editText.trim(), isEdited: true } : msg
         ));
+        // Refresh messages to ensure consistency
+        await silentLoadMessages();
       } else {
         Alert.alert('Error', data.message || 'Failed to edit message');
       }
@@ -344,7 +608,7 @@ export default function ChatScreen() {
     setUnsendingMessage(messageId);
     setShowUnsendModal(true);
     try {
-      const response = await fetch('https://msis.eduisync.io/api/messages/unsend_message.php', {
+      const response = await fetch(`${API_BASE_URL}/api/messages/unsend_message.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -364,9 +628,12 @@ export default function ChatScreen() {
       
       const data = JSON.parse(text);
       if (data.success) {
+        // Immediately show "Message removed" for instant feedback
         setMessages(prev => prev.map(msg => 
-          msg.id === messageId ? { ...msg, text: 'Message removed' } : msg
+          msg.id === messageId ? { ...msg, text: 'Message removed', type: 'text', fileUrl: undefined, fileName: undefined } : msg
         ));
+        // Then refresh messages to get live updates
+        await silentLoadMessages();
       } else {
         Alert.alert('Error', data.message || 'Failed to unsend message');
       }
@@ -390,13 +657,15 @@ export default function ChatScreen() {
   );
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
+    if (!item || !item.id) return null;
+    
     const isMyMessage = String(item.senderId) === String(user?.id);
     const showDateSeparator = index === 0 || 
       new Date(item.timestamp).toDateString() !== new Date(messages[index - 1]?.timestamp).toDateString();
     
     return (
       <View>
-        {showDateSeparator && renderDateSeparator(item.timestamp)}
+        {showDateSeparator && renderDateSeparator(new Date(item.timestamp).toISOString())}
         {item.isEdited && (
           <View className={`mb-1 ${isMyMessage ? 'items-end mr-2' : 'items-start ml-10'}`}>
             <Text className="text-xs" style={{ color: mutedColor }}>edited</Text>
@@ -414,41 +683,49 @@ export default function ChatScreen() {
                 </TouchableOpacity>
                 
                 {selectedMessage === item.id && (
-                  <View className="absolute top-8 right-0 bg-white rounded-lg shadow-lg border border-gray-200 py-1" style={{ minWidth: 100, zIndex: 1000 }}>
-                    {canEditMessage(item.timestamp) && (
+                  <>
+                    <TouchableOpacity 
+                      className="absolute inset-0 w-full h-full"
+                      style={{ zIndex: 999 }}
+                      onPress={() => setSelectedMessage(null)}
+                      activeOpacity={1}
+                    />
+                    <View className="absolute top-8 right-0 rounded-lg shadow-lg border py-1" style={{ backgroundColor: cardColor, borderColor: mutedColor + '30', minWidth: 100, zIndex: 1000 }}>
+                      {item.type === 'text' && item.timestamp && canEditMessage(new Date(item.timestamp).toISOString()) && (
+                        <TouchableOpacity
+                          onPress={() => {
+                            setEditingMessage(item.id);
+                            setEditText(item.text);
+                            setSelectedMessage(null);
+                          }}
+                          className="flex-row items-center px-3 py-2"
+                          disabled={editLoading}
+                        >
+                          {editLoading ? (
+                            <ActivityIndicator size={14} color={textColor} />
+                          ) : (
+                            <Edit3 size={14} color={textColor} />
+                          )}
+                          <Text className="ml-2 text-sm" style={{ color: textColor }}>Edit</Text>
+                        </TouchableOpacity>
+                      )}
                       <TouchableOpacity
                         onPress={() => {
-                          setEditingMessage(item.id);
-                          setEditText(item.text);
+                          unsendMessage(item.id);
                           setSelectedMessage(null);
                         }}
                         className="flex-row items-center px-3 py-2"
-                        disabled={editLoading}
+                        disabled={unsendingMessage === item.id}
                       >
-                        {editLoading ? (
-                          <ActivityIndicator size={14} color={textColor} />
+                        {unsendingMessage === item.id ? (
+                          <ActivityIndicator size={14} color="#ef4444" />
                         ) : (
-                          <Edit3 size={14} color={textColor} />
+                          <Trash2 size={14} color="#ef4444" />
                         )}
-                        <Text className="ml-2 text-sm" style={{ color: textColor }}>Edit</Text>
+                        <Text className="ml-2 text-sm" style={{ color: '#ef4444' }}>Unsend</Text>
                       </TouchableOpacity>
-                    )}
-                    <TouchableOpacity
-                      onPress={() => {
-                        unsendMessage(item.id);
-                        setSelectedMessage(null);
-                      }}
-                      className="flex-row items-center px-3 py-2"
-                      disabled={unsendingMessage === item.id}
-                    >
-                      {unsendingMessage === item.id ? (
-                        <ActivityIndicator size={14} color="#ef4444" />
-                      ) : (
-                        <Trash2 size={14} color="#ef4444" />
-                      )}
-                      <Text className="ml-2 text-sm" style={{ color: '#ef4444' }}>Unsend</Text>
-                    </TouchableOpacity>
-                  </View>
+                    </View>
+                  </>
                 )}
               </View>
             )}
@@ -465,7 +742,7 @@ export default function ChatScreen() {
                   ) : (
                     <View className="w-8 h-8 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
                       <Text className="text-white font-bold text-xs">
-                        {getInitials(name as string)}
+                        {getInitials(name as string || 'User')}
                       </Text>
                     </View>
                   )}
@@ -474,34 +751,50 @@ export default function ChatScreen() {
               
               <View className={`rounded-2xl px-4 py-3 ${isMyMessage ? 'bg-blue-500 rounded-br-sm' : 'bg-gray-200 rounded-bl-sm'}`}>
                 {item.type === 'image' && item.fileUrl && (
-                  <Image
-                    source={{ uri: item.fileUrl }}
-                    className="w-48 h-36 rounded-lg mb-2"
-                    resizeMode="cover"
-                  />
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (item.fileUrl) {
+                        const imageUrls = messages.filter(msg => msg.type === 'image' && msg.fileUrl).map(msg => msg.fileUrl!);
+                        const index = imageUrls.indexOf(item.fileUrl);
+                        setImageCarousel(imageUrls);
+                        setCurrentImageIndex(index >= 0 ? index : 0);
+                        setSelectedImageUrl(item.fileUrl);
+                        setImageModalVisible(true);
+                      }
+                    }}
+                  >
+                    <Image
+                      source={{ uri: item.fileUrl }}
+                      className="w-48 h-36 rounded-lg"
+                      resizeMode="cover"
+                      onLoad={() => console.log('Image loaded:', item.fileName)}
+                      onError={(error) => console.log('Image error:', item.fileName, error.nativeEvent.error)}
+                    />
+                  </TouchableOpacity>
                 )}
               
                 {item.type === 'file' && (
-                  <View className="flex-row items-center mb-2">
-                    <File size={20} color={isMyMessage ? '#fff' : '#666'} />
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (item.fileUrl) {
+                        console.log('Opening file:', item.fileUrl);
+                      }
+                    }}
+                    className="flex-row items-center"
+                  >
+                    <FileIcon type={item.type} fileName={item.fileName} />
                     <Text
-                      className={`ml-2 font-medium ${
+                      className={`ml-2 font-medium underline ${
                         isMyMessage ? 'text-white' : 'text-gray-800'
                       }`}
                     >
-                      {item.fileName}
+                      {item.fileName || item.text}
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 )}
                 
                 {item.type === 'text' && (
-                  <Text
-                    className={`text-base ${
-                      isMyMessage ? 'text-white' : 'text-gray-800'
-                    }`}
-                  >
-                    {item.text}
-                  </Text>
+                  <LinkText text={item.text} isMyMessage={isMyMessage} />
                 )}
                 
                 <View className="mt-1">
@@ -515,12 +808,13 @@ export default function ChatScreen() {
                 </View>
               </View>
             </View>
-
           </View>
         
           {isMyMessage && (
             <View className={`flex-row items-center mt-1 justify-end mr-2`}>
-              {item.isSeen ? (
+              {item.id.startsWith('temp_') ? (
+                <Text className="text-xs" style={{ color: mutedColor }}>Sending...</Text>
+              ) : item.isSeen ? (
                 <>
                   <Text className="text-xs mr-1" style={{ color: mutedColor }}>Seen</Text>
                   {avatar ? (
@@ -532,7 +826,7 @@ export default function ChatScreen() {
                   ) : (
                     <View className="w-4 h-4 rounded-full" style={{ backgroundColor: '#af1616' }}>
                       <Text className="text-white text-xs font-bold text-center" style={{ fontSize: 8, lineHeight: 16 }}>
-                        {getInitials(name as string).charAt(0)}
+                        {getInitials(name as string || 'User').charAt(0)}
                       </Text>
                     </View>
                   )}
@@ -548,10 +842,8 @@ export default function ChatScreen() {
   };
 
   return (
-    <TouchableOpacity 
-      style={{ flex: 1, backgroundColor }} 
-      activeOpacity={1}
-      onPress={() => setSelectedMessage(null)}
+    <View 
+      style={{ flex: 1, backgroundColor }}
     >
       
       {/* Header */}
@@ -573,11 +865,13 @@ export default function ChatScreen() {
           ) : (
             <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
               <Text className="text-white font-bold text-sm">
-                {getInitials(name as string)}
+                {getInitials(name as string || 'User')}
               </Text>
             </View>
           )}
-          <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+          {userOnlineStatus && (
+            <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+          )}
         </View>
         
         <View className="flex-1">
@@ -585,7 +879,7 @@ export default function ChatScreen() {
             {name}
           </Text>
           <Text className="text-sm" style={{ color: mutedColor }}>
-            Online
+            {userOnlineStatus === true ? 'Online' : 'Offline'}
           </Text>
         </View>
         
@@ -604,10 +898,17 @@ export default function ChatScreen() {
             ref={flatListRef}
             data={messages}
             renderItem={renderMessage}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
             className="flex-1 px-4"
             contentContainerStyle={{ paddingTop: 8, paddingBottom: 20 }}
             showsVerticalScrollIndicator={false}
+            removeClippedSubviews={false}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            initialNumToRender={20}
+            scrollEnabled={true}
+            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
             onScroll={(event) => {
               const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
               const isAtBottom = contentOffset.y + layoutMeasurement.height >= contentSize.height - 100;
@@ -701,9 +1002,11 @@ export default function ChatScreen() {
         >
           <TouchableOpacity
             onPress={() => setShowAttachments(!showAttachments)}
-            className="mr-2 p-2"
+            className="mr-2"
           >
-            <Paperclip size={24} color={textColor} />
+            <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
+              <Plus size={20} color="#fff" />
+            </View>
           </TouchableOpacity>
           
           {editingMessage ? (
@@ -739,14 +1042,10 @@ export default function ChatScreen() {
           {!editingMessage && (
             <TouchableOpacity
               onPress={sendMessage}
-              disabled={!inputText.trim() || sending}
-              className={`ml-2 p-2 rounded-full ${!inputText.trim() || sending ? 'bg-gray-300' : 'bg-blue-500'}`}
+              disabled={!inputText.trim()}
+              className={`ml-2 p-2 rounded-full ${!inputText.trim() ? 'bg-gray-300' : 'bg-blue-500'}`}
             >
-              {sending ? (
-                <ActivityIndicator size={20} color="#fff" />
-              ) : (
-                <Send size={20} color="#fff" />
-              )}
+              <Send size={20} color="#fff" />
             </TouchableOpacity>
           )}
         </View>
@@ -779,6 +1078,68 @@ export default function ChatScreen() {
           </View>
         </View>
       </Modal>
-    </TouchableOpacity>
+      
+      {/* Image Carousel Modal */}
+      <Modal
+        visible={imageModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setImageModalVisible(false)}
+      >
+        <View className="flex-1 bg-black">
+          {/* Close Button */}
+          <TouchableOpacity
+            className="absolute top-12 right-4 z-10 w-14 h-14 rounded-full bg-white bg-opacity-90 items-center justify-center shadow-lg"
+            onPress={() => setImageModalVisible(false)}
+            style={{ elevation: 5 }}
+          >
+            <Text className="text-black text-2xl font-bold">×</Text>
+          </TouchableOpacity>
+          
+          {/* Image Counter */}
+          {imageCarousel.length > 1 && (
+            <View className="absolute top-12 left-4 z-10 px-3 py-1 rounded-full bg-black bg-opacity-50">
+              <Text className="text-white text-sm">{currentImageIndex + 1} / {imageCarousel.length}</Text>
+            </View>
+          )}
+          
+          {/* Current Image */}
+          {imageCarousel[currentImageIndex] && (
+            <Image
+              source={{ uri: imageCarousel[currentImageIndex] }}
+              className="flex-1"
+              resizeMode="contain"
+            />
+          )}
+          
+          {/* Navigation Buttons */}
+          {imageCarousel.length > 1 && (
+            <>
+              {/* Previous Button */}
+              {currentImageIndex > 0 && (
+                <TouchableOpacity
+                  className="absolute left-4 top-1/2 w-12 h-12 rounded-full bg-black bg-opacity-50 items-center justify-center"
+                  onPress={() => setCurrentImageIndex(prev => prev - 1)}
+                  style={{ marginTop: -24 }}
+                >
+                  <Text className="text-white text-2xl font-bold">‹</Text>
+                </TouchableOpacity>
+              )}
+              
+              {/* Next Button */}
+              {currentImageIndex < imageCarousel.length - 1 && (
+                <TouchableOpacity
+                  className="absolute right-4 top-1/2 w-12 h-12 rounded-full bg-black bg-opacity-50 items-center justify-center"
+                  onPress={() => setCurrentImageIndex(prev => prev + 1)}
+                  style={{ marginTop: -24 }}
+                >
+                  <Text className="text-white text-2xl font-bold">›</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+        </View>
+      </Modal>
+    </View>
   );
 }

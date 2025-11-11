@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import Toast from "react-native-toast-message";
+import { API_BASE_URL } from '@/constants/Config';
 
 interface User {
   id: string;
@@ -38,7 +39,7 @@ interface AuthContextType {
   clearUser: () => void;
   updateUserPolicyStatus: (accepted: boolean) => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<boolean | undefined>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }
 
@@ -50,7 +51,7 @@ const AuthContext = createContext<AuthContextType>({
   clearUser: () => {},
   updateUserPolicyStatus: async () => {},
   updateUser: async () => {},
-  refreshUser: async () => {},
+  refreshUser: async () => undefined,
   changePassword: async () => false,
 });
 
@@ -91,15 +92,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     // default values for optional fields with proper avatar handling
-    const userWithDefaults = {
+    const userWithDefaults: User = {
       ...userData,
       avatar: userData.avatar || userData.avatar_url || "https://msis.eduisync.io/swu-head.png",
-      avatar_url: userData.avatar_url || userData.avatar || null, 
-      avatar_data: userData.avatar_data || null,
+      avatar_url: userData.avatar_url || userData.avatar || undefined, 
+      avatar_data: userData.avatar_data || undefined,
       contact_number: userData.contact_number || "Not provided",
       joinDate: userData.joinDate || "Member since 2023",
       policy_accepted: userData.policy_accepted || 0,
-      year_level_name: userData.year_level_name || (userData.year_level_id === 4 ? "Graduating" : `Year ${userData.year_level_id}`),
+      year_level_name: userData.year_level_name || (Number(userData.year_level_id) === 4 ? "Graduating" : `Year ${userData.year_level_id}`),
     };
 
     console.log("Storing user in context:", { 
@@ -161,7 +162,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) return;
     
     try {
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://msis.eduisync.io/api";
+      const API_URL = `${API_BASE_URL}/api`;
       const response = await fetch(`${API_URL}/get_user_data.php`, {
         method: 'POST',
         headers: {
@@ -189,7 +190,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) return false;
     
     try {
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://msis.eduisync.io/api";
+      const API_URL = `${API_BASE_URL}/api`;
       const response = await fetch(`${API_URL}/change_password.php`, {
         method: 'POST',
         headers: {

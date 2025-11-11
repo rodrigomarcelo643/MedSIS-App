@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { API_BASE_URL } from '@/constants/Config';
 import axios from "axios";
 import { useRouter } from "expo-router";
 import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react-native";
@@ -98,7 +99,7 @@ export default function Calendar() {
       setError(null);
       
       const response = await axios.get(
-        `https://msis.eduisync.io/api/get_calendar_events.php?user_id=${user.id}`
+        `${API_BASE_URL}/api/get_calendar_events.php?user_id=${user.id}`
       );
       
       // Parse the response data correctly
@@ -180,7 +181,7 @@ export default function Calendar() {
       'CAREER': '#14B8A6',                 // teal-500
     };
     
-    return colorMap[yearLevel] || '#6B7280'; // default gray
+    return colorMap[yearLevel as keyof typeof colorMap] || '#6B7280'; // default gray
   };
 
   // Filter events based on search query
@@ -698,7 +699,7 @@ export default function Calendar() {
                       const isLastHour = event.end.getHours() === hour;
                       
                       // Calculate the duration in hours (including partial hours)
-                      const durationMs = event.end - event.start;
+                      const durationMs = event.end.getTime() - event.start.getTime();
                       const durationHours = durationMs / (1000 * 60 * 60);
                       
                       // Calculate the height based on duration (each hour = 64px)

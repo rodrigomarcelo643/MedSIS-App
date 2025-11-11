@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from '@/constants/Config';
 import { useThemeColor } from "@/hooks/useThemeColor";
 import {
   BookOpen,
@@ -46,6 +47,7 @@ interface QuickLink {
 
 export default function AIAssistant() {
   const { user } = useAuth();
+
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
@@ -240,7 +242,7 @@ export default function AIAssistant() {
       const signal = abortControllerRef.current.signal;
 
       const response = await fetch(
-        "https://msis.eduisync.io/api/ai/ai_integration.php",
+        `${API_BASE_URL}/api/ai/ai_integration.php`,
         {
           method: "POST",
           headers: {

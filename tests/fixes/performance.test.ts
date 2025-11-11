@@ -49,7 +49,7 @@ describe('Performance - Optimized', () => {
 
     it('should pass - scroll performance', () => {
       const removeClippedSubviews = true;
-      const getItemLayout = (data, index) => ({
+      const getItemLayout = (data: any, index: number) => ({
         length: 70,
         offset: 70 * index,
         index

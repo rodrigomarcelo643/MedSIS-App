@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { API_BASE_URL } from '@/constants/Config';
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as IntentLauncher from "expo-intent-launcher";
@@ -162,7 +163,7 @@ const SchoolCalendar: React.FC = () => {
       }
 
       const response = await fetch(
-        `https://msis.eduisync.io/api/school-calendar/get_school_calendar.php?user_id=${user.id}`
+        `${API_BASE_URL}/api/school-calendar/get_school_calendar.php?user_id=${user.id}`
       );
 
       if (!response.ok) {
@@ -254,7 +255,7 @@ const SchoolCalendar: React.FC = () => {
 
       const fileUri = `${FileSystem.cacheDirectory}${document.file_name}`;
 
-      const downloadUrl = `https://msis.eduisync.io/api/school-calendar/download_file.php?user_id=${user?.id}&calendar_id=${calendarId}&file_path=${encodeURIComponent(document.file_path)}`;
+      const downloadUrl = `${API_BASE_URL}/api/school-calendar/download_file.php?user_id=${user?.id}&calendar_id=${calendarId}&file_path=${encodeURIComponent(document.file_path)}`;
 
       const downloadResumable = FileSystem.createDownloadResumable(
         downloadUrl,
@@ -268,7 +269,8 @@ const SchoolCalendar: React.FC = () => {
         }
       );
 
-      const { uri } = await downloadResumable.downloadAsync();
+      const result = await downloadResumable.downloadAsync();
+      const uri = result?.uri;
 
       if (!uri) {
         throw new Error("Download failed");
@@ -314,7 +316,7 @@ const SchoolCalendar: React.FC = () => {
     calendarId: number
   ) => {
     try {
-      const url = `https://msis.eduisync.io/api/school-calendar/download_file.php?user_id=${user?.id}&calendar_id=${calendarId}&file_path=${encodeURIComponent(document.file_path)}`;
+      const url = `${API_BASE_URL}/api/school-calendar/download_file.php?user_id=${user?.id}&calendar_id=${calendarId}&file_path=${encodeURIComponent(document.file_path)}`;
       await WebBrowser.openBrowserAsync(url);
     } catch (error) {
       console.error("Error opening document in browser:", error);
@@ -395,7 +397,7 @@ const SchoolCalendar: React.FC = () => {
     <View className="flex-1 bg-gray-100" style={{ backgroundColor }}>
       <View className="bg-maroon pt-12 pb-4 px-5 flex-row items-center">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <ChevronLeft size={24} style={{ color: textColor }} />
+          <ChevronLeft size={24} color={textColor} />
         </TouchableOpacity>
         <Text className="text-black text-xl font-bold" style={{ color:textColor }}>School Calendar</Text>
       </View>
@@ -575,7 +577,6 @@ const SchoolCalendar: React.FC = () => {
               <View className="flex-1 justify-center items-center">
                 <FileIcon
                   mimeType={selectedDocument?.mime_type || ""}
-                  size={64}
                 />
                 <Text className="text-white mt-4 text-center">
                   Use the download button to view this file

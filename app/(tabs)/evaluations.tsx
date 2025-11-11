@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from '@/constants/Config';
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -86,7 +87,7 @@ const Evaluations: React.FC = () => {
         return;
       }
       const response = await fetch(
-        `https://msis.eduisync.io/api/evaluations/get_evaluation.php?user_id=${user.id}`
+        `${API_BASE_URL}/api/evaluations/get_evaluation.php?user_id=${user.id}`
       );
       const data: EvaluationResponse = await response.json();
 

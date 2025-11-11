@@ -1,9 +1,12 @@
 // Test utilities without Jest dependencies
+import { API_BASE_URL } from '@/constants/Config';
+
 const expect = (actual: any) => ({
   toBe: (expected: any) => actual === expected,
   toBeDefined: () => actual !== undefined,
   toHaveLength: (length: number) => actual?.length === length,
-  toBeInstanceOf: (constructor: any) => actual instanceof constructor
+  toBeInstanceOf: (constructor: any) => actual instanceof constructor,
+  toContain: (item: any) => actual?.includes?.(item) || false
 });
 
 const describe = (name: string, fn: () => void) => fn();
@@ -34,7 +37,7 @@ describe('Message Service Tests', () => {
       } as Response);
 
       // Simulate messageService.getConversations call
-      const response = await fetch(`${process.env.API_BASE_URL}/api/messages/conversations.php`);
+      const response = await fetch(`${API_BASE_URL}/api/messages/conversations.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
@@ -57,7 +60,7 @@ describe('Message Service Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch(`${process.env.API_BASE_URL}/api/messages/active-users.php`);
+      const response = await fetch(`${API_BASE_URL}/api/messages/active-users.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
@@ -77,11 +80,11 @@ describe('Message Service Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch(`${process.env.API_BASE_URL}/api/messages/search.php?query=John`);
+      const response = await fetch(`${API_BASE_URL}/api/messages/search.php?query=John`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
-      expect(data.users[0].name).toContain('John');
+      expect(data.users[0].name.includes('John')).toBe(true);
     });
 
     it('should pass - getUnreadCount returns number', async () => {
@@ -95,7 +98,7 @@ describe('Message Service Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch(`${process.env.API_BASE_URL}/api/messages/unread-count.php`);
+      const response = await fetch(`${API_BASE_URL}/api/messages/unread-count.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
@@ -107,7 +110,7 @@ describe('Message Service Tests', () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
       try {
-        await fetch(`${process.env.API_BASE_URL}/api/messages/conversations.php`);
+        await fetch(`${API_BASE_URL}/api/messages/conversations.php`);
       } catch (error) {
         expect(error).toBeInstanceOf(Error);
         expect((error as Error).message).toBe('Network error');

@@ -21,6 +21,7 @@
     "axios": "^1.11.0",
     "babel-preset-expo": "^13.2.1",
     "crypto-js": "^4.2.0",
+    "dotenv": "^17.2.3",
     "expo": "^53.0.20",
     "expo-av": "~15.1.7",
     "expo-blur": "~14.1.5",

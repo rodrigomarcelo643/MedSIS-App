@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/swu-header.png",
-    "scheme": "integratedproject",
+    "scheme": "MedSIS-App",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "projectId": "e4d72644-5c96-430c-babd-6066a17d7337",

@@ -1,4 +1,6 @@
 // Test utilities without Jest dependencies
+import { API_BASE_URL } from '@/constants/Config';
+
 const expect = (actual: any) => ({
   toBe: (expected: any) => actual === expected,
   toBeUndefined: () => actual === undefined
@@ -48,7 +50,7 @@ describe('OTP Verification Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch(`${process.env.API_BASE_URL}/api/verify-otp.php`);
+      const response = await fetch(`${API_BASE_URL}/api/verify-otp.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
@@ -65,7 +67,7 @@ describe('OTP Verification Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch(`${process.env.API_BASE_URL}/api/verify-otp.php`);
+      const response = await fetch(`${API_BASE_URL}/api/verify-otp.php`);
       const data = await response.json();
       
       expect(data.success).toBe(false);

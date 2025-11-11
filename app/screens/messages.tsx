@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useAuth } from '@/contexts/AuthContext';
+import { API_BASE_URL } from '@/constants/Config';
 import { Search, ArrowLeft, X } from 'lucide-react-native';
 import { messageService, User } from '@/services/messageService';
 
@@ -58,13 +59,13 @@ export default function MessagesScreen() {
     loadConversations();
     loadActiveUsers();
     
-    // Set up live fetching every 5 seconds
+    // Set up live fetching every 2 seconds for faster updates
     const interval = setInterval(() => {
       if (!showSearchResults && !loading && !activeLoading) {
         loadConversations(1, false, true);
         loadActiveUsers(1, false, true);
       }
-    }, 5000);
+    }, 2000);
     
     return () => clearInterval(interval);
   }, [showSearchResults]);
@@ -80,29 +81,32 @@ export default function MessagesScreen() {
       
       const { users: newUsers, hasMore } = await messageService.getConversations(user.id, page, 10);
       
-      // Sort users: latest message time first, then by unread count
+      // Debug conversation users online status
+      const onlineConvUsers = newUsers.filter(u => u.isOnline);
+      const offlineConvUsers = newUsers.filter(u => !u.isOnline);
+      
+      console.log('💬 CONVERSATION USERS:');
+      console.log('  🟢 ONLINE (' + onlineConvUsers.length + '):', onlineConvUsers.map(u => `${u.name} (${u.user_type})`));
+      console.log('  🔴 OFFLINE (' + offlineConvUsers.length + '):', offlineConvUsers.map(u => `${u.name} (${u.user_type})`));
+      
+      // Sort users: latest message time first (most recent conversations at top)
       const sortedUsers = newUsers.sort((a, b) => {
-        // First priority: last message time (most recent first)
-        if (a.lastMessageTime && b.lastMessageTime) {
-          return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
-        }
-        // Second priority: unread count (descending)
-        if (a.unreadCount !== b.unreadCount) {
-          return b.unreadCount - a.unreadCount;
-        }
-        return 0;
+        // Use raw timestamp for accurate sorting
+        const timeA = a.lastMessageTimestamp ? new Date(a.lastMessageTimestamp).getTime() : 0;
+        const timeB = b.lastMessageTimestamp ? new Date(b.lastMessageTimestamp).getTime() : 0;
+        return timeB - timeA;
       });
       
       if (append) {
+        // Remove duplicates and re-sort everything
         const combined = [...users, ...sortedUsers];
-        const finalSorted = combined.sort((a, b) => {
-          if (a.lastMessageTime && b.lastMessageTime) {
-            return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
-          }
-          if (a.unreadCount !== b.unreadCount) {
-            return b.unreadCount - a.unreadCount;
-          }
-          return 0;
+        const uniqueUsers = combined.filter((user, index, self) => 
+          index === self.findIndex(u => u.unique_key === user.unique_key)
+        );
+        const finalSorted = uniqueUsers.sort((a, b) => {
+          const timeA = a.lastMessageTimestamp ? new Date(a.lastMessageTimestamp).getTime() : 0;
+          const timeB = b.lastMessageTimestamp ? new Date(b.lastMessageTimestamp).getTime() : 0;
+          return timeB - timeA;
         });
         setUsers(finalSorted);
       } else {
@@ -132,6 +136,14 @@ export default function MessagesScreen() {
       }
       
       const { users: allUsers, hasMore } = await messageService.getActiveUsers(user.id, page, 10);
+      
+      // Debug online status
+      const onlineUsers = allUsers.filter(u => u.isOnline);
+      const offlineUsers = allUsers.filter(u => !u.isOnline);
+      
+      console.log('🟢 ONLINE USERS (' + onlineUsers.length + '):', onlineUsers.map(u => `${u.name} (${u.user_type})`));
+      console.log('🔴 OFFLINE USERS (' + offlineUsers.length + '):', offlineUsers.map(u => `${u.name} (${u.user_type})`));
+      console.log('📊 Total users loaded:', allUsers.length);
       
       // Remove duplicates based on unique_key
       const uniqueUsers = allUsers.filter((user, index, self) => 
@@ -187,7 +199,7 @@ export default function MessagesScreen() {
     const updateActiveSession = async () => {
       if (user?.id) {
         try {
-          await fetch('https://msis.eduisync.io/api/login.php', {
+          await fetch(`${API_BASE_URL}/api/login.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ update_session: true, user_id: user.id })
@@ -198,14 +210,48 @@ export default function MessagesScreen() {
       }
     };
     
-    updateActiveSession();
-    const sessionInterval = setInterval(updateActiveSession, 60000); // Update every minute
+    const refreshOnlineStatus = async () => {
+      if (user?.id) {
+        // Refresh both active users and conversations to get updated online status from backend
+        await Promise.all([
+          loadActiveUsers(1, false, true),
+          loadConversations(1, false, true)
+        ]);
+      }
+    };
     
-    return () => clearInterval(sessionInterval);
+    updateActiveSession();
+    refreshOnlineStatus();
+    
+    const sessionInterval = setInterval(updateActiveSession, 30000); // Update session every 30 seconds
+    const statusInterval = setInterval(refreshOnlineStatus, 3000); // Refresh online status every 3 seconds
+    
+    return () => {
+      clearInterval(sessionInterval);
+      clearInterval(statusInterval);
+    };
   }, [user?.id]);
+
+  // Update session on user interactions
+  const updateSessionOnInteraction = async () => {
+    if (user?.id) {
+      try {
+        await fetch(`${API_BASE_URL}/api/login.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ update_session: true, user_id: user.id })
+        });
+      } catch (error) {
+        console.error('Error updating session on interaction:', error);
+      }
+    }
+  };
+
+
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
+    updateSessionOnInteraction(); // Update session on search
     
     if (!query.trim()) {
       setShowSearchResults(false);
@@ -219,7 +265,11 @@ export default function MessagesScreen() {
     
     try {
       const results = await messageService.searchUsers(user.id, query);
-      setSearchResults(results);
+      // Remove duplicates based on unique_key
+      const uniqueResults = results.filter((user, index, self) => 
+        index === self.findIndex(u => u.unique_key === user.unique_key)
+      );
+      setSearchResults(uniqueResults);
     } catch (error) {
       console.error('Error searching users:', error);
     } finally {
@@ -242,11 +292,9 @@ export default function MessagesScreen() {
       .slice(0, 2);
   };
 
-
-
   const renderActiveUser = ({ item }: { item: User }) => (
     <TouchableOpacity
-      onPress={() => router.push(`/chat/${item.unique_key || item.id}?name=${encodeURIComponent(item.name)}${item.avatar_url ? `&avatar=${encodeURIComponent(item.avatar_url)}` : ''}&user_type=${item.user_type}`)}
+      onPress={() => router.push(`/chat/${item.unique_key || item.id}?name=${encodeURIComponent(item.name)}${item.avatar_url ? `&avatar=${encodeURIComponent(item.avatar_url)}` : ''}&user_type=${item.user_type}&isOnline=${item.isOnline}`)}
       className="items-center mr-4"
     >
       <View className="relative">
@@ -263,7 +311,7 @@ export default function MessagesScreen() {
             </Text>
           </View>
         )}
-        {item.isOnline && (
+        {item.isOnline === true && (
           <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
         )}
       </View>
@@ -280,7 +328,8 @@ export default function MessagesScreen() {
   const renderConversationUser = ({ item }: { item: User }) => (
     <TouchableOpacity
       onPress={() => {
-        router.push(`/chat/${item.unique_key || item.id}?name=${encodeURIComponent(item.name)}${item.avatar_url ? `&avatar=${encodeURIComponent(item.avatar_url)}` : ''}&user_type=${item.user_type}`);
+        updateSessionOnInteraction(); // Update session on chat open
+        router.push(`/chat/${item.unique_key || item.id}?name=${encodeURIComponent(item.name)}${item.avatar_url ? `&avatar=${encodeURIComponent(item.avatar_url)}` : ''}&user_type=${item.user_type}&isOnline=${item.isOnline}`);
       }}
       activeOpacity={0.7}
       className="flex-row items-center p-4 border-b border-gray-100"
@@ -300,7 +349,7 @@ export default function MessagesScreen() {
             </Text>
           </View>
         )}
-        {item.isOnline && (
+        {item.isOnline === true && (
           <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
         )}
       </View>
@@ -333,7 +382,7 @@ export default function MessagesScreen() {
             )}
           </View>
           {item.unreadCount > 0 && (
-            <View className="bg-blue-500 rounded-full min-w-[20px] h-5 items-center justify-center ml-2">
+            <View className="bg-[#af1616] rounded-full min-w-[20px] h-5 items-center justify-center ml-2">
               <Text className="text-white text-xs font-bold">
                 {item.unreadCount > 99 ? '99+' : item.unreadCount}
               </Text>
@@ -409,7 +458,7 @@ export default function MessagesScreen() {
             </Text>
           </View>
         )}
-        {item.isOnline && (
+        {item.isOnline === true && (
           <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
         )}
       </View>
@@ -547,7 +596,7 @@ export default function MessagesScreen() {
                             </Text>
                           </View>
                         )}
-                        {item.isOnline && (
+                        {item.isOnline === true && (
                           <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
                         )}
                       </View>

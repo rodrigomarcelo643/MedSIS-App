@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from '@/constants/Config';
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, Check, Eye, EyeOff, Lock, X, Key } from "lucide-react-native";
@@ -18,7 +19,8 @@ import {
 import Toast from "react-native-toast-message";
 
 const OTPVerification = () => {
-  const APP_URL = process.env.API_BASE_URL || "https://msis.eduisync.io/api/login.php";
+
+  const APP_URL = `${API_BASE_URL}/api/login.php`;
   const { student_id, message, user_data } = useLocalSearchParams();
   const { login, clearUser, user } = useAuth();
   const router = useRouter();
@@ -136,7 +138,7 @@ const OTPVerification = () => {
     }
   };
 
-  const handleKeyPress = (e: any, index: number) => {
+  const handleKeyPress = (e: { nativeEvent: { key: string } }, index: number) => {
     if (e.nativeEvent.key === "Backspace" && !otp[index] && index > 0) {
       inputs.current[index - 1]?.focus();
     }
@@ -225,11 +227,12 @@ const OTPVerification = () => {
         });
         setState(prev => ({ ...prev, loading: false }));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as any;
       Toast.show({
         type: "error",
         text1: "Request Error",
-        text2: error.response?.data?.message || error.message || "Something went wrong",
+        text2: err.response?.data?.message || err.message || "Something went wrong",
         position: "top",
       });
       setState(prev => ({ ...prev, loading: false }));
@@ -395,11 +398,12 @@ const OTPVerification = () => {
           position: "top",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as any;
       Toast.show({
         type: "error",
         text1: "Request Error",
-        text2: error.response?.data?.message || error.message || "Something went wrong",
+        text2: err.response?.data?.message || err.message || "Something went wrong",
         position: "top",
       });
     } finally {
@@ -475,7 +479,7 @@ const OTPVerification = () => {
               {otp.map((digit, index) => (
                 <View key={index} className="justify-center items-center">
                   <TextInput
-                    ref={ref => (inputs.current[index] = ref)}
+                    ref={ref => { inputs.current[index] = ref; }}
                     className={`w-14 h-14 border ${digit ? 'border-[#af1616]' : 'border-gray-300'} rounded-lg text-center text-lg font-bold`}
                     value={digit}
                     onChangeText={value => handleOtpChange(value, index)}
