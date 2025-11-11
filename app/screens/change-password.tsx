@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from '@/constants/Config';
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
@@ -19,7 +20,8 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 
-const API_URL = "https://msis.eduisync.io/api/change_password.php";
+
+const API_URL = `${API_BASE_URL}/api/change_password.php`;
 
 const ChangePassword = () => {
   const { user } = useAuth();
@@ -217,7 +219,7 @@ const ChangePassword = () => {
 
     try {
       const requestData = {
-        user_id: user.id,
+        user_id: user?.id,
         current_password: passwords.current_password,
         new_password: passwords.new_password,
       };

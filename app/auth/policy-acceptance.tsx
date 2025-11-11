@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from '@/constants/Config';
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -22,8 +23,8 @@ import {
 import Toast from "react-native-toast-message";
 
 const PolicyAcceptance = () => {
-  const APP_URL =
-    process.env.API_BASE_URL || "https://msis.eduisync.io/api/login.php";
+
+  const APP_URL = `${API_BASE_URL}/api/login.php`;
   const { student_id, user_data } = useLocalSearchParams();
   const router = useRouter();
   const { login, user, updateUserPolicyStatus } = useAuth();

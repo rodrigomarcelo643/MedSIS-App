@@ -1,4 +1,5 @@
 import RotatingDots from "@/components/ui/RotatingDots";
+import { API_BASE_URL } from '@/constants/Config';
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
 import { useRouter } from "expo-router";
@@ -22,8 +23,8 @@ import {
 import Toast from "react-native-toast-message";
 
 const LoginScreen = () => {
-  const APP_URL =
-    process.env.API_BASE_URL || "https://msis.eduisync.io/api/login.php";
+
+  const APP_URL = `${API_BASE_URL}/api/login.php`;
 
   const [loginData, setLoginData] = useState({
     student_id: "",
@@ -535,14 +536,14 @@ const LoginScreen = () => {
               <Text className="text-white text-lg mr-2 font-semibold">
                 {loginState.loading ? "Signing In..." : "Sign In"}
               </Text>
-              <LogIn style={{ color: "white", fontSize: 17 }} />
+              <LogIn size={17} color="white" />
             </TouchableOpacity>
 
             {/* Forgot password */}
             <TouchableOpacity
               className="mt-3 items-center"
               onPress={() =>
-                Linking.openURL("https://msis.eduisync.io/forgot-password")
+                Linking.openURL(`${API_BASE_URL}/forgot-password`)
               }
             >
               <Text className="text-[#af1616] text-[15px] font-medium">

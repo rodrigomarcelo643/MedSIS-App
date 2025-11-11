@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { messageService } from "@/services/messageService";
+import { API_BASE_URL } from '@/constants/Config';
 import { Audio } from 'expo-av';
 import { Tabs, useRouter, useSegments } from "expo-router";
 import {
@@ -66,6 +67,7 @@ export default function TabLayout() {
   const router = useRouter();
   const segments = useSegments(); 
   const { theme } = useTheme();
+
   // Theme Change
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
@@ -82,6 +84,9 @@ export default function TabLayout() {
   const [isFirstFetch, setIsFirstFetch] = useState(true);
   const [isFirstMessageFetch, setIsFirstMessageFetch] = useState(true);
   const soundRef = useRef<Audio.Sound | null>(null);
+  const [prevNotificationCount, setPrevNotificationCount] = useState(0);
+  const [prevMessageCount, setPrevMessageCount] = useState(0);
+  const soundPlayingRef = useRef(false);
 
   const isWeb = Platform.OS === "web";
   const iconSize = 26;
@@ -111,14 +116,20 @@ export default function TabLayout() {
     };
   }, []);
 
-  // Play notification sound when count increases
+  // Play notification sound when count increases (with debouncing)
   const playNotificationSound = async () => {
     try {
-      if (soundRef.current) {
+      if (soundRef.current && !soundPlayingRef.current) {
+        soundPlayingRef.current = true;
         await soundRef.current.replayAsync();
+        // Reset flag after sound duration (assuming 2 seconds)
+        setTimeout(() => {
+          soundPlayingRef.current = false;
+        }, 2000);
       }
     } catch (error) {
       console.error("Error playing notification sound:", error);
+      soundPlayingRef.current = false;
     }
   };
 
@@ -129,7 +140,7 @@ export default function TabLayout() {
     const fetchNotificationCount = async () => {
       try {
         const response = await fetch(
-          `https://msis.eduisync.io/api/get_student_notifications.php?user_id=${user.id}`
+          `${API_BASE_URL}/api/get_student_notifications.php?user_id=${user.id}`
         );
 
         const data = await response.json();
@@ -140,12 +151,8 @@ export default function TabLayout() {
             (notification: any) => notification.status !== 'read'
           ).length;
           
-          // Check if notification count increased (but not on first fetch)
-          if (!isFirstFetch && unreadCount > notificationCount) {
-            playNotificationSound();
-          }
-          
           setNotificationCount(unreadCount);
+          setPrevNotificationCount(unreadCount);
           
           // After first successful fetch, mark as not first fetch anymore
           if (isFirstFetch) {
@@ -161,12 +168,8 @@ export default function TabLayout() {
       try {
         const unreadMessages = await messageService.getUnreadCount(user.id);
         
-        // Check if message count increased (but not on first fetch)
-        if (!isFirstMessageFetch && unreadMessages > messageCount) {
-          playNotificationSound();
-        }
-        
         setMessageCount(unreadMessages);
+        setPrevMessageCount(unreadMessages);
         
         // After first successful fetch, mark as not first fetch anymore
         if (isFirstMessageFetch) {
@@ -184,10 +187,23 @@ export default function TabLayout() {
     const intervalId = setInterval(() => {
       fetchNotificationCount();
       fetchMessageCount();
-    }, 3000);
+    }, 5000); // Reduced frequency to 5 seconds
     
     return () => clearInterval(intervalId);
-  }, [user?.id, notificationCount, messageCount, isFirstFetch, isFirstMessageFetch]);
+  }, [user?.id]);
+
+  // Separate effect to handle sound playing when counts increase
+  useEffect(() => {
+    // Only play sound if either count increased (not on first fetch)
+    if (!isFirstFetch && !isFirstMessageFetch) {
+      const notificationIncreased = notificationCount > prevNotificationCount;
+      const messageIncreased = messageCount > prevMessageCount;
+      
+      if (notificationIncreased || messageIncreased) {
+        playNotificationSound();
+      }
+    }
+  }, [notificationCount, messageCount, isFirstFetch, isFirstMessageFetch, prevNotificationCount, prevMessageCount]);
 
   useEffect(() => {
     const currentRoute = segments[segments.length - 1]; // get last active tab

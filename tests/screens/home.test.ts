@@ -1,4 +1,6 @@
 // Test utilities without Jest dependencies
+import { API_BASE_URL } from '@/constants/Config';
+
 const expect = (actual: any) => ({
   toBe: (expected: any) => actual === expected,
   toHaveLength: (length: number) => actual?.length === length,
@@ -32,7 +34,7 @@ describe('Home Screen Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch('https://msis.eduisync.io/api/get_announcements.php');
+      const response = await fetch(`${API_BASE_URL}/api/get_announcements.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
@@ -56,7 +58,7 @@ describe('Home Screen Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch('https://msis.eduisync.io/api/get_user_profile.php');
+      const response = await fetch(`${API_BASE_URL}/api/get_user_profile.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
@@ -74,7 +76,7 @@ describe('Home Screen Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch('https://msis.eduisync.io/api/get_announcements.php');
+      const response = await fetch(`${API_BASE_URL}/api/get_announcements.php`);
       const data = await response.json();
       
       expect(data.success).toBe(false);

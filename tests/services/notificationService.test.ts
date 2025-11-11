@@ -1,4 +1,6 @@
 // Test utilities without Jest dependencies
+import { API_BASE_URL } from '@/constants/Config';
+
 const expect = (actual: any) => ({
   toBe: (expected: any) => actual === expected,
   toHaveLength: (length: number) => actual?.length === length,
@@ -33,7 +35,7 @@ describe('Notification Service Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch(`${process.env.API_BASE_URL}/api/get_student_notifications.php`);
+      const response = await fetch(`${API_BASE_URL}/api/get_student_notifications.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
@@ -51,7 +53,7 @@ describe('Notification Service Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch(`${process.env.API_BASE_URL}/api/mark_notification_read.php`);
+      const response = await fetch(`${API_BASE_URL}/api/mark_notification_read.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);

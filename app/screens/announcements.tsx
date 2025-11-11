@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { API_BASE_URL } from '@/constants/Config';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 import {
@@ -70,7 +71,7 @@ const priorityBorderColors = {
 const SkeletonLoader = () => {
   return (
     <View className="p-4">
-      {[1, 2, 3].map((item) => (
+      {[1, 2, 3, 4 ].map((item) => (
         <View key={item} className="bg-white rounded-xl p-4 mb-4">
           <View className="flex-row justify-between items-center mb-3">
             <View className="h-6 w-24 bg-gray-200 rounded-full"></View>
@@ -156,7 +157,7 @@ const AnnouncementsScreen: React.FC = () => {
       setError(null);
       
       // Use GET request with query parameters
-      const response = await axios.get('https://msis.eduisync.io/api/get_student_announcements.php', {
+      const response = await axios.get(`${API_BASE_URL}/api/get_student_announcements.php`, {
         params: {
           user_id: user.id,
           year_level: user.year_level_id || 'all'
@@ -365,7 +366,7 @@ const AnnouncementsScreen: React.FC = () => {
     <View className="flex-1 bg-gray-50 pt-10" style={{ backgroundColor }}>
       <View style={{ backgroundColor: cardColor }} className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200">
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
-          <ChevronLeft size={24} style={{color: textColor }} />
+          <ChevronLeft size={24} color={textColor} />
         </TouchableOpacity>
         <Text className="text-xl font-bold" style={{color: textColor }} >Announcements</Text>
         <View className="flex-1"></View>
@@ -373,19 +374,20 @@ const AnnouncementsScreen: React.FC = () => {
           className="flex-row items-center bg-maroon-100 rounded-full px-4 py-2"
           onPress={() => setShowPriorityDropdown(true)}
         >
-          <Filter size={16} style={{color: textColor }}  />
+          <Filter size={16} color={textColor} />
           <Text className="mr-1  text-sm font-medium" style={{ color: textColor }}>
             {getSelectedPriorityLabel()}
           </Text>
-          <ChevronDown size={16}  style={{color: textColor }} className="ml-2" />
+          <ChevronDown size={16} color={textColor} />
         </TouchableOpacity>
       </View>
 
       <PriorityDropdown />
 
       <ScrollView
-        ref={scrollViewRef}
-        ref={setScrollViewRef}
+        ref={(ref) => {
+          setScrollViewRef(ref);
+        }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

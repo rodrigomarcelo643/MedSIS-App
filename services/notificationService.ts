@@ -1,18 +1,21 @@
 import Constants from "expo-constants";
-import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
+import { isDevice, modelName } from "expo-device";
+import { setNotificationHandler, getPermissionsAsync, requestPermissionsAsync, getExpoPushTokenAsync, setNotificationChannelAsync, AndroidImportance, addNotificationReceivedListener, addNotificationResponseReceivedListener, scheduleNotificationAsync, AndroidNotificationPriority, setBadgeCountAsync, NotificationBehavior, Notification, NotificationResponse } from "expo-notifications";
 import { Platform } from "react-native";
+import { API_BASE_URL } from '@/constants/Config';
+
+
 
 // Check if we're in Expo Go
 const isExpoGo = Constants.appOwnership === "expo";
 
 // Configure notification handling
-Notifications.setNotificationHandler({
+setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
-  }),
+  } as NotificationBehavior),
 });
 
 // Save push token to your Hostinger backend
@@ -22,7 +25,7 @@ export const savePushToken = async (
 ): Promise<boolean> => {
   try {
     const response = await fetch(
-      "https://msis.eduisync.io/api/save_push_token.php",
+      `${API_BASE_URL}/api/save_push_token.php`,
       {
         method: "POST",
         headers: {
@@ -32,7 +35,7 @@ export const savePushToken = async (
           user_id: userId,
           push_token: token,
           platform: Platform.OS,
-          device_name: Device.modelName || "Unknown Device",
+          device_name: modelName || "Unknown Device",
         }),
       }
     );
@@ -49,18 +52,18 @@ export const savePushToken = async (
 export const registerForPushNotifications = async (
   userId: number
 ): Promise<string | null> => {
-  if (!Device.isDevice) {
+  if (!isDevice) {
     console.log("Must use physical device for notifications");
     return null;
   }
 
   try {
     const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
+      await getPermissionsAsync();
     let finalStatus = existingStatus;
 
     if (existingStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
+      const { status } = await requestPermissionsAsync();
       finalStatus = status;
     }
 
@@ -69,7 +72,7 @@ export const registerForPushNotifications = async (
       return null;
     }
 
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    const token = (await getExpoPushTokenAsync()).data;
     console.log("Expo push token:", token);
 
     // Send token to your Hostinger backend
@@ -77,9 +80,9 @@ export const registerForPushNotifications = async (
 
     // Configure background notification handling
     if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
+      await setNotificationChannelAsync('default', {
         name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
+        importance: AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF231F7C',
       });
@@ -94,17 +97,17 @@ export const registerForPushNotifications = async (
 
 // Listen for notifications received while the app is in the foreground
 export const setNotificationForegroundHandler = (
-  handler: (notification: Notifications.Notification) => void
+  handler: (notification: Notification) => void
 ) => {
-  const subscription = Notifications.addNotificationReceivedListener(handler);
+  const subscription = addNotificationReceivedListener(handler);
   return subscription;
 };
 
 // Listen for notification responses (user taps on notification)
 export const setNotificationResponseHandler = (
-  handler: (response: Notifications.NotificationResponse) => void
+  handler: (response: NotificationResponse) => void
 ) => {
-  const subscription = Notifications.addNotificationResponseReceivedListener(handler);
+  const subscription = addNotificationResponseReceivedListener(handler);
   return subscription;
 };
 
@@ -112,15 +115,15 @@ export const setNotificationResponseHandler = (
 export const showLocalNotification = async (
   title: string,
   body: string,
-  data: any = {}
+  data: Record<string, unknown> = {}
 ) => {
-  await Notifications.scheduleNotificationAsync({
+  await scheduleNotificationAsync({
     content: {
       title,
       body,
       data,
       sound: 'default',
-      priority: Notifications.AndroidNotificationPriority.HIGH,
+      priority: AndroidNotificationPriority.HIGH,
     },
     trigger: null, // Send immediately
   });
@@ -131,11 +134,11 @@ export const sendPushNotification = async (
   userId: number,
   title: string,
   message: string,
-  data: any = {}
+  data: Record<string, unknown> = {}
 ) => {
   try {
     const response = await fetch(
-      "https://msis.eduisync.io/api/send_notification.php",
+      `${API_BASE_URL}/api/send_notification.php`,
       {
         method: "POST",
         headers: {
@@ -171,7 +174,7 @@ export const fetchNotificationCount = async (
 ): Promise<number> => {
   try {
     const response = await fetch(
-      `https://msis.eduisync.io/api/get_notification_count.php?user_id=${userId}`
+      `${API_BASE_URL}/api/get_notification_count.php?user_id=${userId}`
     );
     const data = await response.json();
 
@@ -180,7 +183,7 @@ export const fetchNotificationCount = async (
       
       // Set app badge count
       if (Platform.OS !== 'web') {
-        Notifications.setBadgeCountAsync(unreadCount);
+        setBadgeCountAsync(unreadCount);
       }
       
       return unreadCount;
@@ -195,6 +198,6 @@ export const fetchNotificationCount = async (
 // Clear all notifications badge count
 export const clearBadgeCount = async (): Promise<void> => {
   if (Platform.OS !== 'web') {
-    await Notifications.setBadgeCountAsync(0);
+    await setBadgeCountAsync(0);
   }
 };

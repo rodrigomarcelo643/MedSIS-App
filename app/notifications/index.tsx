@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { API_BASE_URL } from '@/constants/Config';
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -27,33 +28,25 @@ interface Notifications {
   avatar?: string
 }
 
-// Base URL for API - use HTTPS consistently
-const API_BASE_URL = 'https://msis.eduisync.io/api';
+
+const API_URL = `${API_BASE_URL}/api`;
 
 // Skeleton Loader Component
-const SkeletonLoader = ({ width, height, borderRadius = 4, style = {} }) => {
+const SkeletonLoader = ({ width, height, borderRadius = 4, style = {}, children }: { width: number | string; height: number; borderRadius?: number; style?: any; children?: React.ReactNode }) => {
   return (
     <View 
       className="bg-gray-200 dark:bg-gray-700 mb-2 overflow-hidden"
       style={[{ width, height, borderRadius }, style]}
-    />
+    >
+      {children}
+    </View>
   );
 };
 
 // Skeleton with pulse animation
 const SkeletonPulse = () => {
   return (
-    <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-300 dark:bg-gray-600 opacity-20" 
-      style={{
-        animationDuration: '1.5s',
-        animationIterationCount: 'infinite',
-        animationTimingFunction: 'ease-in-out',
-        animationKeyframes: {
-          '0%': { opacity: 0.2 },
-          '50%': { opacity: 0.4 },
-          '100%': { opacity: 0.2 },
-        }
-      }}
+    <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-300 dark:bg-gray-600 opacity-20"
     />
   );
 };
@@ -76,7 +69,7 @@ const NotificationsScreen = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [clearAllModalVisible, setClearAllModalVisible] = useState(false);
   const [markAllReadModalVisible, setMarkAllReadModalVisible] = useState(false);
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<any>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(10);
   const [hasMoreNotifications, setHasMoreNotifications] = useState(true);
@@ -88,7 +81,7 @@ const NotificationsScreen = () => {
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
     {
-      listener: (event) => {
+      listener: (event: any) => {
         const offsetY = event.nativeEvent.contentOffset.y;
         // Show back to top button when scrolled down 300 pixels
         setShowBackToTop(offsetY > 300);
@@ -121,7 +114,7 @@ const fetchNotifications = async (loadMore = false, silent = false) => {
       }
     }
 
-    const response = await axios.get(`${API_BASE_URL}/get_student_notifications.php`, {
+    const response = await axios.get(`${API_URL}/get_student_notifications.php`, {
       params: {
         user_id: user.id,
         limit: loadMore ? displayLimit + 10 : displayLimit
@@ -304,7 +297,7 @@ const startPolling = useCallback(() => {
       setDisplayedNotifications(updatedNotifications.slice(0, displayLimit));
       
       // Send update to server
-      await axios.post(`${API_BASE_URL}/update_notification_status.php`, {
+      await axios.post(`${API_URL}/update_notification_status.php`, {
         notification_id: id,
         status: 'read'
       });
@@ -323,7 +316,7 @@ const startPolling = useCallback(() => {
   const handleClearAll = async () => {
     try {
       if (user) {
-        await axios.post(`${API_BASE_URL}/clear_notifications.php`, {
+        await axios.post(`${API_URL}/clear_notifications.php`, {
           user_id: user.id
         });
         setNotifications([]);
@@ -348,7 +341,7 @@ const startPolling = useCallback(() => {
       
       // Send update to server
       if (user) {
-        await axios.post(`${API_BASE_URL}/mark_all_notifications_read.php`, {
+        await axios.post(`${API_URL}/mark_all_notifications_read.php`, {
           user_id: user.id
         });
         setMarkAllReadModalVisible(false);
@@ -432,7 +425,7 @@ const startPolling = useCallback(() => {
   // Notification Item Skeleton
   const NotificationSkeleton = () => (
     <View className="flex-row items-start p-5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
-      <SkeletonLoader width={44} height={44} borderRadius={22} className="mr-4">
+      <SkeletonLoader width={44} height={44} borderRadius={22} style={{ marginRight: 16 }}>
         <SkeletonPulse />
       </SkeletonLoader>
       
@@ -446,7 +439,7 @@ const startPolling = useCallback(() => {
           </SkeletonLoader>
         </View>
         
-        <SkeletonLoader width="80%" height={16} className="mb-2">
+        <SkeletonLoader width="80%" height={16} style={{ marginBottom: 8 }}>
           <SkeletonPulse />
         </SkeletonLoader>
         <SkeletonLoader width={60} height={14}>
@@ -461,7 +454,7 @@ const startPolling = useCallback(() => {
     <View className="pt-[50px] px-5 pb-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       <View className="flex-row items-center justify-between mb-4">
         <View className="flex-row items-center">
-          <SkeletonLoader width={40} height={40} borderRadius={20} className="mr-2">
+          <SkeletonLoader width={40} height={40} borderRadius={20} style={{ marginRight: 8 }}>
             <SkeletonPulse />
           </SkeletonLoader>
           <SkeletonLoader width={120} height={28}>
@@ -535,7 +528,7 @@ const startPolling = useCallback(() => {
               onPress={() => navigation.goBack()}
               className="p-2 -ml-2 mr-2"
             >
-              <ChevronLeft size={24} style={{ color: textColor }} />
+              <ChevronLeft size={24} color={textColor} />
             </TouchableOpacity>
             <Text className="text-2xl font-bold text-gray-900" style={{ color:textColor }}>
               Notifications

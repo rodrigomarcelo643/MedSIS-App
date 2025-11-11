@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { API_BASE_URL } from '@/constants/Config';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
@@ -115,7 +116,7 @@ const LearningMaterialsScreen: React.FC = () => {
     try {
       setError(null);
       
-      const response = await axios.get('https://msis.eduisync.io/api/get_student_learningmaterials.php', {
+      const response = await axios.get(`${API_BASE_URL}/api/get_student_learningmaterials.php`, {
         params: {
           user_id: user.id,
           year_level: user.year_level_id
@@ -190,7 +191,7 @@ const LearningMaterialsScreen: React.FC = () => {
     setDownloading(material.id);
     
     try {
-      const fileUrl = `https://msis.eduisync.io/api/get_learningmaterial_file.php?user_id=${user.id}&document_id=${material.id}&file_path=${encodeURIComponent(material.file_path)}`;
+      const fileUrl = `${API_BASE_URL}/api/get_learningmaterial_file.php?user_id=${user.id}&document_id=${material.id}&file_path=${encodeURIComponent(material.file_path)}`;
       
       console.log('Downloading file from:', fileUrl);
       
@@ -213,7 +214,8 @@ const LearningMaterialsScreen: React.FC = () => {
           }
         );
 
-        const { uri } = await downloadResumable.downloadAsync();
+        const result = await downloadResumable.downloadAsync();
+        const uri = result?.uri;
         
         console.log('File downloaded to:', uri);
         
@@ -351,7 +353,7 @@ const LearningMaterialsScreen: React.FC = () => {
     <View className="flex-1 bg-gray-50 pt-10" style={{ backgroundColor }}>
       <View className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200" style={{ backgroundColor: cardColor}}>
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
-          <ChevronLeft size={24} style={{ color: textColor}}/>
+          <ChevronLeft size={24} color={textColor}/>
         </TouchableOpacity>
         <Text className="text-xl font-bold" style={{ color:textColor }}>Learning Materials</Text>
         <View className="flex-1"></View>
@@ -359,11 +361,11 @@ const LearningMaterialsScreen: React.FC = () => {
           className="flex-row items-center bg-maroon-100 rounded-full px-4 py-2"
           onPress={() => setShowSubjectDropdown(true)}
         >
-          <Filter size={16} style={{ color:textColor }} />
+          <Filter size={16} color={textColor} />
           <Text className="mr-1  text-sm font-medium" style={{ color:textColor }}>
             {getSelectedSubjectLabel()}
           </Text>
-          <ChevronDown size={16} style={{ color:textColor }} className="ml-1" />
+          <ChevronDown size={16} color={textColor} />
         </TouchableOpacity>
       </View>
 

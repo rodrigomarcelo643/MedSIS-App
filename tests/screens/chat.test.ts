@@ -1,7 +1,10 @@
 // Test utilities without Jest dependencies
+import { API_BASE_URL } from '@/constants/Config';
+
 const expect = (actual: any) => ({
   toBe: (expected: any) => actual === expected,
-  toBeDefined: () => actual !== undefined
+  toBeDefined: () => actual !== undefined,
+  toHaveLength: (length: number) => actual?.length === length
 });
 
 const describe = (name: string, fn: () => void) => fn();
@@ -29,7 +32,7 @@ describe('Chat Screen Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch('https://msis.eduisync.io/api/messages/send.php');
+      const response = await fetch(`${API_BASE_URL}/api/messages/send.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
@@ -50,11 +53,11 @@ describe('Chat Screen Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch('https://msis.eduisync.io/api/messages/get_messages.php');
+      const response = await fetch(`${API_BASE_URL}/api/messages/get_messages.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
-      expect(data.messages).toHaveLength(2);
+      expect(data.messages.length).toBe(2);
     });
 
     it('should pass - edit message successfully', async () => {
@@ -68,7 +71,7 @@ describe('Chat Screen Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch('https://msis.eduisync.io/api/messages/edit_message.php');
+      const response = await fetch(`${API_BASE_URL}/api/messages/edit_message.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);
@@ -85,7 +88,7 @@ describe('Chat Screen Tests', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const response = await fetch('https://msis.eduisync.io/api/messages/unsend_message.php');
+      const response = await fetch(`${API_BASE_URL}/api/messages/unsend_message.php`);
       const data = await response.json();
       
       expect(data.success).toBe(true);

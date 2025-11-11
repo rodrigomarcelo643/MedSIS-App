@@ -1,4 +1,7 @@
 // Message API service with real backend integration
+import { Platform } from 'react-native';
+import { API_BASE_URL } from '@/constants/Config';
+
 export interface User {
   id: string;
   name: string;
@@ -6,6 +9,7 @@ export interface User {
   isOnline: boolean;
   lastMessage?: string;
   lastMessageTime?: string;
+  lastMessageTimestamp?: string;
   messageStatus?: string;
   unreadCount: number;
   user_type?: string;
@@ -26,7 +30,8 @@ export interface Message {
   isEdited?: boolean;
 }
 
-const API_BASE = "https://msis.eduisync.io/api/messages";
+
+const API_BASE = `${API_BASE_URL}/api/messages`;
 
 export const messageService = {
   // Get active users
@@ -50,8 +55,25 @@ export const messageService = {
         hasError: !!data.error,
         error: data.error,
         userCount: data.users?.length || 0,
-        totalCount: data.count
+        totalCount: data.count,
+        debug: data.debug
       });
+      
+      // Log online status details and ensure proper boolean conversion
+      if (data.users) {
+        data.users = data.users.map((user: any) => ({
+          ...user,
+          isOnline: Boolean(user.isOnline)
+        }));
+        
+        const onlineUsers = data.users.filter((u: any) => u.isOnline === true);
+        const offlineUsers = data.users.filter((u: any) => u.isOnline === false);
+        console.log('🟢 Online users found:', onlineUsers.length);
+        console.log('🔴 Offline users found:', offlineUsers.length);
+        onlineUsers.forEach((u: any) => {
+          console.log(`   ${u.name} (${u.user_type}) - Online: ${u.isOnline} (type: ${typeof u.isOnline})`);
+        });
+      }
       
       if (data.error) throw new Error(data.error);
       const users = data.users || [];
@@ -101,7 +123,13 @@ export const messageService = {
       const data = JSON.parse(text);
       
       if (data.error) throw new Error(data.error);
-      const users = data.users || [];
+      let users = data.users || [];
+      
+      // Ensure proper boolean conversion for isOnline
+      users = users.map((user: any) => ({
+        ...user,
+        isOnline: Boolean(user.isOnline)
+      }));
       
       return { users, hasMore: false };
     } catch (error) {
@@ -116,7 +144,7 @@ export const messageService = {
       `${API_BASE}/get_messages.php?current_user_id=${userId}&other_user_id=${chatId}`
     );
     const data = await response.json();
-    return data.messages.map((msg: any) => ({
+    return data.messages.map((msg: Message) => ({
       ...msg,
       timestamp: new Date(msg.timestamp),
     }));
@@ -124,7 +152,7 @@ export const messageService = {
 
   // Send a new message
   sendMessage: async (
-    message: Omit<Message, "id" | "timestamp" | "isRead">
+    message: Omit<Message, "id" | "timestamp" | "isRead"> & { fileData?: string }
   ): Promise<Message> => {
     const response = await fetch(`${API_BASE}/send_message.php`, {
       method: "POST",
@@ -134,9 +162,15 @@ export const messageService = {
         receiver_id: message.receiverId,
         message: message.text,
         type: message.type,
+        fileUrl: message.fileUrl,
+        fileData: message.fileData,
+        fileName: message.fileName,
       }),
     });
     const data = await response.json();
+    if (!data.success || !data.message) {
+      throw new Error(data.error || 'Failed to send message');
+    }
     return {
       ...data.message,
       timestamp: new Date(data.message.timestamp),
