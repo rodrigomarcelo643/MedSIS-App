@@ -4,11 +4,6 @@ import { setNotificationHandler, getPermissionsAsync, requestPermissionsAsync, g
 import { Platform } from "react-native";
 import { API_BASE_URL } from '@/constants/Config';
 
-
-
-// Check if we're in Expo Go
-const isExpoGo = Constants.appOwnership === "expo";
-
 // Configure notification handling
 setNotificationHandler({
   handleNotification: async () => ({
@@ -157,12 +152,6 @@ export const sendPushNotification = async (
     return result.success === true;
   } catch (error) {
     console.error("Error sending push notification:", error);
-
-    // Fallback to local notification if in Expo Go
-    if (isExpoGo) {
-      await showLocalNotification(title, message, data);
-      return true;
-    }
 
     return false;
   }
