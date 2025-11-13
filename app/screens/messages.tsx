@@ -8,6 +8,7 @@ import {
   Image,
   ActivityIndicator,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
@@ -16,6 +17,8 @@ import { API_BASE_URL } from '@/constants/Config';
 import { Search, ArrowLeft, X } from 'lucide-react-native';
 import { messageService, User } from '@/services/messageService';
 
+
+// Loading State Skeleton Loader 
 const SkeletonLoader = ({ width, height, borderRadius = 4 }: { width: number | string; height: number; borderRadius?: number }) => {
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
@@ -35,6 +38,7 @@ const SkeletonLoader = ({ width, height, borderRadius = 4 }: { width: number | s
 export default function MessagesScreen() {
   const router = useRouter();
   const { user, loading: authLoading, clearUser } = useAuth();
+  // Theme Change 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
@@ -54,6 +58,7 @@ export default function MessagesScreen() {
   const [activePage, setActivePage] = useState(1);
   const [hasMoreConversations, setHasMoreConversations] = useState(true);
   const [hasMoreActive, setHasMoreActive] = useState(true);
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
     loadConversations();
@@ -70,7 +75,18 @@ export default function MessagesScreen() {
     return () => clearInterval(interval);
   }, [showSearchResults]);
   
-
+  // Hide loading modal when screen comes back into focus
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setChatLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [chatLoading]);
+  
+/**
+ * Load Conversations 
+ */
   const loadConversations = async (page = 1, append = false, silent = false) => {
     try {
       if (!user?.id) return;
@@ -79,6 +95,7 @@ export default function MessagesScreen() {
         else setLoadingMore(true);
       }
       
+      // Get New Users and Has More on Message Service 
       const { users: newUsers, hasMore } = await messageService.getConversations(user.id, page, 10);
       
       // Debug conversation users online status
@@ -99,6 +116,7 @@ export default function MessagesScreen() {
       
       if (append) {
         // Remove duplicates and re-sort everything
+        // This Variables make sure that the users are not duplicated
         const combined = [...users, ...sortedUsers];
         const uniqueUsers = combined.filter((user, index, self) => 
           index === self.findIndex(u => u.unique_key === user.unique_key)
@@ -124,11 +142,13 @@ export default function MessagesScreen() {
       }
     }
   };
+  
   /**
   * Load Active / Online Users
   */
   const loadActiveUsers = async (page = 1, append = false, silent = false) => {
     try {
+
       if (!user?.id) return;
       if (!silent) {
         if (!append) setActiveLoading(true);
@@ -140,7 +160,8 @@ export default function MessagesScreen() {
       // Debug online status
       const onlineUsers = allUsers.filter(u => u.isOnline);
       const offlineUsers = allUsers.filter(u => !u.isOnline);
-      
+
+      // Logs Identifying Users List of (Online / Offline )
       console.log('🟢 ONLINE USERS (' + onlineUsers.length + '):', onlineUsers.map(u => `${u.name} (${u.user_type})`));
       console.log('🔴 OFFLINE USERS (' + offlineUsers.length + '):', offlineUsers.map(u => `${u.name} (${u.user_type})`));
       console.log('📊 Total users loaded:', allUsers.length);
@@ -150,6 +171,7 @@ export default function MessagesScreen() {
         index === self.findIndex(u => u.unique_key === user.unique_key)
       );
       
+      // Set Active Users 
       if (append) {
         setActiveUsers(prev => {
           const combined = [...prev, ...uniqueUsers];
@@ -173,18 +195,27 @@ export default function MessagesScreen() {
     }
   };
 
+/**
+ * Load More Conversations Display 
+ */
   const loadMoreConversations = useCallback(() => {
     if (!loadingMore && hasMoreConversations) {
       loadConversations(conversationPage + 1, true);
     }
   }, [loadingMore, hasMoreConversations, conversationPage]);
 
+  /**
+   * Load More active Users 
+   */
   const loadMoreActiveUsers = useCallback(() => {
     if (!activeLoadingMore && hasMoreActive) {
       loadActiveUsers(activePage + 1, true);
     }
   }, [activeLoadingMore, hasMoreActive, activePage]);
 
+  /**
+   * Refreshing Data 
+   */
   const refreshData = async () => {
     setConversationPage(1);
     setActivePage(1);
@@ -193,8 +224,8 @@ export default function MessagesScreen() {
       loadActiveUsers(1, false)
     ]);
   };
-  
-  // Update active sessions when app becomes active
+
+  // Update active sessions -> ( login.php (backend/api) ) when app becomes active
   useEffect(() => {
     const updateActiveSession = async () => {
       if (user?.id) {
@@ -246,9 +277,7 @@ export default function MessagesScreen() {
       }
     }
   };
-
-
-
+  // Handle Searching of Users 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     updateSessionOnInteraction(); // Update session on search
@@ -292,106 +321,127 @@ export default function MessagesScreen() {
       .slice(0, 2);
   };
 
-  const renderActiveUser = ({ item }: { item: User }) => (
-    <TouchableOpacity
-      onPress={() => router.push(`/chat/${item.unique_key || item.id}?name=${encodeURIComponent(item.name)}${item.avatar_url ? `&avatar=${encodeURIComponent(item.avatar_url)}` : ''}&user_type=${item.user_type}&isOnline=${item.isOnline}`)}
-      className="items-center mr-4"
-    >
-      <View className="relative">
-        {item.avatar_url ? (
-          <Image
-            source={{ uri: item.avatar_url }}
-            className="w-14 h-14 rounded-full"
-            style={{ backgroundColor: '#af1616' }}
-          />
-        ) : (
-          <View className="w-14 h-14 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
-            <Text className="text-white font-bold text-sm">
-              {getInitials(item.name)}
-            </Text>
-          </View>
-        )}
-        {item.isOnline === true && (
-          <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
-        )}
-      </View>
-      <Text 
-        className="text-xs mt-2 text-center" 
-        style={{ color: textColor, width: 60 }}
-        numberOfLines={1}
+  const renderActiveUser = ({ item }: { item: User }) => {
+    const chatId = String(item.unique_key || item.id).substring(0, 50); // Limit ID length
+    const params = new URLSearchParams({
+      name: String(item.name || ''),
+      ...(item.avatar_url && { avatar: String(item.avatar_url) }),
+      user_type: String(item.user_type || ''),
+      isOnline: String(item.isOnline)
+    });
+    
+    return (
+      <TouchableOpacity
+        onPress={() => router.push(`/chat/${chatId}?${params.toString()}`)}
+        className="items-center mr-4"
       >
-        {item.name.split(' ')[0]}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const renderConversationUser = ({ item }: { item: User }) => (
-    <TouchableOpacity
-      onPress={() => {
-        updateSessionOnInteraction(); // Update session on chat open
-        router.push(`/chat/${item.unique_key || item.id}?name=${encodeURIComponent(item.name)}${item.avatar_url ? `&avatar=${encodeURIComponent(item.avatar_url)}` : ''}&user_type=${item.user_type}&isOnline=${item.isOnline}`);
-      }}
-      activeOpacity={0.7}
-      className="flex-row items-center p-4 border-b border-gray-100"
-      style={{ borderBottomColor: mutedColor + '30' }}
-    >
-      <View className="relative">
-        {item.avatar_url ? (
-          <Image
-            source={{ uri: item.avatar_url }}
-            className="w-12 h-12 rounded-full"
-            style={{ backgroundColor: '#af1616' }}
-          />
-        ) : (
-          <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
-            <Text className="text-white font-bold text-sm">
-              {getInitials(item.name)}
-            </Text>
-          </View>
-        )}
-        {item.isOnline === true && (
-          <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
-        )}
-      </View>
-      
-      <View className="flex-1 ml-3">
-        <View className="flex-row items-center justify-between">
-          <Text className={`text-base ${item.unreadCount > 0 ? 'font-bold' : 'font-semibold'}`} style={{ color: textColor }}>
-            {item.name}
-          </Text>
-          <Text className="text-xs" style={{ color: mutedColor }}>
-            {item.lastMessageTime}
-          </Text>
-        </View>
-        <View className="flex-row items-center justify-between mt-1">
-          <View className="flex-1 flex-row items-center">
-            <Text
-              className={`text-sm flex-1 ${item.unreadCount > 0 ? 'font-semibold' : ''}`}
-              style={{ color: item.unreadCount > 0 ? textColor : mutedColor }}
-              numberOfLines={1}
-            >
-              {item.lastMessage && item.lastMessage.length > 30 
-                ? `${item.lastMessage.substring(0, 30)}...` 
-                : item.lastMessage
-              }
-            </Text>
-            {item.messageStatus && (
-              <Text className="text-xs ml-2" style={{ color: mutedColor }}>
-                {item.messageStatus}
-              </Text>
-            )}
-          </View>
-          {item.unreadCount > 0 && (
-            <View className="bg-[#af1616] rounded-full min-w-[20px] h-5 items-center justify-center ml-2">
-              <Text className="text-white text-xs font-bold">
-                {item.unreadCount > 99 ? '99+' : item.unreadCount}
+        <View className="relative">
+          {item.avatar_url ? (
+            <Image
+              source={{ uri: item.avatar_url }}
+              className="w-14 h-14 rounded-full"
+              style={{ backgroundColor: '#af1616' }}
+            />
+          ) : (
+            <View className="w-14 h-14 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
+              <Text className="text-white font-bold text-sm">
+                {getInitials(item.name)}
               </Text>
             </View>
           )}
+          {item.isOnline === true && (
+            <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+          )}
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+        <Text 
+          className="text-xs mt-2 text-center" 
+          style={{ color: textColor, width: 60 }}
+          numberOfLines={1}
+        >
+          {item.name.split(' ')[0]}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderConversationUser = ({ item }: { item: User }) => {
+    const chatId = String(item.unique_key || item.id).substring(0, 50); // Limit ID length
+    const params = new URLSearchParams({
+      name: String(item.name || ''),
+      ...(item.avatar_url && { avatar: String(item.avatar_url) }),
+      user_type: String(item.user_type || ''),
+      isOnline: String(item.isOnline)
+    });
+    
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          setChatLoading(true);
+          updateSessionOnInteraction(); // Update session on chat open
+          router.push(`/chat/${chatId}?${params.toString()}`);
+        }}
+        activeOpacity={0.7}
+        className="flex-row items-center p-4 border-b border-gray-100"
+        style={{ borderBottomColor: mutedColor + '30' }}
+      >
+        <View className="relative">
+          {item.avatar_url ? (
+            <Image
+              source={{ uri: item.avatar_url }}
+              className="w-12 h-12 rounded-full"
+              style={{ backgroundColor: '#af1616' }}
+            />
+          ) : (
+            <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
+              <Text className="text-white font-bold text-sm">
+                {getInitials(item.name)}
+              </Text>
+            </View>
+          )}
+          {item.isOnline === true && (
+            <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+          )}
+        </View>
+        
+        <View className="flex-1 ml-3">
+          <View className="flex-row items-center justify-between">
+            <Text className={`text-base ${item.unreadCount > 0 ? 'font-bold' : 'font-semibold'}`} style={{ color: textColor }}>
+              {item.name}
+            </Text>
+            <Text className="text-xs" style={{ color: mutedColor }}>
+              {item.lastMessageTime}
+            </Text>
+          </View>
+          <View className="flex-row items-center justify-between mt-1">
+            <View className="flex-1 flex-row items-center">
+              <Text
+                className={`text-sm flex-1 ${item.unreadCount > 0 ? 'font-semibold' : ''}`}
+                style={{ color: item.unreadCount > 0 ? textColor : mutedColor }}
+                numberOfLines={1}
+              >
+                {item.lastMessage && item.lastMessage.length > 30 
+                  ? `${item.lastMessage.substring(0, 30)}...` 
+                  : item.lastMessage
+                }
+              </Text>
+              {item.messageStatus && (
+                <Text className="text-xs ml-2" style={{ color: mutedColor }}>
+                  {item.messageStatus}
+                </Text>
+              )}
+            </View>
+            {item.unreadCount > 0 && (
+              <View className="bg-[#af1616] rounded-full min-w-[20px] h-5 items-center justify-center ml-2">
+                <Text className="text-white text-xs font-bold">
+                  {item.unreadCount > 99 ? '99+' : item.unreadCount}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const renderActiveFooter = () => {
     if (!activeLoadingMore) return null;
@@ -404,7 +454,7 @@ export default function MessagesScreen() {
 
   const renderActiveSkeleton = () => (
     <View className="flex-row px-4 pb-4">
-      {[1, 2, 3, 4, 5, 6 ].map((item) => (
+      {[1, 2, 3, 4, 5 ].map((item) => (
         <View key={item} className="items-center mr-4">
           <SkeletonLoader width={56} height={56} borderRadius={28} />
           <View style={{ marginTop: 8 }}>
@@ -417,7 +467,7 @@ export default function MessagesScreen() {
 
   const renderConversationSkeleton = () => (
     <View style={{ backgroundColor: cardColor }}>
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((item) => (
+      {[1, 2, 3, 4, 5, 6].map((item) => (
         <View key={item} className="flex-row items-center p-4" style={{ borderBottomWidth: 1, borderBottomColor: mutedColor + '30' }}>
           <SkeletonLoader width={48} height={48} borderRadius={24} />
           <View className="flex-1 ml-3">
@@ -434,48 +484,57 @@ export default function MessagesScreen() {
     </View>
   );
 
-  const renderSearchResult = ({ item }: { item: User }) => (
-    <TouchableOpacity
-      onPress={() => {
-        clearSearch();
-        router.replace(`/chat/${item.unique_key || item.id}?name=${encodeURIComponent(item.name)}${item.avatar_url ? `&avatar=${encodeURIComponent(item.avatar_url)}` : ''}&user_type=${item.user_type}`);
-      }}
-      activeOpacity={0.7}
-      className="flex-row items-center p-4 border-b border-gray-100"
-      style={{ borderBottomColor: mutedColor + '30' }}
-    >
-      <View className="relative">
-        {item.avatar_url ? (
-          <Image
-            source={{ uri: item.avatar_url }}
-            className="w-12 h-12 rounded-full"
-            style={{ backgroundColor: '#af1616' }}
-          />
-        ) : (
-          <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
-            <Text className="text-white font-bold text-sm">
-              {getInitials(item.name)}
-            </Text>
-          </View>
-        )}
-        {item.isOnline === true && (
-          <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
-        )}
-      </View>
-      
-      <View className="flex-1 ml-3">
-        <Text className="font-semibold text-base" style={{ color: textColor }}>
-          {item.name}
-        </Text>
-        <Text className="text-sm" style={{ color: mutedColor }} numberOfLines={1}>
-          {item.lastMessage && item.lastMessage.length > 40 
-            ? `${item.lastMessage.substring(0, 40)}...` 
-            : (item.lastMessage || (item.isOnline ? 'Online' : 'Offline'))
-          }
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderSearchResult = ({ item }: { item: User }) => {
+    const chatId = String(item.unique_key || item.id).substring(0, 50); // Limit ID length
+    const params = new URLSearchParams({
+      name: String(item.name || ''),
+      ...(item.avatar_url && { avatar: String(item.avatar_url) }),
+      user_type: String(item.user_type || '')
+    });
+    
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          clearSearch();
+          router.replace(`/chat/${chatId}?${params.toString()}`);
+        }}
+        activeOpacity={0.7}
+        className="flex-row items-center p-4 border-b border-gray-100"
+        style={{ borderBottomColor: mutedColor + '30' }}
+      >
+        <View className="relative">
+          {item.avatar_url ? (
+            <Image
+              source={{ uri: item.avatar_url }}
+              className="w-12 h-12 rounded-full"
+              style={{ backgroundColor: '#af1616' }}
+            />
+          ) : (
+            <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
+              <Text className="text-white font-bold text-sm">
+                {getInitials(item.name)}
+              </Text>
+            </View>
+          )}
+          {item.isOnline === true && (
+            <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+          )}
+        </View>
+        
+        <View className="flex-1 ml-3">
+          <Text className="font-semibold text-base" style={{ color: textColor }}>
+            {item.name}
+          </Text>
+          <Text className="text-sm" style={{ color: mutedColor }} numberOfLines={1}>
+            {item.lastMessage && item.lastMessage.length > 40 
+              ? `${item.lastMessage.substring(0, 40)}...` 
+              : (item.lastMessage || (item.isOnline ? 'Online' : 'Offline'))
+            }
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const renderConversationFooter = () => {
     if (!loadingMore) return null;
@@ -518,7 +577,7 @@ export default function MessagesScreen() {
           <TextInput
             className="flex-1 ml-2 text-base"
             style={{ color: textColor }}
-            placeholder="Search conversations..."
+            placeholder="Search ..."
             placeholderTextColor={mutedColor}
             value={searchQuery}
             onChangeText={handleSearch}
@@ -577,7 +636,13 @@ export default function MessagesScreen() {
                   <View key={`active-users-${item.unique_key || item.id}-${index}`} className="items-center mr-4">
                     <TouchableOpacity
                       onPress={() => {
-                        router.replace(`/chat/${item.unique_key || item.id}?name=${encodeURIComponent(item.name)}${item.avatar_url ? `&avatar=${encodeURIComponent(item.avatar_url)}` : ''}&user_type=${item.user_type}`);
+                        const chatId = String(item.unique_key || item.id).substring(0, 50);
+                        const params = new URLSearchParams({
+                          name: String(item.name || ''),
+                          ...(item.avatar_url && { avatar: String(item.avatar_url) }),
+                          user_type: String(item.user_type || '')
+                        });
+                        router.replace(`/chat/${chatId}?${params.toString()}`);
                       }}
                       activeOpacity={0.7}
                       className="items-center"
@@ -647,6 +712,20 @@ export default function MessagesScreen() {
           )}
         </>
       )}
+      
+      {/* Chat Loading Modal */}
+      <Modal
+        visible={chatLoading}
+        transparent={true}
+        animationType="fade"
+      >
+        <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View className="rounded-lg p-6 items-center" style={{ backgroundColor: cardColor, minWidth: 200 }}>
+            <ActivityIndicator size="large" color="#3B82F6" />
+            <Text className="mt-4 text-base font-medium" style={{ color: textColor }}>Loading chat...</Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
