@@ -51,8 +51,6 @@ const MAROON_THEME = {
 };
 
 export default function Calendar() {
-
-
   // Theme Change 
   const { theme } = useTheme();
   const backgroundColor = useThemeColor({}, 'background');
@@ -281,8 +279,8 @@ export default function Calendar() {
             
             {/* Calendar days skeleton */}
             {Array.from({ length: 6 }).map((_, rowIndex) => (
-              <View key={rowIndex} className="flex-row mb-2">
-                {Array.from({ length: 7 }).map((_, colIndex) => (
+              <View key={rowIndex} className="flex-row mb-1 mt-2">
+                {Array.from({ length: 4 }).map((_, colIndex) => (
                   <View key={colIndex} className="flex-1 aspect-square p-1">
                     <View className="flex-1 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
                   </View>
@@ -550,8 +548,8 @@ export default function Calendar() {
             const hour = hourIndex;
             const time = `${hour % 12 === 0 ? 12 : hour % 12} ${hour >= 12 ? 'PM' : 'AM'}`;
             
-            // Highlight 9 AM to 5 PM time slots
-            const isWorkingHours = hour >= 9 && hour <= 17;
+            // Highlight 7 AM to 7 PM time slots
+            const isWorkingHours = hour >= 7 && hour <= 19;
             
             return (
               <View 
@@ -654,8 +652,8 @@ export default function Calendar() {
               const hour = hourIndex;
               const time = `${hour % 12 === 0 ? 12 : hour % 12} ${hour >= 12 ? 'PM' : 'AM'}`;
               
-              // Highlight 9 AM to 5 PM time slots
-              const isWorkingHours = hour >= 9 && hour <= 17;
+              // Highlight 7 AM to 7 PM time slots
+              const isWorkingHours = hour >= 7 && hour <= 19;
               
               // Get events for this hour
               const hourEvents = dayEvents.filter(event => {
@@ -685,8 +683,8 @@ export default function Calendar() {
                     <Text 
                       className="text-xs"
                       style={{
-                        color: hour === 9 || hour === 12 || hour === 17 ? '#1E40AF' : mutedColor,
-                        fontWeight: hour === 9 || hour === 12 || hour === 17 ? 'bold' : 'normal'
+                        color: hour === 7 || hour === 12 || hour === 19 ? '#1E40AF' : mutedColor,
+                        fontWeight: hour === 7 || hour === 12 || hour === 19 ? 'bold' : 'normal'
                       }}
                     >
                       {time}
