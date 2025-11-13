@@ -89,7 +89,7 @@ interface LinkItem {
 
 export default function ChatInfoScreen() {
   const router = useRouter();
-  const { id, name, avatar, user_type } = useLocalSearchParams();
+  const { id, name, avatar, user_type, searchQuery: initialSearchQuery, showSearch: initialShowSearch } = useLocalSearchParams();
   const { user } = useAuth();
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
@@ -102,8 +102,8 @@ export default function ChatInfoScreen() {
   const actualUserId = (id as string).includes('_') ? (id as string).split('_')[1] : id as string;
 
   const [activeTab, setActiveTab] = useState<'media' | 'files' | 'links'>('media');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery === 'highlight' ? '' : (initialSearchQuery as string || ''));
+  const [showSearch, setShowSearch] = useState(initialShowSearch === 'true' || !!initialSearchQuery);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [linkItems, setLinkItems] = useState<LinkItem[]>([]);
   const [allMessages, setAllMessages] = useState<Message[]>([]);
@@ -140,7 +140,15 @@ export default function ChatInfoScreen() {
       setShowSearchResults(false);
       setSearchResults([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery, allMessages]);
+
+  // Restore search state on initial load
+  useEffect(() => {
+    if (initialSearchQuery && initialSearchQuery !== 'highlight' && !initialLoading) {
+      setShowSearch(true);
+      setSearchQuery(initialSearchQuery as string);
+    }
+  }, [initialLoading]);
 
   const detectLinks = (text: string): string[] => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -412,7 +420,11 @@ export default function ChatInfoScreen() {
               returnKeyType="search"
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <TouchableOpacity onPress={() => {
+                setSearchQuery('');
+                setShowSearchResults(false);
+                setSearchResults([]);
+              }}>
                 <X size={20} color={mutedColor} />
               </TouchableOpacity>
             )}
@@ -464,19 +476,70 @@ export default function ChatInfoScreen() {
         {showSearchResults ? (
           <FlatList
             data={searchResults}
-            renderItem={({ item }) => (
-              <TouchableOpacity className="p-4 border-b" style={{ borderBottomColor: mutedColor + '30' }}>
-                <Text className="font-medium" style={{ color: textColor }}>
-                  {String(item.senderId) === String(user?.id) ? 'You' : name}
-                </Text>
-                <Text className="mt-1" style={{ color: textColor }}>
-                  {item.type === 'image' ? '📷 Image' : item.type === 'file' ? `📄 ${item.fileName}` : item.text}
-                </Text>
-                <Text className="text-xs mt-1" style={{ color: mutedColor }}>
-                  {new Date(item.timestamp).toLocaleString()}
-                </Text>
-              </TouchableOpacity>
-            )}
+            renderItem={({ item }) => {
+              const isMyMessage = String(item.senderId) === String(user?.id);
+              
+              return (
+                <TouchableOpacity 
+                  className="flex-row p-4 border-b" 
+                  style={{ borderBottomColor: mutedColor + '30' }}
+                  onPress={() => {
+                    router.push(`/chat/${id}?name=${encodeURIComponent(name as string)}${avatar ? `&avatar=${encodeURIComponent(avatar as string)}` : ''}&user_type=${user_type}&highlightMessage=${item.id}&searchQuery=${encodeURIComponent(searchQuery)}&showSearch=true`);
+                  }}
+                >
+                  <View className="mr-3">
+                    {isMyMessage ? (
+                      user?.avatar_url ? (
+                        <Image
+                          source={{ uri: user.avatar_url }}
+                          className="w-10 h-10 rounded-full"
+                          style={{ backgroundColor: '#af1616' }}
+                        />
+                      ) : (
+                        <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
+                          <Text className="text-white font-bold text-sm">
+                            {getInitials(user?.first_name + ' ' + user?.last_name || 'You')}
+                          </Text>
+                        </View>
+                      )
+                    ) : (
+                      avatar ? (
+                        <Image
+                          source={{ uri: avatar as string }}
+                          className="w-10 h-10 rounded-full"
+                          style={{ backgroundColor: '#af1616' }}
+                        />
+                      ) : (
+                        <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
+                          <Text className="text-white font-bold text-sm">
+                            {getInitials(name as string || 'User')}
+                          </Text>
+                        </View>
+                      )
+                    )}
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-medium" style={{ color: textColor }}>
+                      {isMyMessage ? 'You' : name}
+                    </Text>
+                    <Text className="mt-1" style={{ color: textColor }} numberOfLines={2}>
+                      {item.type === 'image' ? '📷 Image' : item.type === 'file' ? `📄 ${item.fileName}` : (
+                        <Text>
+                          {item.text.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, index) => (
+                            <Text key={index} style={{ color: part.toLowerCase() === searchQuery.toLowerCase() ? '#F59E0B' : textColor, fontWeight: part.toLowerCase() === searchQuery.toLowerCase() ? 'bold' : 'normal' }}>
+                              {part}
+                            </Text>
+                          ))}
+                        </Text>
+                      )}
+                    </Text>
+                    <Text className="text-xs mt-1" style={{ color: mutedColor }}>
+                      {new Date(item.timestamp).toLocaleString()}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
             keyExtractor={(item) => item.id}
             ListEmptyComponent={
               <View className="py-8 items-center">
