@@ -387,12 +387,14 @@ export default function ChatInfoScreen() {
     </View>
   );
 
+  // Initial Loading State When refreshed or First Load 
   if (initialLoading) {
     return <FullScreenSkeleton />;
   }
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
+      
       {/* Fixed Header */}
       <View className="flex-row items-center px-4 py-4 pt-10 border-b" style={{ backgroundColor: cardColor, borderBottomColor: mutedColor + '30' }}>
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
