@@ -6,6 +6,7 @@ import { API_BASE_URL } from '@/constants/Config';
 interface User {
   id: string;
   student_id: string;
+  middle_name: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -59,6 +60,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Activate user session
+  const activateSession = async (userId: string) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/login.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ update_session: true, user_id: userId })
+      });
+      console.log('Session activated for user:', userId);
+    } catch (error) {
+      console.error('Error activating session:', error);
+    }
+  };
+
+  // Remove user session
+  const removeSession = async (userId: string) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/logout.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId })
+      });
+      console.log('Session removed for user:', userId);
+    } catch (error) {
+      console.error('Error removing session:', error);
+    }
+  };
+
   // Load user from storage on app start
   useEffect(() => {
     const loadUser = async () => {
@@ -68,6 +97,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
           console.log("User loaded from storage:", parsedUser.id);
+          // Activate session when user is loaded from storage
+          await activateSession(parsedUser.id);
         }
       } catch (err) {
         console.error("Error loading user:", err);
@@ -113,11 +144,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(userWithDefaults);
     await AsyncStorage.setItem("user", JSON.stringify(userWithDefaults));
     
+    // Activate session on login
+    await activateSession(userWithDefaults.id);
+    
     console.log("User stored successfully in AsyncStorage");
   };
 
   const logout = async () => {
     console.log("Logging out user");
+    
+    // Remove session before clearing user data
+    if (user?.id) {
+      await removeSession(user.id);
+    }
+    
     setUser(null);
     await AsyncStorage.removeItem("user");
     console.log("User removed from storage");
