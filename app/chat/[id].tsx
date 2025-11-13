@@ -21,6 +21,7 @@ import {
   ArrowLeft,
   Send,
   Plus,
+  X,
   Camera,
   Image as ImageIcon,
   File,
@@ -66,6 +67,16 @@ const FileIcon = ({ type, fileName }: { type: string; fileName?: string }) => {
 
 // Link text component
 const LinkText = ({ text, isMyMessage }: { text: string; isMyMessage: boolean }) => {
+  const mutedColor = useThemeColor({}, 'muted');
+  
+  // Special styling for removed messages
+  if (text === 'Message removed') {
+    return (
+      <Text style={{ color: '#ffffff', fontStyle: 'italic', fontSize: 14 }}>
+        {text}
+      </Text>
+    );
+  }
   const detectLinks = (text: string) => {
     const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}[^\s]*)/g;
     return text.split(urlRegex);
@@ -111,7 +122,7 @@ const LinkText = ({ text, isMyMessage }: { text: string; isMyMessage: boolean })
   );
 };
 
-
+// Skeleton Load
 const SkeletonLoader = ({ width, height, borderRadius = 4 }: { width: number; height: number; borderRadius?: number }) => {
   const mutedColor = useThemeColor({}, 'muted');
   
@@ -129,15 +140,17 @@ const SkeletonLoader = ({ width, height, borderRadius = 4 }: { width: number; he
 
 export default function ChatScreen() {
   const router = useRouter();
-  const { id, name, avatar, user_type, isOnline } = useLocalSearchParams();
+  const { id, name, avatar, user_type, isOnline, highlightMessage } = useLocalSearchParams();
   const { user } = useAuth();
+  // Theme Change
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
   
-  // Extract actual user ID from unique_key format (user_type_id)
-  const actualUserId = (id as string).includes('_') ? (id as string).split('_')[1] : id as string;
+  // Extract actual user ID from unique_key format (user_type_id) with safety checks
+  const safeId = String(id || '').substring(0, 50); // Ensure ID is not too long
+  const actualUserId = safeId.includes('_') ? safeId.split('_')[1] : safeId;
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -161,26 +174,41 @@ export default function ChatScreen() {
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [imageCarousel, setImageCarousel] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     setLoading(true);
     loadMessages(1, false);
     markAsRead();
-  }, [actualUserId]);
+    
+    // Handle message highlighting
+    if (highlightMessage) {
+      setHighlightedMessageId(highlightMessage as string);
+      // Clear highlight after 3 seconds
+      setTimeout(() => {
+        setHighlightedMessageId(null);
+      }, 3000);
+    }
+  }, [actualUserId, highlightMessage]);
+
+
   
   useEffect(() => {
     const messageInterval = setInterval(() => {
       if (!editingMessage && !selectedMessage) {
         silentLoadMessages();
         checkUserOnlineStatus();
-        updateUserSession(); // Update session every 5 seconds when active
+        updateUserSession(); // Update session every 2 seconds when active
       }
-    }, 5000);
+    }, 2000);
     
     return () => clearInterval(messageInterval);
   }, []);
 
+  /**
+   * Update User Session To MainTain Active When App Interacted
+   */
   const updateUserSession = async () => {
     try {
       if (user?.id) {
@@ -195,6 +223,9 @@ export default function ChatScreen() {
     }
   };
 
+/**
+ * Check User Status ( Online / Offline )
+ */
   const checkUserOnlineStatus = async () => {
     try {
       const { users } = await messageService.getActiveUsers(user?.id || '', 1, 100);
@@ -207,12 +238,20 @@ export default function ChatScreen() {
     }
   };
 
+  /**
+   * Load Messages Display 
+   */
   const loadMessages = async (pageNum = 1, append = false) => {
     try {
+      if (!user?.id || !actualUserId) {
+        console.error('Missing user ID or actual user ID');
+        return;
+      }
+      
       if (!append) setLoading(true);
       else setLoadingMore(true);
       
-      const url = `${API_BASE_URL}/api/messages/get_messages.php?sender_id=${user?.id}&receiver_id=${actualUserId}&page=${pageNum}&limit=20`;
+      const url = `${API_BASE_URL}/api/messages/get_messages.php?sender_id=${encodeURIComponent(user.id)}&receiver_id=${encodeURIComponent(actualUserId)}&page=${pageNum}&limit=20`;
       console.log('Fetching messages from:', url);
       
       const response = await fetch(url);
@@ -238,14 +277,20 @@ export default function ChatScreen() {
         
         if (append) {
           setMessages(prev => {
-            const combined = [...newMessages, ...prev];
+            const existingIds = new Set(prev.map(m => m.id));
+            const uniqueNewMessages = newMessages.filter((m: Message) => !existingIds.has(m.id));
+            const combined = [...uniqueNewMessages, ...prev];
             return combined.sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
           });
         } else {
-          setMessages(newMessages);
-          setTimeout(() => {
-            flatListRef.current?.scrollToEnd({ animated: false });
-          }, 100);
+          const sortedMessages = newMessages.sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+          setMessages(sortedMessages);
+          if (!initialLoadComplete) {
+            setTimeout(() => {
+              flatListRef.current?.scrollToEnd({ animated: false });
+              setInitialLoadComplete(true);
+            }, 200);
+          }
         }
         setHasMore(data.hasMore || false);
         setPage(pageNum);
@@ -258,33 +303,49 @@ export default function ChatScreen() {
       setLoadingMore(false);
     }
   };
-
+/**
+ * Silent Load of Messages When Polled
+ */
   const silentLoadMessages = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/messages/get_messages.php?sender_id=${user?.id}&receiver_id=${actualUserId}&page=1&limit=20`);
+      if (!user?.id || !actualUserId) return;
+      
+      const response = await fetch(`${API_BASE_URL}/api/messages/get_messages.php?sender_id=${encodeURIComponent(user.id)}&receiver_id=${encodeURIComponent(actualUserId)}&page=1&limit=20`);
+      
+      if (!response.ok) return;
+      
       const data = await response.json();
       
-      if (data.success) {
-        const newMessages = (data.messages || []).sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      if (data.success && Array.isArray(data.messages)) {
+        const newMessages = data.messages.sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
         
         setMessages(prev => {
-          // Keep all temporary messages
-          const tempMessages = prev.filter(m => m.id.startsWith('temp_'));
-          // Get existing non-temp messages
-          const existingMessages = prev.filter(m => !m.id.startsWith('temp_'));
-          const existingIds = new Set(existingMessages.map(m => m.id));
+          if (!Array.isArray(prev)) return [];
           
-          // Only add truly new messages from server
-          const actuallyNewMessages = newMessages.filter((m: Message) => !existingIds.has(m.id));
-          
-          if (actuallyNewMessages.length > 0 || tempMessages.length > 0) {
-            // Combine existing messages, new messages, and temp messages
-            const allMessages = [...existingMessages, ...actuallyNewMessages, ...tempMessages].sort((a: Message, b: Message) => 
-              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-            );
+          try {
+            const tempMessages = prev.filter(m => m?.id?.startsWith('temp_')) || [];
+            const existingMessages = prev.filter(m => m?.id && !m.id.startsWith('temp_')) || [];
+            const existingIds = new Set(existingMessages.map(m => m.id));
+            
+            const updatedExistingMessages = existingMessages.map(existingMsg => {
+              const updatedMsg = newMessages.find((m: Message) => m?.id === existingMsg?.id);
+              return updatedMsg || existingMsg;
+            });
+            
+            const actuallyNewMessages = newMessages.filter((m: Message) => m?.id && !existingIds.has(m.id));
+            
+            const allMessages = [...updatedExistingMessages, ...actuallyNewMessages, ...tempMessages]
+              .filter(m => m?.id)
+              .sort((a: Message, b: Message) => 
+                new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+              );
+            
+
+            
             return allMessages;
+          } catch (err) {
+            return prev;
           }
-          return prev;
         });
       }
     } catch (error) {
@@ -292,14 +353,21 @@ export default function ChatScreen() {
     }
   };
 
+  /**
+   * Mark As Read / Seen  when the tab viewed the latest Messages 
+   */
   const markAsRead = async () => {
     try {
-      await messageService.markAsRead(user?.id || '', actualUserId);
+      if (!user?.id || !actualUserId) return;
+      await messageService.markAsRead(user.id, actualUserId);
     } catch (error) {
       console.error('Error marking messages as read:', error);
     }
   };
 
+  /**
+   * Sending A Message (Text/File/Documents)
+   */
   const sendMessage = async () => {
     if (!inputText.trim() || !user?.id) return;
 
@@ -320,10 +388,10 @@ export default function ChatScreen() {
       isEdited: false
     };
     
-    // Add temporary message immediately
+    // Add temporary message immediately at the end (newest)
     setMessages(prev => [...prev, tempMessage]);
     
-    // Scroll to bottom
+    // Scroll to bottom to show new message
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
@@ -344,6 +412,11 @@ export default function ChatScreen() {
       setMessages(prev => prev.map(msg => 
         msg.id === tempId ? newMessage : msg
       ));
+      
+      // Auto-scroll to latest message after sending
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
     } catch (error) {
       console.error('Error sending message:', error);
       // Remove temporary message on error
@@ -352,6 +425,10 @@ export default function ChatScreen() {
       setInputText(messageText); // Restore text on error
     }
   };
+
+  /**
+   * Pick Image To Files
+   */
 
   const pickImage = async () => {
     if (!user?.id) return;
@@ -383,11 +460,11 @@ export default function ChatScreen() {
           isEdited: false
         };
         
-        // Add temporary message immediately
+        // Add temporary message immediately at the end (newest)
         setMessages(prev => [...prev, tempMessage]);
         setShowAttachments(false);
         
-        // Scroll to bottom
+        // Scroll to bottom to show new message
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
@@ -415,6 +492,11 @@ export default function ChatScreen() {
             setMessages(prev => prev.map(msg => 
               msg.id === tempId ? newMessage : msg
             ));
+            
+            // Auto-scroll to latest message after sending
+            setTimeout(() => {
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }, 100);
           } catch (error) {
             console.error('Error sending image:', error);
             // Remove temporary message on error
@@ -434,6 +516,9 @@ export default function ChatScreen() {
     }
   };
 
+  /**
+   * Pick Document to Files
+   */
   const pickDocument = async () => {
     if (!user?.id) return;
     
@@ -462,11 +547,11 @@ export default function ChatScreen() {
           isEdited: false
         };
         
-        // Add temporary message immediately
+        // Add temporary message immediately at the end (newest)
         setMessages(prev => [...prev, tempMessage]);
         setShowAttachments(false);
         
-        // Scroll to bottom
+        // Scroll to bottom to show new message
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
@@ -494,6 +579,11 @@ export default function ChatScreen() {
             setMessages(prev => prev.map(msg => 
               msg.id === tempId ? newMessage : msg
             ));
+            
+            // Auto-scroll to latest message after sending
+            setTimeout(() => {
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }, 100);
           } catch (error) {
             console.error('Error sending document:', error);
             // Remove temporary message on error
@@ -513,8 +603,9 @@ export default function ChatScreen() {
     }
   };
 
-
-
+/** 
+ * Get User Initials 
+ */
   const getInitials = (name: string) => {
     if (!name || typeof name !== 'string') return 'U';
     return name
@@ -524,7 +615,9 @@ export default function ChatScreen() {
       .toUpperCase()
       .slice(0, 2) || 'U';
   };
-
+/** 
+ * Load Old Messages 
+ */
   const loadMoreMessages = () => {
     if (hasMore && !loadingMore) {
       loadMessages(page + 1, true);
@@ -657,7 +750,7 @@ export default function ChatScreen() {
   );
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    if (!item || !item.id) return null;
+    if (!item || !item.id || !messages || index >= messages.length) return null;
     
     const isMyMessage = String(item.senderId) === String(user?.id);
     const showDateSeparator = index === 0 || 
@@ -749,7 +842,7 @@ export default function ChatScreen() {
                 </View>
               )}
               
-              <View className={`rounded-2xl px-4 py-3 ${isMyMessage ? 'bg-blue-500 rounded-br-sm' : 'bg-gray-200 rounded-bl-sm'}`}>
+              <View className={`rounded-2xl px-4 py-3 ${isMyMessage ? 'bg-blue-500 rounded-br-sm' : 'bg-gray-200 rounded-bl-sm'} ${highlightedMessageId === item.id ? 'border-2 border-yellow-400' : ''}`} style={highlightedMessageId === item.id ? { backgroundColor: isMyMessage ? '#3B82F6' : '#FEF3C7' } : {}}>
                 {item.type === 'image' && item.fileUrl && (
                   <TouchableOpacity
                     onPress={() => {
@@ -810,39 +903,46 @@ export default function ChatScreen() {
             </View>
           </View>
         
-          {isMyMessage && (
-            <View className={`flex-row items-center mt-1 justify-end mr-2`}>
-              {item.id.startsWith('temp_') ? (
-                <Text className="text-xs" style={{ color: mutedColor }}>Sending...</Text>
-              ) : item.isSeen ? (
-                <>
-                  <Text className="text-xs mr-1" style={{ color: mutedColor }}>Seen</Text>
-                  {avatar ? (
-                    <Image
-                      source={{ uri: avatar as string }}
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: '#af1616' }}
-                    />
-                  ) : (
-                    <View className="w-4 h-4 rounded-full" style={{ backgroundColor: '#af1616' }}>
-                      <Text className="text-white text-xs font-bold text-center" style={{ fontSize: 8, lineHeight: 16 }}>
-                        {getInitials(name as string || 'User').charAt(0)}
-                      </Text>
-                    </View>
-                  )}
-                </>
-              ) : (
-                <Text className="text-xs" style={{ color: mutedColor }}>Delivered</Text>
-              )}
-            </View>
-          )}
+          {isMyMessage && (() => {
+            // Check if this is the last message in a consecutive group from me
+            const nextMessage = messages[index + 1];
+            const isLastInGroup = !nextMessage || String(nextMessage.senderId) !== String(user?.id);
+            
+            return isLastInGroup ? (
+              <View className={`flex-row items-center mt-1 justify-end mr-2`}>
+                {item.id.startsWith('temp_') ? (
+                  <Text className="text-xs" style={{ color: mutedColor }}>Sending...</Text>
+                ) : item.isSeen ? (
+                  <>
+                    {avatar ? (
+                      <Image
+                        source={{ uri: avatar as string }}
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: '#af1616' }}
+                      />
+                    ) : (
+                      <View className="w-4 h-4 rounded-full" style={{ backgroundColor: '#af1616' }}>
+                        <Text className="text-white text-xs font-bold text-center" style={{ fontSize: 8, lineHeight: 16 }}>
+                          {getInitials(name as string || 'User').charAt(0)}
+                        </Text>
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  <Text className="text-xs" style={{ color: mutedColor }}>Delivered</Text>
+                )}
+              </View>
+            ) : null;
+          })()}
         </View>
       </View>
     );
   };
 
   return (
-    <View 
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       style={{ flex: 1, backgroundColor }}
     >
       
@@ -883,15 +983,17 @@ export default function ChatScreen() {
           </Text>
         </View>
         
-        <TouchableOpacity onPress={() => router.push(`/chat-info/${id}?name=${encodeURIComponent(name as string)}${avatar ? `&avatar=${encodeURIComponent(avatar as string)}` : ''}&user_type=${user_type}`)}>
+        <TouchableOpacity onPress={() => {
+          const params = new URLSearchParams({
+            name: String(name || ''),
+            ...(avatar && { avatar: String(avatar) }),
+            user_type: String(user_type || '')
+          });
+          router.push(`/chat-info/${safeId}?${params.toString()}`);
+        }}>
           <Info size={24} color={textColor} />
         </TouchableOpacity>
       </View>
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
         {/* Messages */}
         {messages.length > 0 ? (
           <FlatList
@@ -913,15 +1015,18 @@ export default function ChatScreen() {
               const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
               const isAtBottom = contentOffset.y + layoutMeasurement.height >= contentSize.height - 100;
               setShowScrollDown(!isAtBottom);
-              
-              if (contentOffset.y <= 50 && hasMore && !loadingMore) {
+            }}
+            onStartReached={() => {
+              if (hasMore && !loadingMore) {
                 loadMoreMessages();
               }
             }}
+            onStartReachedThreshold={0.1}
             scrollEventThrottle={16}
             ListHeaderComponent={loadingMore ? (
               <View className="py-4 items-center">
                 <ActivityIndicator size="small" color="#3B82F6" />
+                <Text className="mt-2 text-xs" style={{ color: mutedColor }}>Loading older messages...</Text>
               </View>
             ) : null}
           />
@@ -1005,7 +1110,11 @@ export default function ChatScreen() {
             className="mr-2"
           >
             <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
-              <Plus size={20} color="#fff" />
+              {showAttachments ? (
+                <X size={20} color="#fff" />
+              ) : (
+                <Plus size={20} color="#fff" />
+              )}
             </View>
           </TouchableOpacity>
           
@@ -1049,7 +1158,6 @@ export default function ChatScreen() {
             </TouchableOpacity>
           )}
         </View>
-      </KeyboardAvoidingView>
       
       {/* Edit Loading Modal */}
       <Modal
@@ -1058,7 +1166,7 @@ export default function ChatScreen() {
         animationType="fade"
       >
         <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <View className="bg-white rounded-lg p-6 items-center" style={{ minWidth: 200 }}>
+          <View className="rounded-lg p-6 items-center" style={{ backgroundColor: cardColor, minWidth: 200 }}>
             <ActivityIndicator size="large" color="#3B82F6" />
             <Text className="mt-4 text-base font-medium" style={{ color: textColor }}>Saving changes...</Text>
           </View>
@@ -1072,7 +1180,7 @@ export default function ChatScreen() {
         animationType="fade"
       >
         <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <View className="bg-white rounded-lg p-6 items-center" style={{ minWidth: 200 }}>
+          <View className="rounded-lg p-6 items-center" style={{ backgroundColor: cardColor, minWidth: 200 }}>
             <ActivityIndicator size="large" color="#ef4444" />
             <Text className="mt-4 text-base font-medium" style={{ color: textColor }}>Unsending message...</Text>
           </View>
@@ -1140,6 +1248,6 @@ export default function ChatScreen() {
           )}
         </View>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
