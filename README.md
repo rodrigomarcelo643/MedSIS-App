@@ -13,15 +13,15 @@
 <!-- Project Images -->
 <div align="center" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px 0;">
   <div style="flex: 1; min-width: 200px; max-width: 250px;">
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
+    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style="width: 30%; height: 30%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
     <p align="center"><strong>Authentication Flow</strong></p>
   </div>
   <div style="flex: 1; min-width: 200px; max-width: 250px;">
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Dashboard" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
+    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Dashboard" style="width: 30%; height: 30%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
     <p align="center"><strong>Main Dashboard</strong></p>
   </div>
   <div style="flex: 1; min-width: 200px; max-width: 250px;">
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="AI Assistant" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
+    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="AI Assistant" style="width: 30%; height: 30%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
     <p align="center"><strong>AI Assistant</strong></p>
   </div>
 </div>
