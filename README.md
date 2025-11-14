@@ -11,9 +11,9 @@
 </div>
 
 <!-- Project Images -->
-<div align="center" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin: 30px 0;">
-  <div style="flex: 1; min-width: 300px; max-width: 350px;">
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style="width: 100%; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+<div align="center" style="display: flex; flex-wrap: wrap; justify-content: center; margin: 5px 0;">
+  <div>
+    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style="width: 30%; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
   </div>
 </div>
 
