@@ -10,20 +10,9 @@
   <img src="https://img.shields.io/badge/Version-1.0.0-brightgreen?style=for-the-badge" alt="App Version" />
 </div>
 
-<!-- Project Images -->
-<div align="center" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 15px 0;">
-  <div style="flex: 1; width: 33.33%; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style="width: 10%; height: 10%; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
-    <p align="center"><strong>Authentication Flow</strong></p>
-  </div>
-  <div style="flex: 1; width: 33.33%; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Dashboard" style="width: 10%; height: 10%; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
-    <p align="center"><strong>Main Dashboard</strong></p>
-  </div>
-  <div style="flex: 1; width: 33.33%; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="AI Assistant" style="width: 10%; height: 10%; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
-    <p align="center"><strong>AI Assistant</strong></p>
-  </div>
+<!-- Project Image -->
+<div align="center" style="margin: 20px 0;">
+  <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="MedSIS App" style="width: 30%; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
 </div>
 
 A comprehensive React Native mobile application built with Expo for managing medical student information, academic resources, and real-time communication. Features AI assistance, messaging system, and centralized configuration management.
