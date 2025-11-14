@@ -19,7 +19,7 @@
   <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup4.png" alt="Far Right Image" style="width: 150px; height: 250px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
 </div>
 
-A comprehensive React Native mobile application built with Expo designed specifically for medical students to upload academic requirements, submit evaluation results, and manage their educational journey. This first version release focuses on streamlined document submission, grade tracking, and essential academic tools with AI assistance and real-time communication features.
+A comprehensive React Native mobile application built with Expo designed specifically for medical students to upload academic requirements, view evaluation results history, and manage their educational journey. This first version release focuses on streamlined document submission, evaluation tracking, and essential academic tools with AI assistance and real-time communication features.
 
 ## Project Structure
 
