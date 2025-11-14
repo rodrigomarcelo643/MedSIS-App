@@ -105,8 +105,10 @@ export default function ChatInfoScreen() {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery === 'highlight' ? '' : (initialSearchQuery as string || ''));
   const [showSearch, setShowSearch] = useState(initialShowSearch === 'true' || !!initialSearchQuery);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [fileItems, setFileItems] = useState<MediaItem[]>([]);
   const [linkItems, setLinkItems] = useState<LinkItem[]>([]);
   const [allMessages, setAllMessages] = useState<Message[]>([]);
+  const [allMediaMessages, setAllMediaMessages] = useState<Message[]>([]);
   const [searchResults, setSearchResults] = useState<Message[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -117,7 +119,37 @@ export default function ChatInfoScreen() {
   const [imageCarousel, setImageCarousel] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [mediaPage, setMediaPage] = useState(1);
-  const [hasMoreMedia, setHasMoreMedia] = useState(true);
+  const [hasMoreMedia, setHasMoreMedia] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const loadMoreMedia = () => {
+    if (hasMoreMedia && activeTab === 'media' && allMediaMessages.length > 0 && !loadingMore) {
+      setLoadingMore(true);
+      
+      // Use setTimeout to ensure smooth loading
+      setTimeout(() => {
+        const nextPage = mediaPage + 1;
+        setMediaPage(nextPage);
+        
+        const startIndex = (nextPage - 1) * 15;
+        const endIndex = startIndex + 15;
+        const paginatedItems = allMediaMessages.slice(startIndex, endIndex);
+        
+        const mappedItems = paginatedItems.map((msg: Message) => ({
+          id: msg.id,
+          type: msg.type as 'image' | 'file',
+          url: msg.fileUrl || '',
+          name: msg.fileName || msg.text,
+          fileName: msg.fileName,
+          timestamp: new Date(msg.timestamp)
+        }));
+        
+        setMediaItems(prev => [...prev, ...mappedItems]);
+        setHasMoreMedia(endIndex < allMediaMessages.length);
+        setLoadingMore(false);
+      }, 100);
+    }
+  };
 
 
 
@@ -125,13 +157,7 @@ export default function ChatInfoScreen() {
     loadInitialData();
   }, []);
 
-  useEffect(() => {
-    if (!initialLoading) {
-      setMediaPage(1);
-      setHasMoreMedia(true);
-      loadMediaItems(1, false);
-    }
-  }, [activeTab, initialLoading]);
+
 
   useEffect(() => {
     if (searchQuery.trim()) {
@@ -187,8 +213,13 @@ export default function ChatInfoScreen() {
         });
         setLinkItems(links);
         
-        // Load initial media items
+        // Load initial media and all file items directly
         const mediaMessages = data.messages.filter((msg: Message) => msg.type === 'image');
+        const fileMessages = data.messages.filter((msg: Message) => msg.type === 'file');
+        
+        // Store all media messages for pagination
+        setAllMediaMessages(mediaMessages);
+        
         const initialMedia = mediaMessages.slice(0, 15).map((msg: Message) => ({
           id: msg.id,
           type: msg.type as 'image' | 'file',
@@ -198,7 +229,17 @@ export default function ChatInfoScreen() {
           timestamp: new Date(msg.timestamp)
         }));
         
+        const allFiles = fileMessages.map((msg: Message) => ({
+          id: msg.id,
+          type: msg.type as 'image' | 'file',
+          url: msg.fileUrl || '',
+          name: msg.fileName || msg.text,
+          fileName: msg.fileName,
+          timestamp: new Date(msg.timestamp)
+        }));
+        
         setMediaItems(initialMedia);
+        setFileItems(allFiles);
         setHasMoreMedia(mediaMessages.length > 15);
       }
     } catch (error) {
@@ -208,54 +249,9 @@ export default function ChatInfoScreen() {
     }
   };
 
-  const loadMediaItems = async (page = 1, append = false) => {
-    if (!append) setLoading(true);
-    
-    try {
-      // Filter messages for media/files with pagination
-      let filteredItems = allMessages.filter((msg: Message) => {
-        if (activeTab === 'media') return msg.type === 'image';
-        if (activeTab === 'files') return msg.type === 'file';
-        return false;
-      });
-      
-      // Apply pagination for media tab
-      if (activeTab === 'media') {
-        const startIndex = (page - 1) * 15;
-        const endIndex = startIndex + 15;
-        const paginatedItems = filteredItems.slice(0, endIndex);
-        setHasMoreMedia(endIndex < filteredItems.length);
-        filteredItems = paginatedItems;
-      }
-      
-      const mappedItems = filteredItems.map((msg: Message) => ({
-        id: msg.id,
-        type: msg.type as 'image' | 'file',
-        url: msg.fileUrl || '',
-        name: msg.fileName || msg.text,
-        fileName: msg.fileName,
-        timestamp: new Date(msg.timestamp)
-      }));
-      
-      if (append && activeTab === 'media') {
-        setMediaItems(prev => [...prev, ...mappedItems.slice(prev.length)]);
-      } else {
-        setMediaItems(mappedItems);
-      }
-    } catch (error) {
-      console.error('Error loading media:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const loadMoreMedia = () => {
-    if (hasMoreMedia && activeTab === 'media') {
-      const nextPage = mediaPage + 1;
-      setMediaPage(nextPage);
-      loadMediaItems(nextPage, true);
-    }
-  };
+
+
 
   const searchMessages = async () => {
     if (!searchQuery.trim()) return;
@@ -312,7 +308,7 @@ export default function ChatInfoScreen() {
           <View className="flex-1">
             <Text className="font-medium" style={{ color: textColor }}>{item.name}</Text>
             <Text className="text-xs" style={{ color: mutedColor }}>
-              {item.timestamp.toLocaleDateString()}
+              {item.timestamp.getMonth() + 1}/{item.timestamp.getDate()}/{item.timestamp.getFullYear()}
             </Text>
           </View>
         </TouchableOpacity>
@@ -334,7 +330,7 @@ export default function ChatInfoScreen() {
             <Text className="font-medium text-blue-600" numberOfLines={1}>{item.url}</Text>
             <Text className="text-sm mt-1" style={{ color: textColor }} numberOfLines={2}>{item.text}</Text>
             <Text className="text-xs mt-1" style={{ color: mutedColor }}>
-              {item.timestamp.toLocaleDateString()}
+              {item.timestamp.getMonth() + 1}/{item.timestamp.getDate()}/{item.timestamp.getFullYear()}
             </Text>
           </View>
         </TouchableOpacity>
@@ -536,7 +532,7 @@ export default function ChatInfoScreen() {
                       )}
                     </Text>
                     <Text className="text-xs mt-1" style={{ color: mutedColor }}>
-                      {new Date(item.timestamp).toLocaleString()}
+                      {new Date(item.timestamp).getHours().toString().padStart(2, '0')}:{new Date(item.timestamp).getMinutes().toString().padStart(2, '0')}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -553,18 +549,23 @@ export default function ChatInfoScreen() {
         ) : (
           <FlatList
             key={activeTab}
-            data={activeTab === 'links' ? linkItems : mediaItems}
+            data={activeTab === 'links' ? linkItems : activeTab === 'files' ? fileItems : mediaItems}
             renderItem={renderMediaItem}
             keyExtractor={(item) => item.id}
             numColumns={activeTab === 'media' ? 3 : 1}
-            onEndReached={activeTab === 'media' ? loadMoreMedia : undefined}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={activeTab === 'media' && hasMoreMedia ? (
+            onEndReached={activeTab === 'media' && allMediaMessages.length > 0 ? loadMoreMedia : undefined}
+            onEndReachedThreshold={0.1}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={5}
+            windowSize={5}
+            initialNumToRender={10}
+            ListFooterComponent={activeTab === 'media' && loadingMore ? (
               <View className="py-4 items-center">
                 <ActivityIndicator size="small" color="#af1616" />
                 <Text className="text-xs mt-2" style={{ color: mutedColor }}>Loading more...</Text>
               </View>
             ) : null}
+
             ListEmptyComponent={
               <View className="py-8 items-center">
                 <Text style={{ color: mutedColor }}>No {activeTab} found</Text>
