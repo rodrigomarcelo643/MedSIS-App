@@ -132,7 +132,7 @@ MedSIS-App/
 ### Additional Screens
 
 - **app/screens/announcements.tsx** - Detailed view of school announcements with lazy loading and back-to-top navigation
-- **app/screens/evaluations.tsx** - Student grade and evaluation management
+- **app/screens/evaluations.tsx** - View evaluation results history and evaluator e-signatures
 - **app/screens/learning-materials.tsx** - Educational resources and materials
 - **app/screens/calendar.tsx** - Enhanced calendar with accurate time alignment for Philippine timezone
 - **app/screens/test-results.tsx** - Visual test results dashboard with pass/fail statistics
@@ -224,7 +224,7 @@ MedSIS-App/
 
 - 🤖 AI-powered student assistant
 - 💬 Real-time messaging and chat system with live updates
-- 📊 Grade and evaluation tracking
+- 📊 View evaluation results history with evaluator e-signatures
 - 📚 Learning materials access and download
 - ⏰ Real-time calendar events with proper time alignment
 - 🖼️ Image viewing without loading delays
@@ -238,7 +238,7 @@ MedSIS-App/
 ### Core Features
 
 - ✅ Student requirement upload system with document management
-- ✅ Evaluation results submission and tracking
+- ✅ View evaluation results history and evaluator e-signatures
 - ✅ Secure authentication with OTP verification
 - ✅ Real-time messaging and communication system
 - ✅ AI-powered student assistant for academic support
