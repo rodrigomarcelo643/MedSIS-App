@@ -72,7 +72,7 @@ const LinkText = ({ text, isMyMessage }: { text: string; isMyMessage: boolean })
   // Special styling for removed messages
   if (text === 'Message removed') {
     return (
-      <Text style={{ color: '#ffffff', fontStyle: 'italic', fontSize: 14 }}>
+      <Text style={{ color: isMyMessage ? '#ffffff' : '#000000', fontStyle: 'italic', fontSize: 14 }}>
         {text}
       </Text>
     );
@@ -175,9 +175,12 @@ export default function ChatScreen() {
   const [imageCarousel, setImageCarousel] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [navigatingToInfo, setNavigatingToInfo] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
     setLoading(true);
     loadMessages(1, false);
     markAsRead();
@@ -186,25 +189,62 @@ export default function ChatScreen() {
     if (highlightMessage) {
       setHighlightedMessageId(highlightMessage as string);
       // Clear highlight after 3 seconds
-      setTimeout(() => {
-        setHighlightedMessageId(null);
+      const highlightTimer = setTimeout(() => {
+        if (isMountedRef.current) {
+          setHighlightedMessageId(null);
+        }
       }, 3000);
+      
+      return () => clearTimeout(highlightTimer);
     }
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [actualUserId, highlightMessage]);
 
 
   
   useEffect(() => {
-    const messageInterval = setInterval(() => {
-      if (!editingMessage && !selectedMessage) {
-        silentLoadMessages();
-        checkUserOnlineStatus();
-        updateUserSession(); // Update session every 2 seconds when active
-      }
-    }, 2000);
+    let messageInterval: number | undefined;
+    let mounted = true;
     
-    return () => clearInterval(messageInterval);
-  }, []);
+    const startPolling = () => {
+      if (messageInterval) {
+        clearInterval(messageInterval);
+      }
+      
+      messageInterval = setInterval(async () => {
+        if (mounted && !editingMessage && !selectedMessage && isMountedRef.current) {
+          try {
+            await Promise.all([
+              silentLoadMessages(),
+              checkUserOnlineStatus(),
+              updateUserSession()
+            ]);
+          } catch (error) {
+            console.error('Polling error:', error);
+          }
+        }
+      }, 5000); // Increased to 5 seconds to reduce load
+    };
+    
+    // Start polling after a short delay
+    const startTimer = setTimeout(() => {
+      if (mounted) {
+        startPolling();
+      }
+    }, 1000);
+    
+    return () => {
+      mounted = false;
+      clearTimeout(startTimer);
+      if (messageInterval) {
+        clearInterval(messageInterval);
+        messageInterval = undefined;
+      }
+    };
+  }, [editingMessage, selectedMessage]);
 
   /**
    * Update User Session To MainTain Active When App Interacted
@@ -228,6 +268,12 @@ export default function ChatScreen() {
  */
   const checkUserOnlineStatus = async () => {
     try {
+      // Update message statuses when checking online status
+      if (user?.id) {
+        await messageService.updateMessageStatuses(user.id);
+        // Refresh messages after updating statuses
+        await silentLoadMessages();
+      }
       const { users } = await messageService.getActiveUsers(user?.id || '', 1, 100);
       const targetUser = users.find(u => (u.unique_key || u.id) === id);
       if (targetUser) {
@@ -279,18 +325,13 @@ export default function ChatScreen() {
           setMessages(prev => {
             const existingIds = new Set(prev.map(m => m.id));
             const uniqueNewMessages = newMessages.filter((m: Message) => !existingIds.has(m.id));
-            const combined = [...uniqueNewMessages, ...prev];
-            return combined.sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            const combined = [...prev, ...uniqueNewMessages];
+            return combined.sort((a: Message, b: Message) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
           });
         } else {
-          const sortedMessages = newMessages.sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+          const sortedMessages = newMessages.sort((a: Message, b: Message) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
           setMessages(sortedMessages);
-          if (!initialLoadComplete) {
-            setTimeout(() => {
-              flatListRef.current?.scrollToEnd({ animated: false });
-              setInitialLoadComplete(true);
-            }, 200);
-          }
+          setInitialLoadComplete(true);
         }
         setHasMore(data.hasMore || false);
         setPage(pageNum);
@@ -308,45 +349,58 @@ export default function ChatScreen() {
  */
   const silentLoadMessages = async () => {
     try {
-      if (!user?.id || !actualUserId) return;
+      if (!user?.id || !actualUserId || !isMountedRef.current) return;
       
-      const response = await fetch(`${API_BASE_URL}/api/messages/get_messages.php?sender_id=${encodeURIComponent(user.id)}&receiver_id=${encodeURIComponent(actualUserId)}&page=1&limit=20`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      if (!response.ok) return;
+      const response = await fetch(`${API_BASE_URL}/api/messages/get_messages.php?sender_id=${encodeURIComponent(user.id)}&receiver_id=${encodeURIComponent(actualUserId)}&page=1&limit=20`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok || !isMountedRef.current) return;
       
       const data = await response.json();
       
-      if (data.success && Array.isArray(data.messages)) {
-        const newMessages = data.messages.sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      if (data.success && Array.isArray(data.messages) && isMountedRef.current) {
+        const newMessages = data.messages.filter((m: Message) => m && m.id && m.timestamp).sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
         
-        setMessages(prev => {
-          if (!Array.isArray(prev)) return [];
-          
-          try {
-            const tempMessages = prev.filter(m => m?.id?.startsWith('temp_')) || [];
-            const existingMessages = prev.filter(m => m?.id && !m.id.startsWith('temp_')) || [];
-            const existingIds = new Set(existingMessages.map(m => m.id));
+        if (isMountedRef.current && newMessages.length > 0) {
+          setMessages(prev => {
+            if (!Array.isArray(prev) || !isMountedRef.current) return prev || [];
             
-            const updatedExistingMessages = existingMessages.map(existingMsg => {
-              const updatedMsg = newMessages.find((m: Message) => m?.id === existingMsg?.id);
-              return updatedMsg || existingMsg;
-            });
-            
-            const actuallyNewMessages = newMessages.filter((m: Message) => m?.id && !existingIds.has(m.id));
-            
-            const allMessages = [...updatedExistingMessages, ...actuallyNewMessages, ...tempMessages]
-              .filter(m => m?.id)
-              .sort((a: Message, b: Message) => 
-                new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-              );
-            
-
-            
-            return allMessages;
-          } catch (err) {
-            return prev;
-          }
-        });
+            try {
+              const tempMessages = prev.filter(m => m?.id?.startsWith('temp_')) || [];
+              const existingMessages = prev.filter(m => m?.id && !m.id.startsWith('temp_')) || [];
+              const existingIds = new Set(existingMessages.map(m => m.id).filter(Boolean));
+              
+              const updatedExistingMessages = existingMessages.map(existingMsg => {
+                if (!existingMsg?.id) return existingMsg;
+                const updatedMsg = newMessages.find((m: Message) => m?.id === existingMsg.id);
+                return updatedMsg || existingMsg;
+              }).filter(Boolean);
+              
+              const actuallyNewMessages = newMessages.filter((m: Message) => m?.id && !existingIds.has(m.id));
+              
+              const allMessages = [...tempMessages, ...actuallyNewMessages, ...updatedExistingMessages]
+                .filter(m => m?.id && m?.timestamp)
+                .sort((a: Message, b: Message) => {
+                  try {
+                    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+                  } catch {
+                    return 0;
+                  }
+                });
+              
+              return allMessages;
+            } catch (err) {
+              console.error('Error processing messages:', err);
+              return prev;
+            }
+          });
+        }
       }
     } catch (error) {
       console.error('Silent load error:', error);
@@ -388,12 +442,13 @@ export default function ChatScreen() {
       isEdited: false
     };
     
-    // Add temporary message immediately at the end (newest)
-    setMessages(prev => [...prev, tempMessage]);
+    // Add temporary message at the beginning (newest for inverted list)
+    setMessages(prev => [tempMessage, ...prev]);
     
-    // Scroll to bottom to show new message
+    // Auto-scroll to bottom (latest message) when sending
     setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true });
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+      setShowScrollDown(false);
     }, 100);
     
     // Update session when user sends message
@@ -406,17 +461,13 @@ export default function ChatScreen() {
         receiverId: actualUserId,
         type: 'text',
         isSeen: false,
+        recipientOnline: userOnlineStatus,
       });
 
       // Replace temporary message with real message
       setMessages(prev => prev.map(msg => 
         msg.id === tempId ? newMessage : msg
       ));
-      
-      // Auto-scroll to latest message after sending
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
     } catch (error) {
       console.error('Error sending message:', error);
       // Remove temporary message on error
@@ -460,14 +511,9 @@ export default function ChatScreen() {
           isEdited: false
         };
         
-        // Add temporary message immediately at the end (newest)
-        setMessages(prev => [...prev, tempMessage]);
+        // Add temporary message at the beginning (newest for inverted list)
+        setMessages(prev => [tempMessage, ...prev]);
         setShowAttachments(false);
-        
-        // Scroll to bottom to show new message
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, 100);
         
         // Convert image to base64
         const response = await fetch(result.assets[0].uri);
@@ -486,6 +532,7 @@ export default function ChatScreen() {
               fileData: base64data,
               fileName: result.assets[0].fileName || 'image.jpg',
               isSeen: false,
+              recipientOnline: userOnlineStatus,
             });
 
             // Replace temporary message with real message
@@ -495,7 +542,8 @@ export default function ChatScreen() {
             
             // Auto-scroll to latest message after sending
             setTimeout(() => {
-              flatListRef.current?.scrollToEnd({ animated: true });
+              flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+              setShowScrollDown(false);
             }, 100);
           } catch (error) {
             console.error('Error sending image:', error);
@@ -547,14 +595,9 @@ export default function ChatScreen() {
           isEdited: false
         };
         
-        // Add temporary message immediately at the end (newest)
-        setMessages(prev => [...prev, tempMessage]);
+        // Add temporary message at the beginning (newest for inverted list)
+        setMessages(prev => [tempMessage, ...prev]);
         setShowAttachments(false);
-        
-        // Scroll to bottom to show new message
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, 100);
         
         // Convert document to base64
         const response = await fetch(result.assets[0].uri);
@@ -573,6 +616,7 @@ export default function ChatScreen() {
               fileUrl: result.assets[0].uri,
               fileData: base64data,
               isSeen: false,
+              recipientOnline: userOnlineStatus,
             });
 
             // Replace temporary message with real message
@@ -580,10 +624,6 @@ export default function ChatScreen() {
               msg.id === tempId ? newMessage : msg
             ));
             
-            // Auto-scroll to latest message after sending
-            setTimeout(() => {
-              flatListRef.current?.scrollToEnd({ animated: true });
-            }, 100);
           } catch (error) {
             console.error('Error sending document:', error);
             // Remove temporary message on error
@@ -629,17 +669,16 @@ export default function ChatScreen() {
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     
-    if (date.toDateString() === today.toDateString()) {
+    const dateStr = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+    const todayStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+    const yesterdayStr = `${yesterday.getFullYear()}-${(yesterday.getMonth() + 1).toString().padStart(2, '0')}-${yesterday.getDate().toString().padStart(2, '0')}`;
+    
+    if (dateStr === todayStr) {
       return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
+    } else if (dateStr === yesterdayStr) {
       return 'Yesterday';
     } else {
-      return date.toLocaleDateString('en-PH', {
-        timeZone: 'Asia/Manila',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      });
+      return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
     }
   };
 
@@ -750,11 +789,14 @@ export default function ChatScreen() {
   );
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    if (!item || !item.id || !messages || index >= messages.length) return null;
+    if (!item || !item.id || !messages || index >= messages.length || index < 0) return null;
+    
+    // Additional safety checks
+    if (!item.timestamp || !item.senderId) return null;
     
     const isMyMessage = String(item.senderId) === String(user?.id);
-    const showDateSeparator = index === 0 || 
-      new Date(item.timestamp).toDateString() !== new Date(messages[index - 1]?.timestamp).toDateString();
+    const showDateSeparator = index === messages.length - 1 || 
+      new Date(item.timestamp).toDateString() !== new Date(messages[index + 1]?.timestamp).toDateString();
     
     return (
       <View>
@@ -892,48 +934,51 @@ export default function ChatScreen() {
                 
                 <View className="mt-1">
                   <Text className={`text-xs ${isMyMessage ? 'text-blue-100' : 'text-gray-500'}`}>
-                    {new Date(item.timestamp).toLocaleTimeString('en-PH', {
-                      timeZone: 'Asia/Manila',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                    {(() => {
+                      const date = new Date(item.timestamp);
+                      const hours = date.getHours();
+                      const minutes = date.getMinutes();
+                      const ampm = hours >= 12 ? 'PM' : 'AM';
+                      const displayHours = hours % 12 || 12;
+                      return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+                    })()} 
                   </Text>
                 </View>
               </View>
             </View>
           </View>
         
-          {isMyMessage && (() => {
-            // Check if this is the last message in a consecutive group from me
-            const nextMessage = messages[index + 1];
-            const isLastInGroup = !nextMessage || String(nextMessage.senderId) !== String(user?.id);
-            
-            return isLastInGroup ? (
-              <View className={`flex-row items-center mt-1 justify-end mr-2`}>
-                {item.id.startsWith('temp_') ? (
+          {isMyMessage && index === 0 && (
+            <View className={`flex-row items-center mt-1 justify-end mr-2`}>
+              {item.id.startsWith('temp_') ? (
+                <View className="flex-row items-center">
+                  <ActivityIndicator size={10} color={mutedColor} style={{ marginRight: 4 }} />
                   <Text className="text-xs" style={{ color: mutedColor }}>Sending...</Text>
-                ) : item.isSeen ? (
-                  <>
-                    {avatar ? (
-                      <Image
-                        source={{ uri: avatar as string }}
-                        className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: '#af1616' }}
-                      />
-                    ) : (
-                      <View className="w-4 h-4 rounded-full" style={{ backgroundColor: '#af1616' }}>
-                        <Text className="text-white text-xs font-bold text-center" style={{ fontSize: 8, lineHeight: 16 }}>
-                          {getInitials(name as string || 'User').charAt(0)}
-                        </Text>
-                      </View>
-                    )}
-                  </>
-                ) : (
-                  <Text className="text-xs" style={{ color: mutedColor }}>Delivered</Text>
-                )}
-              </View>
-            ) : null;
-          })()}
+                </View>
+              ) : item.isSeen ? (
+                <View className="flex-row items-center">
+                  <Text className="text-xs mr-1" style={{ color: mutedColor }}>Seen</Text>
+                  {avatar ? (
+                    <Image
+                      source={{ uri: avatar as string }}
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: '#af1616' }}
+                    />
+                  ) : (
+                    <View className="w-4 h-4 rounded-full" style={{ backgroundColor: '#af1616' }}>
+                      <Text className="text-white text-xs font-bold text-center" style={{ fontSize: 8, lineHeight: 16 }}>
+                        {getInitials(name as string || 'User').charAt(0)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <Text className="text-xs" style={{ color: mutedColor }}>
+                  {userOnlineStatus ? 'Delivered' : 'Sent'}
+                </Text>
+              )}
+            </View>
+          )}
         </View>
       </View>
     );
@@ -984,12 +1029,16 @@ export default function ChatScreen() {
         </View>
         
         <TouchableOpacity onPress={() => {
-          const params = new URLSearchParams({
-            name: String(name || ''),
-            ...(avatar && { avatar: String(avatar) }),
-            user_type: String(user_type || '')
-          });
-          router.push(`/chat-info/${safeId}?${params.toString()}`);
+          setNavigatingToInfo(true);
+          setTimeout(() => {
+            const params = new URLSearchParams({
+              name: String(name || ''),
+              ...(avatar && { avatar: String(avatar) }),
+              user_type: String(user_type || '')
+            });
+            router.push(`/chat-info/${safeId}?${params.toString()}`);
+            setNavigatingToInfo(false);
+          }, 100);
         }}>
           <Info size={24} color={textColor} />
         </TouchableOpacity>
@@ -998,34 +1047,51 @@ export default function ChatScreen() {
         {messages.length > 0 ? (
           <FlatList
             ref={flatListRef}
-            data={messages}
+            data={messages.filter(m => m && m.id && m.timestamp)}
             renderItem={renderMessage}
-            keyExtractor={(item, index) => `${item.id}-${index}`}
+            keyExtractor={(item, index) => item?.id ? `${item.id}-${index}` : `fallback-${index}`}
             className="flex-1 px-4"
-            contentContainerStyle={{ paddingTop: 8, paddingBottom: 20 }}
+            contentContainerStyle={{ 
+              paddingTop: 8, 
+              paddingBottom: 20,
+              flexGrow: 1,
+              justifyContent: messages.length < 10 ? 'flex-end' : 'flex-start'
+            }}
             showsVerticalScrollIndicator={false}
-            removeClippedSubviews={false}
-            maxToRenderPerBatch={10}
-            windowSize={10}
-            initialNumToRender={20}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={5}
+            windowSize={5}
+            initialNumToRender={10}
             scrollEnabled={true}
             nestedScrollEnabled={true}
             keyboardShouldPersistTaps="handled"
             onScroll={(event) => {
-              const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
-              const isAtBottom = contentOffset.y + layoutMeasurement.height >= contentSize.height - 100;
-              setShowScrollDown(!isAtBottom);
-            }}
-            onStartReached={() => {
-              if (hasMore && !loadingMore) {
-                loadMoreMessages();
+              try {
+                const { contentOffset } = event.nativeEvent;
+                if (contentOffset) {
+                  // For inverted list, contentOffset.y close to 0 means at bottom (latest messages)
+                  const isAtBottom = contentOffset.y <= 50;
+                  setShowScrollDown(!isAtBottom);
+                }
+              } catch (error) {
+                console.error('Scroll error:', error);
               }
             }}
-            onStartReachedThreshold={0.1}
+            onEndReached={() => {
+              try {
+                if (hasMore && !loadingMore && messages.length > 0) {
+                  loadMoreMessages();
+                }
+              } catch (error) {
+                console.error('Error loading more messages:', error);
+              }
+            }}
+            onEndReachedThreshold={0.1}
+            inverted={true}
             scrollEventThrottle={16}
-            ListHeaderComponent={loadingMore ? (
+            ListFooterComponent={loadingMore ? (
               <View className="py-4 items-center">
-                <ActivityIndicator size="small" color="#3B82F6" />
+                <ActivityIndicator size="small" color="#af1616" />
                 <Text className="mt-2 text-xs" style={{ color: mutedColor }}>Loading older messages...</Text>
               </View>
             ) : null}
@@ -1064,39 +1130,47 @@ export default function ChatScreen() {
           <View className="absolute bottom-20 items-center" style={{ left: 0, right: 0 }}>
             <TouchableOpacity
               onPress={() => {
-                flatListRef.current?.scrollToEnd({ animated: true });
+                flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
                 setShowScrollDown(false);
               }}
-              className="w-12 h-12 rounded-full bg-blue-500 items-center justify-center shadow-lg"
+              className="w-10 h-10 mb-5 rounded-full bg-[#af1616] items-center justify-center shadow-lg"
               style={{ elevation: 5 }}
             >
-              <ArrowDown size={24} color="#fff" />
+              <ArrowDown size={20} color="#fff" />
             </TouchableOpacity>
           </View>
         )}
 
         {/* Attachment Options */}
         {showAttachments && (
-          <View className="flex-row justify-around py-4 border-t" style={{ backgroundColor, borderTopColor: mutedColor + '30' }}>
-            <TouchableOpacity
-              onPress={pickImage}
-              className="items-center"
-            >
-              <View className="w-12 h-12 rounded-full bg-green-500 items-center justify-center mb-1">
-                <ImageIcon size={24} color="#fff" />
-              </View>
-              <Text className="text-xs" style={{ color: textColor }}>Gallery</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              onPress={pickDocument}
-              className="items-center"
-            >
-              <View className="w-12 h-12 rounded-full bg-blue-500 items-center justify-center mb-1">
-                <File size={24} color="#fff" />
-              </View>
-              <Text className="text-xs" style={{ color: textColor }}>Document</Text>
-            </TouchableOpacity>
+          <View className="px-6 py-5 border-t" style={{ backgroundColor: cardColor, borderTopColor: mutedColor + '20' }}>
+            <View className="flex-row justify-center items-center">
+              <TouchableOpacity
+                onPress={pickImage}
+                className="items-center flex-1"
+                activeOpacity={0.7}
+              >
+                <View className="w-16 h-16 rounded-2xl items-center justify-center mb-3 shadow-lg" style={{ backgroundColor: '#10B981', elevation: 8 }}>
+                  <ImageIcon size={28} color="#fff" />
+                </View>
+                <Text className="text-sm font-medium" style={{ color: textColor }}>Gallery</Text>
+                <Text className="text-xs mt-1" style={{ color: mutedColor }}>Photos & Images</Text>
+              </TouchableOpacity>
+              
+              <View className="w-px h-20 mx-4" style={{ backgroundColor: mutedColor + '30' }} />
+              
+              <TouchableOpacity
+                onPress={pickDocument}
+                className="items-center flex-1"
+                activeOpacity={0.7}
+              >
+                <View className="w-16 h-16 rounded-2xl items-center justify-center mb-3 shadow-lg" style={{ backgroundColor: '#3B82F6', elevation: 8 }}>
+                  <File size={28} color="#fff" />
+                </View>
+                <Text className="text-sm font-medium" style={{ color: textColor }}>Document</Text>
+                <Text className="text-xs mt-1" style={{ color: mutedColor }}>Files & PDFs</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -1136,7 +1210,7 @@ export default function ChatScreen() {
               </TouchableOpacity>
             </View>
           ) : (
-            <View className="flex-1 rounded-full px-4 py-0 border" style={{ backgroundColor: cardColor, borderColor: mutedColor + '30' }}>
+            <View className="flex-1 rounded-[20px] px-4 py-0 border" style={{ backgroundColor: cardColor, borderColor: mutedColor + '30' }}>
               <TextInput
                 style={{ color: textColor, fontSize: 16, maxHeight: 100 }}
                 placeholder="Type a message..."
@@ -1152,7 +1226,8 @@ export default function ChatScreen() {
             <TouchableOpacity
               onPress={sendMessage}
               disabled={!inputText.trim()}
-              className={`ml-2 p-2 rounded-full ${!inputText.trim() ? 'bg-gray-300' : 'bg-blue-500'}`}
+              className="ml-2 p-2 rounded-full"
+              style={{ backgroundColor: '#af1616', opacity: inputText.trim() ? 1 : 0.5 }}
             >
               <Send size={20} color="#fff" />
             </TouchableOpacity>
@@ -1167,7 +1242,7 @@ export default function ChatScreen() {
       >
         <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <View className="rounded-lg p-6 items-center" style={{ backgroundColor: cardColor, minWidth: 200 }}>
-            <ActivityIndicator size="large" color="#3B82F6" />
+            <ActivityIndicator size="large" color="#ef4444" />
             <Text className="mt-4 text-base font-medium" style={{ color: textColor }}>Saving changes...</Text>
           </View>
         </View>
@@ -1183,6 +1258,20 @@ export default function ChatScreen() {
           <View className="rounded-lg p-6 items-center" style={{ backgroundColor: cardColor, minWidth: 200 }}>
             <ActivityIndicator size="large" color="#ef4444" />
             <Text className="mt-4 text-base font-medium" style={{ color: textColor }}>Unsending message...</Text>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Navigation Loading Modal */}
+      <Modal
+        visible={navigatingToInfo}
+        transparent={true}
+        animationType="fade"
+      >
+        <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View className="rounded-lg p-6 items-center" style={{ backgroundColor: cardColor, minWidth: 200 }}>
+            <ActivityIndicator size="large" color="#af1616" />
+            <Text className="mt-4 text-base font-medium" style={{ color: textColor }}>Redirecting...</Text>
           </View>
         </View>
       </Modal>
