@@ -1,18 +1,22 @@
 {
   "expo": {
     "name": "MSIS",
-    "slug": "MSIS",
+    "slug": "msis",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/swu-header.png",
-    "scheme": "MedSIS-App",
+    "scheme": "medsisapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "projectId": "e4d72644-5c96-430c-babd-6066a17d7337",
+    "androidStatusBar": {
+      "backgroundColor": "#121212",
+      "barStyle": "light-content"
+    },
     "splash": {
       "image": "./assets/images/swu-header.png",
       "resizeMode": "contain",
-      "backgroundColor": "transparent",
+      "backgroundColor": "#ffffff",
       "dark": {
         "image": "./assets/images/swu-header.png",
         "resizeMode": "contain",
@@ -24,11 +28,11 @@
       "splash": {
         "image": "./assets/images/swu-header.png",
         "resizeMode": "contain",
-        "backgroundColor": "transparent",
+        "backgroundColor": "#ffffff",
         "dark": {
           "image": "./assets/images/swu-header.png",
           "resizeMode": "contain",
-          "backgroundColor": "transparent"
+          "backgroundColor": "#121212"
         }
       },
       "usesApplePushNotifications": true
@@ -46,7 +50,7 @@
         "xxhdpi": "./assets/images/swu-header.png",
         "xxxhdpi": "./assets/images/swu-header.png",
         "resizeMode": "contain",
-        "backgroundColor": "transparent",
+        "backgroundColor": "#ffffff",
         "dark": {
           "ldpi": "./assets/images/swu-header.png",
           "mdpi": "./assets/images/swu-header.png",
@@ -62,7 +66,7 @@
         "RECEIVE_BOOT_COMPLETED",
         "WAKE_LOCK"
       ],
-      "package": "com.marcelo12345.MSIS",
+      "package": "com.marcelo12345.msis",
       "useNextNotificationsApi": true
     },
     "plugins": [
@@ -71,6 +75,18 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "16bb301a-5eff-46d8-a70b-c9fc824b7f4f"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/16bb301a-5eff-46d8-a70b-c9fc824b7f4f"
     }
   }
 }
