@@ -43,7 +43,7 @@ interface AuthContextType {
   refreshUser: () => Promise<boolean | undefined>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }
-
+// Context To pass variables 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   login: async () => {},
@@ -128,8 +128,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       avatar: userData.avatar || userData.avatar_url || "https://msis.eduisync.io/swu-head.png",
       avatar_url: userData.avatar_url || userData.avatar || undefined, 
       avatar_data: userData.avatar_data || undefined,
-      contact_number: userData.contact_number || "Not provided",
-      joinDate: userData.joinDate || "Member since 2023",
+      contact_number: userData.contact_number || "",
+      joinDate: userData.joinDate || "",
       policy_accepted: userData.policy_accepted || 0,
       year_level_name: userData.year_level_name || (Number(userData.year_level_id) === 4 ? "Graduating" : `Year ${userData.year_level_id}`),
     };
