@@ -1,10 +1,10 @@
 {
   "expo": {
     "name": "MSIS",
-    "slug": "msis",
+    "slug": "MSIS",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/swu-header.png",
+    "icon": "./assets/swu-header.png",
     "scheme": "medsisapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
