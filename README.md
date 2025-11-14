@@ -13,7 +13,7 @@
 <!-- Project Images -->
 <div align="center" style="display: flex; justify-content: center; margin-top:10px;  ">
   <div>
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style=" border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style="width: auto; height: auto; max-width: 100%; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
   </div>
 </div>
 
