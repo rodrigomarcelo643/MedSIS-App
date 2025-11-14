@@ -14,9 +14,8 @@ import { useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_BASE_URL } from '@/constants/Config';
-import { Search, ArrowLeft, X } from 'lucide-react-native';
+import { Search, ArrowLeft, X, Check } from 'lucide-react-native';
 import { messageService, User } from '@/services/messageService';
-
 
 // Loading State Skeleton Loader 
 const SkeletonLoader = ({ width, height, borderRadius = 4 }: { width: number | string; height: number; borderRadius?: number }) => {
@@ -77,11 +76,13 @@ export default function MessagesScreen() {
   
   // Hide loading modal when screen comes back into focus
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setChatLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
+    if (chatLoading) {
+      const timer = setTimeout(() => {
+        setChatLoading(false);
+      }, 2000); // Increased timeout to ensure chat loads
+      
+      return () => clearTimeout(timer);
+    }
   }, [chatLoading]);
   
 /**
@@ -243,6 +244,8 @@ export default function MessagesScreen() {
     
     const refreshOnlineStatus = async () => {
       if (user?.id) {
+        // Update message statuses when checking online status
+        await messageService.updateMessageStatuses(user.id);
         // Refresh both active users and conversations to get updated online status from backend
         await Promise.all([
           loadActiveUsers(1, false, true),
@@ -378,7 +381,9 @@ export default function MessagesScreen() {
         onPress={() => {
           setChatLoading(true);
           updateSessionOnInteraction(); // Update session on chat open
-          router.push(`/chat/${chatId}?${params.toString()}`);
+          setTimeout(() => {
+            router.push(`/chat/${chatId}?${params.toString()}`);
+          }, 100); // Small delay to ensure modal shows first
         }}
         activeOpacity={0.7}
         className="flex-row items-center p-4 border-b border-gray-100"
@@ -425,9 +430,22 @@ export default function MessagesScreen() {
                 }
               </Text>
               {item.messageStatus && (
-                <Text className="text-xs ml-2" style={{ color: mutedColor }}>
-                  {item.messageStatus}
-                </Text>
+                <View className="flex-row items-center ml-2">
+                  <Text className="text-xs" style={{ color: mutedColor }}>
+                    {item.messageStatus.toLowerCase().trim() === 'seen' 
+                      ? item.messageStatus 
+                      : (item.messageStatus.toLowerCase().trim() === 'delivered' && !item.isOnline 
+                          ? 'Sent' 
+                          : item.messageStatus)
+                    }
+                  </Text>
+                  {item.messageStatus.toLowerCase().trim() === 'seen' && (
+                    <View className="flex-row ml-1">
+                      <Check size={10} color="#10B981" />
+                      <Check size={10} color="#10B981" style={{ marginLeft: -6 }} />
+                    </View>
+                  )}
+                </View>
               )}
             </View>
             {item.unreadCount > 0 && (
@@ -495,8 +513,12 @@ export default function MessagesScreen() {
     return (
       <TouchableOpacity
         onPress={() => {
+          setChatLoading(true);
+          updateSessionOnInteraction();
           clearSearch();
-          router.replace(`/chat/${chatId}?${params.toString()}`);
+          setTimeout(() => {
+            router.push(`/chat/${chatId}?${params.toString()}`);
+          }, 100);
         }}
         activeOpacity={0.7}
         className="flex-row items-center p-4 border-b border-gray-100"
@@ -642,7 +664,11 @@ export default function MessagesScreen() {
                           ...(item.avatar_url && { avatar: String(item.avatar_url) }),
                           user_type: String(item.user_type || '')
                         });
-                        router.replace(`/chat/${chatId}?${params.toString()}`);
+                        setChatLoading(true);
+                        updateSessionOnInteraction();
+                        setTimeout(() => {
+                          router.push(`/chat/${chatId}?${params.toString()}`);
+                        }, 100);
                       }}
                       activeOpacity={0.7}
                       className="items-center"
@@ -721,7 +747,7 @@ export default function MessagesScreen() {
       >
         <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <View className="rounded-lg p-6 items-center" style={{ backgroundColor: cardColor, minWidth: 200 }}>
-            <ActivityIndicator size="large" color="#3B82F6" />
+            <ActivityIndicator size="large" color="#af1616" />
             <Text className="mt-4 text-base font-medium" style={{ color: textColor }}>Loading chat...</Text>
           </View>
         </View>
