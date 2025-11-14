@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/React-19.0.0-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React Version" />
   <img src="https://img.shields.io/badge/NativeWind-^4.1.23-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="NativeWind Version" />
   <img src="https://img.shields.io/badge/Version-1.0.0-brightgreen?style=for-the-badge" alt="App Version" />
+  <img src="https://img.shields.io/badge/Release-First%20Version-blue?style=for-the-badge" alt="Release Status" />
 </div>
 
 <!-- Project Images -->
@@ -19,7 +20,7 @@
   <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup4.png" alt="Far Right Image" style="width: 150px; height: 250px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
 </div>
 
-A comprehensive React Native mobile application built with Expo designed specifically for medical students to upload academic requirements, view evaluation results history, and manage their educational journey. This first version release focuses on streamlined document submission, evaluation tracking, and essential academic tools with AI assistance and real-time communication features.
+A comprehensive mobile application designed specifically for medical students to upload academic requirements, view evaluation results history, and manage their educational journey. This first version release focuses on streamlined document submission, evaluation tracking, and essential academic tools with AI assistance and real-time communication features.
 
 ## Project Structure
 
