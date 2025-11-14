@@ -10,11 +10,9 @@
   <img src="https://img.shields.io/badge/Version-1.0.0-brightgreen?style=for-the-badge" alt="App Version" />
 </div>
 
-<!-- Project Images -->
-<div align="center" style="display: flex; justify-content: center; margin-top:10px;  ">
-  <div>
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style="width: auto; height: auto; max-width: 100%; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
-  </div>
+<!-- Project Image -->
+<div align="center" style="margin: 20px 0;">
+  <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="MedSIS App" style="width: 100px; height: 100px; object-fit: contain; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
 </div>
 
 A comprehensive React Native mobile application built with Expo for managing medical student information, academic resources, and real-time communication. Features AI assistance, messaging system, and centralized configuration management.
