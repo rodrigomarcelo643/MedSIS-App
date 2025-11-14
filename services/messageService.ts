@@ -152,7 +152,7 @@ export const messageService = {
 
   // Send a new message
   sendMessage: async (
-    message: Omit<Message, "id" | "timestamp" | "isRead"> & { fileData?: string }
+    message: Omit<Message, "id" | "timestamp" | "isRead"> & { fileData?: string; recipientOnline?: boolean }
   ): Promise<Message> => {
     const response = await fetch(`${API_BASE}/send_message.php`, {
       method: "POST",
@@ -165,6 +165,7 @@ export const messageService = {
         fileUrl: message.fileUrl,
         fileData: message.fileData,
         fileName: message.fileName,
+        recipient_online: message.recipientOnline,
       }),
     });
     const data = await response.json();
@@ -217,6 +218,21 @@ export const messageService = {
         other_user_id: chatId
       })
     });
+  },
+
+  // Update message statuses when user comes online
+  updateMessageStatuses: async (userId: string): Promise<void> => {
+    try {
+      await fetch(`${API_BASE}/update_message_status.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId
+        })
+      });
+    } catch (error) {
+      console.error('Error updating message statuses:', error);
+    }
   },
 
   // Messages are automatically marked as seen when getChatMessages is called
