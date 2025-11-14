@@ -11,17 +11,17 @@
 </div>
 
 <!-- Project Images -->
-<div align="center" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px 0;">
-  <div style="flex: 1; min-width: 200px; max-width: 250px;">
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style="width: 30%; height: 30%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
+<div align="center" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 15px 0;">
+  <div style="flex: 1; width: 33.33%; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style="width: 10%; height: 10%; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
     <p align="center"><strong>Authentication Flow</strong></p>
   </div>
-  <div style="flex: 1; min-width: 200px; max-width: 250px;">
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Dashboard" style="width: 30%; height: 30%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
+  <div style="flex: 1; width: 33.33%; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Dashboard" style="width: 10%; height: 10%; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
     <p align="center"><strong>Main Dashboard</strong></p>
   </div>
-  <div style="flex: 1; min-width: 200px; max-width: 250px;">
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="AI Assistant" style="width: 30%; height: 30%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
+  <div style="flex: 1; width: 33.33%; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="AI Assistant" style="width: 10%; height: 10%; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
     <p align="center"><strong>AI Assistant</strong></p>
   </div>
 </div>
