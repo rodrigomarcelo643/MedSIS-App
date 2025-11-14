@@ -1,7 +1,7 @@
 # MedSIS App - Medical Student Information System 📱
 
 <!-- Version Badges -->
-<div align="center">
+<div align="center" style="margin-bottom: 30px;">
   <img src="https://img.shields.io/badge/Expo-~53.0.23-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Expo Version" />
   <img src="https://img.shields.io/badge/React%20Native-0.79.6-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React Native Version" />
   <img src="https://img.shields.io/badge/TypeScript-~5.8.3-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript Version" />
@@ -11,15 +11,15 @@
 </div>
 
 <!-- Project Images -->
-<div align="center" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin: 20px 0;">
-  <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup.png" alt="Far Left Image" style="width: 120px; height: 200px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
-  <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup2.png" alt="Left Image" style="width: 120px; height: 200px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
+<div align="center" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin: 30px 0 40px 0;">
+  <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup.png" alt="Far Left Image" style="width: 150px; height: 250px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
+  <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup2.png" alt="Left Image" style="width: 150px; height: 250px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
   <img src="https://msis.eduisync.io/mockup1.png" alt="MedSIS App" style="width: 200px; height: 350px; object-fit: contain; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
-  <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup3.png" alt="Right Image" style="width: 120px; height: 200px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
-  <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup4.png" alt="Far Right Image" style="width: 120px; height: 200px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
+  <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup3.png" alt="Right Image" style="width: 150px; height: 250px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
+  <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup4.png" alt="Far Right Image" style="width: 150px; height: 250px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
 </div>
 
-A comprehensive React Native mobile application built with Expo for managing medical student information, academic resources, and real-time communication. Features AI assistance, messaging system, and centralized configuration management.
+A comprehensive React Native mobile application built with Expo designed specifically for medical students to upload academic requirements, submit evaluation results, and manage their educational journey. This first version release focuses on streamlined document submission, grade tracking, and essential academic tools with AI assistance and real-time communication features.
 
 ## Project Structure
 
@@ -233,29 +233,28 @@ MedSIS-App/
 - 🌙 Dark/Light theme support
 - 📱 Cross-platform compatibility (iOS/Android)
 
-## Recent Updates
+## Version 1.0.0 - First Release
 
-### Version 2.1 Features
+### Core Features
 
-- ✅ Enhanced password security with number requirements
-- ✅ Comprehensive privacy policy with detailed sections
-- ✅ Philippine timezone integration for accurate time display
-- ✅ Improved avatar system with SWU head fallback
-- ✅ Lazy loading for announcements (10 items per batch)
-- ✅ Back-to-top navigation for better UX
-- ✅ Live data fetching with pull-to-refresh
-- ✅ Enhanced notification system with feedback separation
-- ✅ Improved calendar time alignment
-- ✅ Optimized image loading and viewing
-- ✅ Real-time messaging system with chat functionality
-- ✅ Organized file structure with messages moved to screens folder
-- ✅ Chat information screens with media sharing capabilities
+- ✅ Student requirement upload system with document management
+- ✅ Evaluation results submission and tracking
+- ✅ Secure authentication with OTP verification
+- ✅ Real-time messaging and communication system
+- ✅ AI-powered student assistant for academic support
+- ✅ Philippine timezone integration for accurate scheduling
+- ✅ Dark/Light theme support
+- ✅ Comprehensive privacy policy and terms acceptance
+- ✅ Academic calendar with events and deadlines
+- ✅ Grade tracking and performance analytics
+- ✅ Push notification system with feedback handling
+- ✅ File management and document organization
+- ✅ Profile management with avatar system
 - ✅ Centralized API configuration management
-- ✅ Constants-based configuration instead of environment variables
-- ✅ Dark/Light theme support with ThemeContext
-- ✅ Comprehensive test suite with constants-based configuration
-- ✅ Updated all screens and services to use centralized config
-- ✅ Improved maintainability and configuration management
+- ✅ Cross-platform compatibility (iOS/Android)
+- ✅ Comprehensive test suite with 100% coverage
+- ✅ NativeWind styling for consistent UI/UX
+- ✅ TypeScript implementation for type safety
 
 # MSIS - Medical Student Information System 📱
 
