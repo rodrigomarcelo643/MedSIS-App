@@ -11,17 +11,17 @@
 </div>
 
 <!-- Project Images -->
-<div align="center" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin: 30px 0;">
-  <div style="flex: 1; min-width: 300px; max-width: 350px;">
-    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style="width: 100%; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+<div align="center" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px 0;">
+  <div style="flex: 1; min-width: 200px; max-width: 250px;">
+    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Login Screen" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
     <p align="center"><strong>Authentication Flow</strong></p>
   </div>
-  <div style="flex: 1; min-width: 300px; max-width: 350px;">
-    <img src="https://via.placeholder.com/350x600/059669/FFFFFF?text=Dashboard" alt="Dashboard" style="width: 100%; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+  <div style="flex: 1; min-width: 200px; max-width: 250px;">
+    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="Dashboard" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
     <p align="center"><strong>Main Dashboard</strong></p>
   </div>
-  <div style="flex: 1; min-width: 300px; max-width: 350px;">
-    <img src="https://via.placeholder.com/350x600/DC2626/FFFFFF?text=AI+Assistant" alt="AI Assistant" style="width: 100%; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+  <div style="flex: 1; min-width: 200px; max-width: 250px;">
+    <img src="https://msis.eduisync.io/msis/MSIS-ADMIN/assets/images/mockup1.png" alt="AI Assistant" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
     <p align="center"><strong>AI Assistant</strong></p>
   </div>
 </div>
@@ -111,11 +111,13 @@ MedSIS-App/
 ## Key Files Explained
 
 ### Core Application
-- **app/_layout.tsx** - Root layout with navigation setup and authentication checks
-- **app/(tabs)/_layout.tsx** - Tab navigation configuration with custom styling
+
+- **app/\_layout.tsx** - Root layout with navigation setup and authentication checks
+- **app/(tabs)/\_layout.tsx** - Tab navigation configuration with custom styling
 - **contexts/AuthContext.tsx** - Global authentication state and user session management
 
 ### Main Features
+
 - **app/(tabs)/home.tsx** - Dashboard with announcements, quick actions, and academic overview
 - **app/(tabs)/profile.tsx** - User profile with editable personal and academic information
 - **app/(tabs)/ai-assistant.tsx** - AI-powered chatbot for student assistance
@@ -123,16 +125,19 @@ MedSIS-App/
 - **app/(tabs)/calendar.tsx** - Academic calendar with events and schedules
 
 ### Authentication Flow
+
 - **app/auth/login.tsx** - Student login with ID and password
 - **app/auth/otp-verification.tsx** - Two-factor authentication via OTP with enhanced password requirements
 - **app/auth/policy-acceptance.tsx** - Comprehensive privacy policy and terms acceptance
 
 ### Messaging & Communication
+
 - **app/screens/messages.tsx** - Messages and conversations management with real-time updates
 - **app/chat/[id].tsx** - Individual chat conversation screen with message handling
 - **app/chat-info/[id].tsx** - Chat details, media sharing, and user information
 
 ### Additional Screens
+
 - **app/screens/announcements.tsx** - Detailed view of school announcements with lazy loading and back-to-top navigation
 - **app/screens/evaluations.tsx** - Student grade and evaluation management
 - **app/screens/learning-materials.tsx** - Educational resources and materials
@@ -141,6 +146,7 @@ MedSIS-App/
 - **app/notifications/index.tsx** - Push notification management with Philippine time conversion and feedback handling
 
 ### UI Components
+
 - **components/ui/** - Platform-specific components for iOS/Android
 - **components/Avatar.tsx** - User profile picture component
 - **components/Card.tsx** - Reusable card layout component
@@ -149,11 +155,13 @@ MedSIS-App/
 ## Get Started
 
 1. Install dependencies
+
    ```bash
    npm install
    ```
 
 2. Start the development server
+
    ```bash
    npx expo start
    ```
@@ -166,6 +174,7 @@ MedSIS-App/
 ## Testing
 
 1. Generate test report
+
    ```bash
    node tests/test-runner.js
    ```
@@ -179,6 +188,7 @@ MedSIS-App/
    ```
 
 **Test Coverage**: 100% (All tests passing)
+
 - ✅ Authentication, Messaging, Chat, Profile, Services
 - ✅ UI Components, Validation, Error Handling
 - ✅ Edge Cases, Performance Optimization
@@ -203,12 +213,14 @@ MedSIS-App/
 ## Features
 
 ### Authentication & Security
+
 - 🔐 Enhanced OTP verification with strengthened password requirements
 - 🔑 Password validation including uppercase, numbers, special characters, and length requirements
 - 📋 Comprehensive privacy policy acceptance with detailed terms
 - 🛡️ Secure session management with live data fetching
 
 ### User Experience
+
 - 👤 Advanced profile management with live avatar fetching and SWU head fallback
 - 📅 Accurate calendar system with Philippine timezone support
 - 🔔 Smart notifications with feedback separation and time conversion
@@ -216,6 +228,7 @@ MedSIS-App/
 - 📢 Announcements with lazy loading (10 items per batch) and back-to-top navigation
 
 ### Core Functionality
+
 - 🤖 AI-powered student assistant
 - 💬 Real-time messaging and chat system with live updates
 - 📊 Grade and evaluation tracking
@@ -227,10 +240,10 @@ MedSIS-App/
 - 🌙 Dark/Light theme support
 - 📱 Cross-platform compatibility (iOS/Android)
 
-
 ## Recent Updates
 
 ### Version 2.1 Features
+
 - ✅ Enhanced password security with number requirements
 - ✅ Comprehensive privacy policy with detailed sections
 - ✅ Philippine timezone integration for accurate time display
@@ -252,4 +265,5 @@ MedSIS-App/
 - ✅ Improved maintainability and configuration management
 
 # MSIS - Medical Student Information System 📱
+
 # Click the Link for the website version: https://msis.eduisync.io/
