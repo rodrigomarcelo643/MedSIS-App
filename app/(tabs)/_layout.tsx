@@ -340,7 +340,7 @@ export default function TabLayout() {
             <Skeleton width={24} height={24} borderRadius={12} />
           ) : (
             <>
-              <MessageIcon size={24} color={textColor} />
+              <Image  className="w-8 h-8" source={require("../../assets/images/chat-icon-main.png")} />
               {renderMessageBadge()}
             </>
           )}
