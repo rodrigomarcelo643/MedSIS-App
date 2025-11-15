@@ -142,7 +142,7 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({
   );
 };
 
-export default function Home() {
+const Home = React.forwardRef<View, {}>((props, ref) => {
   const { width } = useWindowDimensions();
   const [isLoading, setIsLoading] = useState(true);
   const { user, loading: authLoading, clearUser } = useAuth();
@@ -339,4 +339,8 @@ export default function Home() {
       )}
     </ScrollView>
   );
-}
+});
+
+Home.displayName = 'Home';
+
+export default Home;

@@ -33,12 +33,12 @@ function MainLayout() {
   console.log("🔄 MainLayout render - user:", user, "loading:", loading);
 
   // Loading session if user not yet loaded 
-  if (loading) {
+  if (loading && !user) {
     console.log("⏳ Auth still loading, showing ActivityIndicator");
     return (
       <View className="flex-1 justify-center items-center bg-white">
         <ActivityIndicator size="large" color="#af1616" />
-        <Text className="mt-3 text-gray-700">Loading session...</Text>
+        <Text className="mt-3 text-gray-700">Loading...</Text>
       </View>
     );
   }
@@ -111,7 +111,7 @@ export default function RootLayout() {
   const [showCustomSplash, setShowCustomSplash] = useState(true);
   const isMountedRef = useRef(true);
   const splashAnimationCompleted = useRef(false);
-  const minimumSplashTimeRef = useRef(3500);
+  const minimumSplashTimeRef = useRef(500);
   const startTimeRef = useRef(Date.now());
 
   // Track app readiness

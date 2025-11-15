@@ -1,7 +1,12 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Platform, StyleSheet, View } from "react-native";
 
-const RotatingDots = () => {
+interface RotatingDotsProps {
+  dotColor?: string;
+  dotSize?: number;
+}
+
+const RotatingDots: React.FC<RotatingDotsProps> = ({ dotColor = "#af1616", dotSize = 8 }) => {
   // Animation values for each dot
   const dot1Anim = useRef(new Animated.Value(0)).current;
   const dot2Anim = useRef(new Animated.Value(0)).current;
@@ -51,16 +56,24 @@ const RotatingDots = () => {
   }, []);
 
   const getDotStyle = (anim: Animated.Value, index: number) => {
+    const dotStyle = {
+      width: dotSize,
+      height: dotSize,
+      borderRadius: dotSize / 2,
+      backgroundColor: dotColor,
+      marginHorizontal: 4,
+    };
+
     if (Platform.OS === "web") {
       return {
-        ...styles.dot,
+        ...dotStyle,
         animation: "pulse 1.8s infinite ease-in-out",
         animationDelay: `${index * 0.3}s`,
       };
     }
 
     return {
-      ...styles.dot,
+      ...dotStyle,
       transform: [
         {
           scale: anim.interpolate({

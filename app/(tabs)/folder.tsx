@@ -1,5 +1,4 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { API_BASE_URL } from '@/constants/Config';
 import { useThemeColor } from "@/hooks/useThemeColor";
 import axios from "axios";
 import * as DocumentPicker from "expo-document-picker";
@@ -127,7 +126,7 @@ export default function FolderScreen() {
       }
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/student_requirements.php`,
+        "https://msis.eduisync.io/api/student_requirements.php",
         {
           user_id: user.id,
         },
@@ -175,7 +174,7 @@ export default function FolderScreen() {
       if (!user?.id) return;
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/student_requirements.php`,
+        "https://msis.eduisync.io/api/student_requirements.php",
         {
           user_id: user.id,
         },
@@ -412,10 +411,10 @@ export default function FolderScreen() {
       formData.append("file", fileObject as any);
 
       console.log("FormData prepared, sending to server...");
-      console.log(`Upload URL: ${API_BASE_URL}/api/upload_requirement.php`);
+      console.log("Upload URL: https://msis.eduisync.io/api/upload_requirement.php");
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/upload_requirement.php`,
+        "https://msis.eduisync.io/api/upload_requirement.php",
         formData,
         {
           headers: {
@@ -499,7 +498,7 @@ export default function FolderScreen() {
       }
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/delete_requirement.php`,
+        "https://msis.eduisync.io/api/delete_requirement.php",
         {
           user_id: user.id,
           requirement_id: requirementToDelete,
@@ -566,7 +565,7 @@ export default function FolderScreen() {
         }
 
         const response = await axios.post(
-          `${API_BASE_URL}/api/generate_compiled_pdf.php`,
+          "https://msis.eduisync.io/api/generate_compiled_pdf.php",
           {
             user_id: user.id,
             files: allFiles.map(file => ({
@@ -620,7 +619,7 @@ export default function FolderScreen() {
       const downloadPromises = allFiles.map(async (file) => {
         try {
           if (!user?.id) return null;
-          const downloadUrl = `${API_BASE_URL}/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${file.requirementId}&file_path=${encodeURIComponent((file as any).file_path)}`;
+          const downloadUrl = `https://msis.eduisync.io/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${file.requirementId}&file_path=${encodeURIComponent((file as any).file_path)}`;
           const fileUri = FileSystem.documentDirectory + file.name;
           const { uri } = await FileSystem.downloadAsync(downloadUrl, fileUri);
           return uri;
@@ -676,11 +675,11 @@ export default function FolderScreen() {
       }
 
       if (file.type === "image") {
-        const imageUrl = `${API_BASE_URL}/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${requirementId}&file_path=${encodeURIComponent(file.file_path)}`;
+        const imageUrl = `https://msis.eduisync.io/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${requirementId}&file_path=${encodeURIComponent(file.file_path)}`;
         setViewingImage(imageUrl);
       } else {
         setDownloadingFile(file.name);
-        const downloadUrl = `${API_BASE_URL}/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${requirementId}&file_path=${encodeURIComponent(file.file_path)}`;
+        const downloadUrl = `https://msis.eduisync.io/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${requirementId}&file_path=${encodeURIComponent(file.file_path)}`;
         const fileUri = FileSystem.documentDirectory + file.name;
         const { uri } = await FileSystem.downloadAsync(downloadUrl, fileUri);
         await Sharing.shareAsync(uri);
@@ -705,7 +704,7 @@ export default function FolderScreen() {
       }
 
       setDownloadingFile(file.name);
-      const downloadUrl = `${API_BASE_URL}/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${requirementId}&file_path=${encodeURIComponent(file.file_path)}`;
+      const downloadUrl = `https://msis.eduisync.io/api/get_requirement_file.php?user_id=${user.id}&requirement_id=${requirementId}&file_path=${encodeURIComponent(file.file_path)}`;
       const fileUri = FileSystem.documentDirectory + file.name;
       const { uri } = await FileSystem.downloadAsync(downloadUrl, fileUri);
 

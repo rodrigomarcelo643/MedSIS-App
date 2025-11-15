@@ -3,7 +3,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Image, Text, View } from "react-native";
 
-export function SplashScreen({ onAnimationComplete }) {
+export function SplashScreen({ onAnimationComplete }: { onAnimationComplete: () => void }) {
   const colorScheme = useColorScheme();
   const [hasAnimated, setHasAnimated] = useState(false);
 

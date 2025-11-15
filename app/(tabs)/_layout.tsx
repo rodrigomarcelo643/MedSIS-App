@@ -223,7 +223,7 @@ export default function TabLayout() {
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }).start();
-    }, 1000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, []);

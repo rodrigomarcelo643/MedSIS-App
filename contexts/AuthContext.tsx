@@ -97,13 +97,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
           console.log("User loaded from storage:", parsedUser.id);
-          // Activate session when user is loaded from storage
-          await activateSession(parsedUser.id);
+          setLoading(false); // Set loading false immediately after user is set
+          // Activate session in background without waiting
+          activateSession(parsedUser.id).catch(console.error);
+        } else {
+          setLoading(false); // Set loading false if no user found
         }
       } catch (err) {
         console.error("Error loading user:", err);
-      } finally {
-        setLoading(false);
+        setLoading(false); // Set loading false on error
       }
     };
     loadUser();
@@ -144,8 +146,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(userWithDefaults);
     await AsyncStorage.setItem("user", JSON.stringify(userWithDefaults));
     
-    // Activate session on login
-    await activateSession(userWithDefaults.id);
+    // Activate session in background
+    activateSession(userWithDefaults.id).catch(console.error);
     
     console.log("User stored successfully in AsyncStorage");
   };

@@ -1,5 +1,4 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { API_BASE_URL } from '@/constants/Config';
 import { useTheme } from "@/contexts/ThemeContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import axios from "axios";
@@ -119,7 +118,8 @@ interface SectionProps {
   onToggle: () => void;
 }
 
-const API_URL = `${API_BASE_URL}/api`;
+const API_URL =
+  process.env.EXPO_PUBLIC_API_URL || "https://msis.eduisync.io/api";
 
 
 export default function ProfileScreen() {
