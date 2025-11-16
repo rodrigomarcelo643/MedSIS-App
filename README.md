@@ -24,12 +24,13 @@
 
 A comprehensive mobile application designed specifically for medical students to upload academic requirements, view evaluation results history, and manage their educational journey. This first version release focuses on streamlined document submission, evaluation tracking, and essential academic tools with AI assistance and real-time communication features.
 
+
 ## Project Structure
 
 ```
 MedSIS-App/
 ├── app/                          # Main application screens (file-based routing)
-│   ├── (tabs)/                   # Tab-based navigation screens
+│   ├── (tabs)/                   # Tab-based navigation screens ( Bottom Tabs)
 │   │   ├── _layout.tsx          # Tab layout configuration
 │   │   ├── ai-assistant.tsx     # AI chatbot interface
 │   │   ├── evaluations.tsx      # Student evaluations
