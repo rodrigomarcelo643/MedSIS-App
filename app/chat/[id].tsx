@@ -965,7 +965,7 @@ export default function ChatScreen() {
                 </View>
               ) : item.isSeen ? (
                 <View className="flex-row items-center">
-                  <Text className="text-xs mr-1" style={{ color: mutedColor }}>Seen</Text>
+
                   {avatar ? (
                     <Image
                       source={{ uri: avatar as string }}
