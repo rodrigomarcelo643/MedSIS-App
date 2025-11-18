@@ -18,11 +18,11 @@
     },
 
     "splash": {
-      "image": "./assets/images/swu-header.png",
+      "image": "./assets/swu-header.png",
       "resizeMode": "contain",
       "backgroundColor": "#121212",
       "dark": {
-        "image": "./assets/images/swu-header.png",
+        "image": "./assets/swu-header.png",
         "resizeMode": "contain",
         "backgroundColor": "#121212"
       }
@@ -31,11 +31,11 @@
     "ios": {
       "supportsTablet": true,
       "splash": {
-        "image": "./assets/images/swu-header.png",
+        "image": "./assets/swu-header.png",
         "resizeMode": "contain",
         "backgroundColor": "#121212",
         "dark": {
-          "image": "./assets/images/swu-header.png",
+          "image": "./assets/swu-header.png",
           "resizeMode": "contain",
           "backgroundColor": "#121212"
         }
@@ -52,11 +52,11 @@
       },
 
       "splash": {
-        "image": "./assets/images/swu-header.png",
+        "image": "./assets/swu-header.png",
         "resizeMode": "contain",
         "backgroundColor": "#121212",
         "dark": {
-          "image": "./assets/images/swu-header.png",
+          "image": "./assets/swu-header.png",
           "resizeMode": "contain",
           "backgroundColor": "#121212"
         }
