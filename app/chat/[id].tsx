@@ -223,10 +223,12 @@ export default function ChatScreen() {
               updateUserSession()
             ]);
           } catch (error) {
-            console.error('Polling error:', error);
+            if (error instanceof Error && error.name !== 'AbortError') {
+              console.error('Polling error:', error);
+            }
           }
         }
-      }, 5000); // Increased to 5 seconds to reduce load
+      }, 8000); // Increased to 8 seconds to reduce load
     };
     
     // Start polling after a short delay
@@ -352,7 +354,11 @@ export default function ChatScreen() {
       if (!user?.id || !actualUserId || !isMountedRef.current) return;
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => {
+        if (isMountedRef.current) {
+          controller.abort();
+        }
+      }, 15000); // Increased to 15 seconds
       
       const response = await fetch(`${API_BASE_URL}/api/messages/get_messages.php?sender_id=${encodeURIComponent(user.id)}&receiver_id=${encodeURIComponent(actualUserId)}&page=1&limit=20`, {
         signal: controller.signal
@@ -403,7 +409,9 @@ export default function ChatScreen() {
         }
       }
     } catch (error) {
-      console.error('Silent load error:', error);
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('Silent load error:', error);
+      }
     }
   };
 
@@ -1271,7 +1279,7 @@ export default function ChatScreen() {
         <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <View className="rounded-lg p-6 items-center" style={{ backgroundColor: cardColor, minWidth: 200 }}>
             <ActivityIndicator size="large" color="#af1616" />
-            <Text className="mt-4 text-base font-medium" style={{ color: textColor }}>Redirecting...</Text>
+            <Text className="mt-4 text-base font-medium" style={{ color: textColor }}>Loading Chat Info...</Text>
           </View>
         </View>
       </Modal>
