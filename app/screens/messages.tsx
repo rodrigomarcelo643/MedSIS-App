@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_BASE_URL } from '@/constants/Config';
-import { Search, ArrowLeft, X, Check } from 'lucide-react-native';
+import { Search, ArrowLeft, X } from 'lucide-react-native';
 import { messageService, User } from '@/services/messageService';
 
 // Loading State Skeleton Loader 
@@ -63,13 +63,13 @@ export default function MessagesScreen() {
     loadConversations();
     loadActiveUsers();
     
-    // Set up live fetching every 2 seconds for faster updates
+    // Set up live fetching every 5 seconds for updates
     const interval = setInterval(() => {
       if (!showSearchResults && !loading && !activeLoading) {
         loadConversations(1, false, true);
         loadActiveUsers(1, false, true);
       }
-    }, 2000);
+    }, 5000);
     
     return () => clearInterval(interval);
   }, [showSearchResults]);
@@ -258,7 +258,7 @@ export default function MessagesScreen() {
     refreshOnlineStatus();
     
     const sessionInterval = setInterval(updateActiveSession, 30000); // Update session every 30 seconds
-    const statusInterval = setInterval(refreshOnlineStatus, 3000); // Refresh online status every 3 seconds
+    const statusInterval = setInterval(refreshOnlineStatus, 8000); // Refresh online status every 8 seconds
     
     return () => {
       clearInterval(sessionInterval);
@@ -431,19 +431,29 @@ export default function MessagesScreen() {
               </Text>
               {item.messageStatus && (
                 <View className="flex-row items-center ml-2">
-                  <Text className="text-xs" style={{ color: mutedColor }}>
-                    {item.messageStatus.toLowerCase().trim() === 'seen' 
-                      ? item.messageStatus 
-                      : (item.messageStatus.toLowerCase().trim() === 'delivered' && !item.isOnline 
-                          ? 'Sent' 
-                          : item.messageStatus)
-                    }
-                  </Text>
-                  {item.messageStatus.toLowerCase().trim() === 'seen' && (
-                    <View className="flex-row ml-1">
-                      <Check size={10} color="#10B981" />
-                      <Check size={10} color="#10B981" style={{ marginLeft: -6 }} />
+                  {item.messageStatus.toLowerCase().trim() === 'seen' ? (
+                    <View className="flex-row items-center">
+                      {item.avatar_url ? (
+                        <Image
+                          source={{ uri: item.avatar_url }}
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: '#af1616' }}
+                        />
+                      ) : (
+                        <View className="w-4 h-4 rounded-full items-center justify-center" style={{ backgroundColor: '#af1616' }}>
+                          <Text className="text-white text-xs font-bold text-center" style={{ fontSize: 8, lineHeight: 16 }}>
+                            {getInitials(item.name).charAt(0)}
+                          </Text>
+                        </View>
+                      )}
                     </View>
+                  ) : (
+                    <Text className="text-xs" style={{ color: mutedColor }}>
+                      {item.messageStatus.toLowerCase().trim() === 'delivered' && !item.isOnline 
+                        ? 'Sent' 
+                        : item.messageStatus
+                      }
+                    </Text>
                   )}
                 </View>
               )}
