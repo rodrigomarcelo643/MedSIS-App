@@ -44,57 +44,52 @@ function MainLayout() {
   }
 
   return (
-
-    // Wrapped Theme Provider (For future purpose of light and dark mode implementations)
     <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
-        {!user ? (
-          <>
-            {console.log("👤 No user, showing auth screens")}
-            <Stack.Screen
-              name="auth/login"
-              options={{ title: "Login", headerShown: false }}
-            />
-            <Stack.Screen
-              name="auth/otp-verification"
-              options={{ title: "OTP Verification", headerShown: false }}
-            />
-            <Stack.Screen
-              name="auth/policy-acceptance"
-              options={{ title: "Policy Acceptance", headerShown: false }}
-            />
-          </>
-        ) : (
-          <>
-            {console.log("✅ User detected, showing main app screens")}
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen
-              name="notifications/index"
-              options={{ title: "Notifications", headerShown: true }}
-            />
-            <Stack.Screen name="+not-found" />
-            <Stack.Screen
-              name="screens/announcements"
-              options={{ title: "Announcements", headerShown: true }}
-            />
-            <Stack.Screen
-              name="screens/learning-materials"
-              options={{ title: "Learning Materials", headerShown: true }}
-            />
-            <Stack.Screen
-              name="screens/calendar"
-              options={{ title: "Calendar", headerShown: true }}
-            />
-            <Stack.Screen
-              name="screens/school-calendar"
-              options={{ title: "School Calendar", headerShown: true }}
-            />
-            <Stack.Screen
-              name="screens/change-password"
-              options={{ title: "ChangePassword", headerShown: true }}
-            />
-          </>
-        )}
+        {/* Index route */}
+        <Stack.Screen name="index" />
+        
+        {/* Auth Screens */}
+        <Stack.Screen
+          name="auth/login"
+          options={{ title: "Login", headerShown: false }}
+        />
+        <Stack.Screen
+          name="auth/otp-verification"
+          options={{ title: "OTP Verification", headerShown: false }}
+        />
+        <Stack.Screen
+          name="auth/policy-acceptance"
+          options={{ title: "Policy Acceptance", headerShown: false }}
+        />
+        
+        {/* Main App Screens */}
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="notifications/index"
+          options={{ title: "Notifications", headerShown: true }}
+        />
+        <Stack.Screen name="+not-found" />
+        <Stack.Screen
+          name="screens/announcements"
+          options={{ title: "Announcements", headerShown: true }}
+        />
+        <Stack.Screen
+          name="screens/learning-materials"
+          options={{ title: "Learning Materials", headerShown: true }}
+        />
+        <Stack.Screen
+          name="screens/calendar"
+          options={{ title: "Calendar", headerShown: true }}
+        />
+        <Stack.Screen
+          name="screens/school-calendar"
+          options={{ title: "School Calendar", headerShown: true }}
+        />
+        <Stack.Screen
+          name="screens/change-password"
+          options={{ title: "ChangePassword", headerShown: true }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
