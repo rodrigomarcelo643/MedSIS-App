@@ -16,7 +16,7 @@
     "splash": {
       "image": "./assets/images/swu-header.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#121212",
       "dark": {
         "image": "./assets/images/swu-header.png",
         "resizeMode": "contain",
@@ -28,7 +28,7 @@
       "splash": {
         "image": "./assets/images/swu-header.png",
         "resizeMode": "contain",
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#121212",
         "dark": {
           "image": "./assets/images/swu-header.png",
           "resizeMode": "contain",
@@ -38,9 +38,10 @@
       "usesApplePushNotifications": true
     },
     "android": {
+      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/swu-header.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#121212"
       },
       "splash": {
         "ldpi": "./assets/images/swu-header.png",
@@ -50,7 +51,7 @@
         "xxhdpi": "./assets/images/swu-header.png",
         "xxxhdpi": "./assets/images/swu-header.png",
         "resizeMode": "contain",
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#121212",
         "dark": {
           "ldpi": "./assets/images/swu-header.png",
           "mdpi": "./assets/images/swu-header.png",
@@ -82,9 +83,7 @@
         "projectId": "16bb301a-5eff-46d8-a70b-c9fc824b7f4f"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/16bb301a-5eff-46d8-a70b-c9fc824b7f4f"
     }
