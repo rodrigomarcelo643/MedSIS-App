@@ -14,6 +14,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
   ArrowLeft, 
   Search, 
@@ -91,10 +92,14 @@ export default function ChatInfoScreen() {
   const router = useRouter();
   const { id, name, avatar, user_type, searchQuery: initialSearchQuery, showSearch: initialShowSearch } = useLocalSearchParams();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
+  
+  // Detect three-button navigation (same logic as tab layout)
+  const hasThreeButtonNav = insets.bottom > 0;
   
 
   
@@ -559,6 +564,7 @@ export default function ChatInfoScreen() {
             maxToRenderPerBatch={5}
             windowSize={5}
             initialNumToRender={10}
+            contentContainerStyle={{ paddingBottom: hasThreeButtonNav ? insets.bottom : 0 }}
             ListFooterComponent={activeTab === 'media' && loadingMore ? (
               <View className="py-4 items-center">
                 <ActivityIndicator size="small" color="#af1616" />

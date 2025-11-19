@@ -21,6 +21,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface AcademicCalendar {
   id: number;
@@ -107,6 +108,7 @@ const FileIcon = ({ mimeType }: { mimeType: string }) => {
 const SchoolCalendar: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   // Theme Change 
   const backgroundColor = useThemeColor({}, 'background');
@@ -114,6 +116,18 @@ const SchoolCalendar: React.FC = () => {
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
   const loadColor = useThemeColor({}, 'loaderCard');
+  
+  // Enhanced navigation detection
+  const hasThreeButtonNav = React.useMemo(() => {
+    if (Platform.OS === 'ios') {
+      return insets.bottom > 20; // iOS home indicator
+    }
+    return insets.bottom > 0; // Android three-button nav
+  }, [insets.bottom]);
+
+  const isGestureNav = React.useMemo(() => {
+    return Platform.OS === 'android' && insets.bottom === 0;
+  }, [insets.bottom]);
 
   const [calendarData, setCalendarData] =
     useState<SchoolCalendarResponse | null>(null);
@@ -412,6 +426,9 @@ const SchoolCalendar: React.FC = () => {
             tintColor={"#be2e2e"}
           />
         }
+        contentContainerStyle={{ 
+          paddingBottom: hasThreeButtonNav ? insets.bottom + 16 : isGestureNav ? 24 : 16 
+        }}
       >
         <View className="p-5">
           {filteredCalendars.length === 0 ? (

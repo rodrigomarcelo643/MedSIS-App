@@ -20,6 +20,7 @@ import {
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, RefreshControl, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Types based on your database schema
 interface LearningMaterial {
@@ -81,11 +82,24 @@ const SkeletonLoader = () => {
 const LearningMaterialsScreen: React.FC = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   //Theme Changer 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
+  
+  // Enhanced navigation detection
+  const hasThreeButtonNav = React.useMemo(() => {
+    if (Platform.OS === 'ios') {
+      return insets.bottom > 20; // iOS home indicator
+    }
+    return insets.bottom > 0; // Android three-button nav
+  }, [insets.bottom]);
+
+  const isGestureNav = React.useMemo(() => {
+    return Platform.OS === 'android' && insets.bottom === 0;
+  }, [insets.bottom]);
 
   const [materials, setMaterials] = useState<LearningMaterial[]>([]);
   const [filteredMaterials, setFilteredMaterials] = useState<LearningMaterial[]>([]);
@@ -396,6 +410,9 @@ const LearningMaterialsScreen: React.FC = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         className="flex-1"
+        contentContainerStyle={{ 
+          paddingBottom: hasThreeButtonNav ? insets.bottom + 16 : isGestureNav ? 24 : 16 
+        }}
       >
         {filteredMaterials.length === 0 ? (
           <View className="flex-1 justify-center items-center py-20 px-5">

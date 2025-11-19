@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
   Alert,
   Modal,
+  Platform,
   RefreshControl,
   ScrollView,
   Text,
@@ -17,6 +18,7 @@ import {
   Animated,
   ActivityIndicator
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Notifications {
   id: number,
@@ -55,12 +57,16 @@ const NotificationsScreen = () => {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   // Theme Change 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
   const loadColor = useThemeColor({}, 'loaderCard');
+  
+  // Detect three-button navigation (same logic as tab layout)
+  const hasThreeButtonNav = insets.bottom > 0;
 
   const [refreshing, setRefreshing] = useState(false);
   const [notifications, setNotifications] = useState<Notifications[]>([]);
@@ -571,6 +577,7 @@ const startPolling = useCallback(() => {
           // Load more when reaching the end of the list
           loadMoreNotifications();
         }}
+        contentContainerStyle={{ paddingBottom: hasThreeButtonNav ? insets.bottom : 0 }}
       >
         {displayedNotifications.length === 0 ? (
           <View className="flex-1 items-center justify-center py-20 px-5">

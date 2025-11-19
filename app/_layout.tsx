@@ -67,28 +67,28 @@ function MainLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="notifications/index"
-          options={{ title: "Notifications", headerShown: true }}
+          options={{ title: "Notifications", headerShown: false }}
         />
         <Stack.Screen name="+not-found" />
         <Stack.Screen
           name="screens/announcements"
-          options={{ title: "Announcements", headerShown: true }}
+          options={{ title: "Announcements", headerShown: false  }}
         />
         <Stack.Screen
           name="screens/learning-materials"
-          options={{ title: "Learning Materials", headerShown: true }}
+          options={{ title: "Learning Materials", headerShown: false }}
         />
         <Stack.Screen
           name="screens/calendar"
-          options={{ title: "Calendar", headerShown: true }}
+          options={{ title: "Calendar", headerShown: false  }}
         />
         <Stack.Screen
           name="screens/school-calendar"
-          options={{ title: "School Calendar", headerShown: true }}
+          options={{ title: "School Calendar", headerShown: false }}
         />
         <Stack.Screen
           name="screens/change-password"
-          options={{ title: "ChangePassword", headerShown: true }}
+          options={{ title: "ChangePassword", headerShown: false  }}
         />
       </Stack>
       <StatusBar style="auto" />

@@ -1,3 +1,4 @@
+import React from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -6,7 +7,8 @@ import axios from "axios";
 import { useRouter } from "expo-router";
 import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Dimensions, Modal, Pressable, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Dimensions, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface CalendarEvent {
   id: string;
@@ -53,12 +55,25 @@ const MAROON_THEME = {
 export default function Calendar() {
   // Theme Change 
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
   const loadColor = useThemeColor({}, 'loaderCard');
   const gridBorderColor = theme === 'light' ? '#D1D5DB' : mutedColor;
+  
+  // Enhanced navigation detection
+  const hasThreeButtonNav = React.useMemo(() => {
+    if (Platform.OS === 'ios') {
+      return insets.bottom > 20; // iOS home indicator
+    }
+    return insets.bottom > 0; // Android three-button nav
+  }, [insets.bottom]);
+
+  const isGestureNav = React.useMemo(() => {
+    return Platform.OS === 'android' && insets.bottom === 0;
+  }, [insets.bottom]);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");

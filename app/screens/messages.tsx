@@ -9,7 +9,9 @@ import {
   ActivityIndicator,
   ScrollView,
   Modal,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,11 +39,24 @@ const SkeletonLoader = ({ width, height, borderRadius = 4 }: { width: number | s
 export default function MessagesScreen() {
   const router = useRouter();
   const { user, loading: authLoading, clearUser } = useAuth();
+  const insets = useSafeAreaInsets();
   // Theme Change 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
+  
+  // Enhanced navigation detection
+  const hasThreeButtonNav = React.useMemo(() => {
+    if (Platform.OS === 'ios') {
+      return insets.bottom > 20; // iOS home indicator
+    }
+    return insets.bottom > 0; // Android three-button nav
+  }, [insets.bottom]);
+
+  const isGestureNav = React.useMemo(() => {
+    return Platform.OS === 'android' && insets.bottom === 0;
+  }, [insets.bottom]);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<User[]>([]);
@@ -639,6 +654,9 @@ export default function MessagesScreen() {
               keyExtractor={(item, index) => `search-${item.unique_key || item.id}-${index}`}
               style={{ backgroundColor }}
               showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ 
+                paddingBottom: hasThreeButtonNav ? insets.bottom + 16 : isGestureNav ? 24 : 16 
+              }}
             />
           ) : (
             <View className="flex-1 justify-center items-center px-4 py-20">
@@ -739,6 +757,9 @@ export default function MessagesScreen() {
               onEndReached={loadMoreConversations}
               onEndReachedThreshold={0.5}
               ListFooterComponent={renderConversationFooter}
+              contentContainerStyle={{ 
+                paddingBottom: hasThreeButtonNav ? insets.bottom + 16 : isGestureNav ? 24 : 16 
+              }}
             />
           ) : (
             <View className="flex-1 justify-center items-center px-4 py-20" style={{ backgroundColor: cardColor }}>

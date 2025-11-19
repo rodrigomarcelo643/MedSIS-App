@@ -18,6 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from "react-native-toast-message";
 
 
@@ -25,12 +26,16 @@ const API_URL = `${API_BASE_URL}/api/change_password.php`;
 
 const ChangePassword = () => {
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   // Theme Change 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const borderColor = useThemeColor({}, 'border');
   const mutedColor = useThemeColor({}, 'muted');
+  
+  // Detect three-button navigation
+  const hasThreeButtonNav = Platform.OS === 'android' && insets.bottom === 0;
 
   const navigation = useNavigation();
   const [passwords, setPasswords] = useState({
@@ -360,6 +365,7 @@ const ChangePassword = () => {
         className="flex-1 px-3 py-6 mt-10"
         keyboardShouldPersistTaps="handled"
         style={{ backgroundColor }}
+        contentContainerStyle={{ paddingBottom: hasThreeButtonNav ? 48 : 0 }}
       >
         {/* Header */}
         <View className="flex-row items-center mb-6">
