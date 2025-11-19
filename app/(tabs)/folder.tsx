@@ -28,6 +28,7 @@ import {
   Animated,
   Image,
   Modal,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -865,18 +866,18 @@ export default function FolderScreen() {
         </View>
 
         {/* Search Bar */}
-        <View style={{ backgroundColor: cardColor }} className="flex-row items-center bg-white rounded-lg px-4 py-0 shadow-sm mb-4 border-2 border-gray-300 ">
+        <View style={{ backgroundColor: cardColor, paddingVertical: Platform.OS === 'ios' ? 12 : 8 }} className="flex-row items-center bg-white rounded-lg px-4 shadow-sm mb-4 border-2 border-gray-300"> 
           <Search size={20} color="#6b7280" />
           <TextInput
-            style={{ marginLeft: 8, color: textColor, flex: 1, fontSize: 16 }}
+            style={{ marginLeft: 8, color: textColor, flex: 1, fontSize: 16, paddingVertical: Platform.OS === 'ios' ? 0 : 4 }}
             placeholder="Search requirements..."
             placeholderTextColor={mutedColor}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            clearButtonMode="while-editing"
+            clearButtonMode={Platform.OS === 'ios' ? "while-editing" : "never"}
             returnKeyType="search"
           />
-          {searchQuery ? (
+          {(searchQuery && Platform.OS === 'android') ? (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
               <X size={20} color="#6b7280" />
             </TouchableOpacity>
