@@ -2,7 +2,7 @@
 
 <!-- Version Badges -->
 <div align="center" style="margin-bottom: 30px;">
-  <img src="https://img.shields.io/badge/Expo-~53.0.23-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Expo Version" />
+  <img src="https://img.shields.io/badge/Expo-~54.0.23-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Expo Version" />
   <img src="https://img.shields.io/badge/React%20Native-0.79.6-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React Native Version" />
   <img src="https://img.shields.io/badge/TypeScript-~5.8.3-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript Version" />
   <img src="https://img.shields.io/badge/React-19.0.0-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React Version" />
