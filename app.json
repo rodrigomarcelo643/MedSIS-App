@@ -4,19 +4,15 @@
     "slug": "MSIS",
     "version": "1.0.0",
     "orientation": "portrait",
-
     "icon": "./assets/swu-header.png",
-
     "scheme": "medsisapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "projectId": "e4d72644-5c96-430c-babd-6066a17d7337",
-
     "androidStatusBar": {
       "backgroundColor": "#FFFFFF",
       "barStyle": "light-content"
     },
-
     "splash": {
       "image": "./assets/swu-header.png",
       "resizeMode": "contain",
@@ -27,7 +23,6 @@
         "backgroundColor": "#121212"
       }
     },
-
     "ios": {
       "supportsTablet": true,
       "splash": {
@@ -40,17 +35,18 @@
           "backgroundColor": "#121212"
         }
       },
-      "usesApplePushNotifications": true
+      "usesApplePushNotifications": true,
+      "bundleIdentifier": "com.marcelo12345.msis",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
-
     "android": {
       "edgeToEdgeEnabled": true,
-
       "adaptiveIcon": {
         "foregroundImage": "./assets/swu-header.png",
         "backgroundColor": "#121212"
       },
-
       "splash": {
         "image": "./assets/swu-header.png",
         "resizeMode": "contain",
@@ -61,34 +57,27 @@
           "backgroundColor": "#121212"
         }
       },
-
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "WAKE_LOCK"
       ],
-
       "package": "com.marcelo12345.msis",
       "useNextNotificationsApi": true
     },
-
     "plugins": [
       "expo-router",
       "expo-splash-screen"
     ],
-
     "experiments": {
       "typedRoutes": true
     },
-
     "extra": {
       "router": {},
       "eas": {
         "projectId": "16bb301a-5eff-46d8-a70b-c9fc824b7f4f"
       }
     },
-
     "runtimeVersion": "1.0.0",
-
     "updates": {
       "url": "https://u.expo.dev/16bb301a-5eff-46d8-a70b-c9fc824b7f4f"
     }
