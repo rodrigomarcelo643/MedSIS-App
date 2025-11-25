@@ -2,6 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from '@/constants/Config';
 import { useTheme } from "@/contexts/ThemeContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import ProfileSkeleton from '@/components/ProfileSkeleton';
 import axios from "axios";
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync, ImagePickerAsset } from 'expo-image-picker';
 import { Link, useRouter } from "expo-router";
@@ -152,6 +153,7 @@ export default function ProfileScreen() {
   const [nationalityType, setNationalityType] = useState("Filipino");
   const [isUploading, setIsUploading] = useState(false);
   const [hasInitiallyFetched, setHasInitiallyFetched] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const { user, login, logout, clearUser, refreshUser, updateUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -229,7 +231,7 @@ export default function ProfileScreen() {
       }
     }
     // Fallback: SWU head image
-    return require('@/assets/images/swu-head.png');
+    return require('../../assets/swu-header.png');
   };
 
   // Request camera and gallery permissions
@@ -373,12 +375,14 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     await logout();
     hideLogoutModal();
     router.replace("/auth/login");
   };
 
   const handleForceLogout = async () => {
+    setIsLoggingOut(true);
     await clearUser();
     router.replace("/auth/login");
   };
@@ -855,7 +859,14 @@ export default function ProfileScreen() {
     </View>
   );
 
-  if (!user || !userData) {
+  // Show skeleton loader during initial loading (not during logout)
+  if ((!user || !userData) && !isLoggingOut) {
+    // If we haven't initially fetched and we're not logging out, show skeleton
+    if (!hasInitiallyFetched) {
+      return <ProfileSkeleton />;
+    }
+    
+    // If we have initially fetched but lost data (session expired), show error
     return (
       <View className="flex-1 justify-center items-center bg-white">
         <View className="bg-white p-6 rounded-xl shadow-md w-80 items-center">
@@ -875,6 +886,11 @@ export default function ProfileScreen() {
         </View>
       </View>
     );
+  }
+  
+  // Don't render anything during logout to prevent flash
+  if (isLoggingOut) {
+    return null;
   }
 
   return (
@@ -903,7 +919,7 @@ export default function ProfileScreen() {
                 <TouchableOpacity onPress={showViewPhotoModal} activeOpacity={0.8}>
                   <View className="w-28 h-28 rounded-full border-4 border-white shadow-lg bg-white items-center justify-center overflow-hidden">
                     <Image
-                      source={getAvatarSource() || require('@/assets/images/swu-head.png')}
+                      source={getAvatarSource() || require('../../assets/swu-header.png')}
                       className="w-full h-full"
                       resizeMode="cover"
                       onError={() => {
@@ -937,7 +953,7 @@ export default function ProfileScreen() {
               </View>
 
               <Text className={`text-2xl font-bold text-center mb-1 ${isGraduating ? "text-white" : ""}`} style={{ color:textColor }}>
-                {userData.first_name} {userData.last_name}
+                {userData?.first_name} {userData?.last_name}
               </Text>
         
             </View>
@@ -949,19 +965,19 @@ export default function ProfileScreen() {
               isExpanded={expandedSections.personal}
               onToggle={() => toggleSection("personal")}
             >
-              <InfoItem icon={IdCard} label="Student ID" value={userData.student_id} />
-              <EditableField icon={User} label="First Name" value={userData.first_name} field="first_name" inputRef={firstNameInputRef} autoCapitalize="words" />
-              <EditableField icon={User} label="Last Name" value={userData.last_name} field="last_name" inputRef={lastNameInputRef} autoCapitalize="words" />
+              <InfoItem icon={IdCard} label="Student ID" value={userData?.student_id} />
+              <EditableField icon={User} label="First Name" value={userData?.first_name} field="first_name" inputRef={firstNameInputRef} autoCapitalize="words" />
+              <EditableField icon={User} label="Last Name" value={userData?.last_name} field="last_name" inputRef={lastNameInputRef} autoCapitalize="words" />
               <GenderInput
                 label="Sex"
-                value={userData.gender}
+                value={userData?.gender}
               />
               <NationalityInput
                 label="Nationality"
-                value={userData.nationality}
+                value={userData?.nationality}
               />
-              {userData.nationality === "Foreigner" && userData.foreigner_specify && (
-                <InfoItem icon={Globe} label="Specified Nationality" value={userData.foreigner_specify} />
+              {userData?.nationality === "Foreigner" && userData?.foreigner_specify && (
+                <InfoItem icon={Globe} label="Specified Nationality" value={userData?.foreigner_specify} />
               )}
             </Section>
 
@@ -972,16 +988,16 @@ export default function ProfileScreen() {
               isExpanded={expandedSections.academic}
               onToggle={() => toggleSection("academic")}
             >
-              <InfoItem icon={BookOpen} label="Program" value={userData.program} />
+              <InfoItem icon={BookOpen} label="Program" value={userData?.program} />
               <InfoItem
                 icon={School}
                 label="Year Level"
-                value={userData.year_level_name || userData.year_level_id?.toString() || "Not specified"}
+                value={userData?.year_level_name || userData?.year_level_id?.toString() || "Not specified"}
               />
               <InfoItem
                 icon={Calendar}
                 label="Curriculum"
-                value={userData.academic_year}
+                value={userData?.academic_year}
               />
             </Section>
 
@@ -992,8 +1008,8 @@ export default function ProfileScreen() {
               isExpanded={expandedSections.contact}
               onToggle={() => toggleSection("contact")}
             >
-              <InfoItem icon={Mail} label="Email" value={userData.email} />
-              <EditableField icon={Phone} label="Contact Number" value={userData.contact_number} field="contact_number" inputRef={contactInputRef} keyboardType="phone-pad" />
+              <InfoItem icon={Mail} label="Email" value={userData?.email} />
+              <EditableField icon={Phone} label="Contact Number" value={userData?.contact_number} field="contact_number" inputRef={contactInputRef} keyboardType="phone-pad" />
             </Section>
 
             {/* Save Changes Button */}
@@ -1170,7 +1186,7 @@ export default function ProfileScreen() {
                 
                 <View className="w-80 h-80 rounded-lg bg-white items-center justify-center overflow-hidden">
                   <Image
-                    source={getAvatarSource() || require('@/assets/images/swu-head.png')}
+                    source={getAvatarSource() || require('../..//assets/swu-header.png')}
                     className="w-full h-full"
                     resizeMode="contain"
                   />
