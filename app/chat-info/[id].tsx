@@ -403,9 +403,10 @@ export default function ChatInfoScreen() {
         </TouchableOpacity>
         <Text className="text-xl font-bold" style={{ color: textColor }}>Chat Info</Text>
         <View className="flex-1" />
-        <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
+       
+       {/** <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
           <Search size={24} color={textColor} />
-        </TouchableOpacity>
+        </TouchableOpacity> **/}
       </View>
 
       {/* Fixed Search Bar */}
