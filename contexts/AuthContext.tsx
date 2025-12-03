@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ update_session: true, user_id: userId })
       });
-      console.log('Session activated for user:', userId);
+      //console.log('Session activated for user:', userId);
     } catch (error) {
       console.error('Error activating session:', error);
     }
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId })
       });
-      console.log('Session removed for user:', userId);
+      //console.log('Session removed for user:', userId);
     } catch (error) {
       console.error('Error removing session:', error);
     }
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
-          console.log("User loaded from storage:", parsedUser.id);
+          //console.log("User loaded from storage:", parsedUser.id);
           // Activate session when user is loaded from storage
           await activateSession(parsedUser.id);
         }
@@ -147,11 +147,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Activate session on login
     await activateSession(userWithDefaults.id);
     
-    console.log("User stored successfully in AsyncStorage");
+    //console.log("User stored successfully in AsyncStorage");
   };
 
   const logout = async () => {
-    console.log("Logging out user");
+    //console.log("Logging out user");
     
     // Remove session before clearing user data
     if (user?.id) {
@@ -180,7 +180,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     setUser(updatedUser);
     await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
-    console.log("Policy status updated:", accepted);
+    //console.log("Policy status updated:", accepted);
   };
 
   // Update any user properties
@@ -194,7 +194,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     setUser(updatedUser);
     await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
-    console.log("User updated with:", Object.keys(updates));
+    //console.log("User updated with:", Object.keys(updates));
   };
 
   // Refresh user data from API (useful for getting latest avatar_data)
@@ -215,7 +215,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (data.success && data.user) {
         await login(data.user); // Update with latest data including avatar_data
-        console.log("User data refreshed from API");
+        //console.log("User data refreshed from API");
         return true;
       }
       return false;
