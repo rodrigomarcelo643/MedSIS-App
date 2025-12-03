@@ -92,7 +92,7 @@ MedSIS-App/
 │   ├── services/                # Service layer tests
 │   ├── components/              # UI component tests
 │   ├── utils/                   # Utility function tests
-│   └── test-runner.ts           # Test execution and reporting
+│   └── test-runner.js          # Test execution and reporting
 ├── scripts/                     # Build and utility scripts
 │   └── reset-project.js         # Project reset utilities
 ├── android/                     # Android-specific configuration
