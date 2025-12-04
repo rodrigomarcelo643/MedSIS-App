@@ -19,7 +19,6 @@ import {
 } from "react-native";
 import "react-native-reanimated";
 import "../global.css";
-
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider as CustomThemeProvider } from "@/contexts/ThemeContext";
 
@@ -29,20 +28,43 @@ SplashScreen.preventAutoHideAsync();
 function MainLayout() {
   const { theme } = useTheme();
   const { user, loading } = useAuth();
-
-  console.log("🔄 MainLayout render - user:", user, "loading:", loading);
-
+  //console.log("🔄 MainLayout render - user:", user, "loading:", loading);
   // Loading session if user not yet loaded 
-  if (loading) {
-    console.log("⏳ Auth still loading, showing ActivityIndicator");
-    return (
-      <View className="flex-1 justify-center items-center bg-white">
+ if (loading) {
+  return (
+    <View className="flex-1 justify-center items-center bg-white px-6">
+      
+      {/* Animated circle or pulse */}
+      <View className="mb-6">
         <ActivityIndicator size="large" color="#af1616" />
-        <Text className="mt-3 text-gray-700">Loading session...</Text>
       </View>
-    );
-  }
 
+      {/* Title */}
+      <Text className="text-xl font-semibold text-gray-800">
+        Loading your session
+      </Text>
+
+      {/* Subtitle */}
+      <Text className="mt-2 text-gray-500 text-center">
+        Please wait while we prepare everything for you...
+      </Text>
+
+      {/* Fake loading progress dots */}
+      <View className="flex-row mt-6 space-x-2">
+        <View className="w-3 h-3 bg-red-600 rounded-full opacity-70" />
+        <View className="w-3 h-3 bg-red-500 rounded-full opacity-50" />
+        <View className="w-3 h-3 bg-red-400 rounded-full opacity-30" />
+      </View>
+
+      {/* Optional: App logo */}
+      {/* <Image 
+        source={require("../assets/swu-header.png")}
+        className="w-20 h-20 mt-10 opacity-90"
+      /> */}
+
+    </View>
+  );
+}
   return (
     <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
