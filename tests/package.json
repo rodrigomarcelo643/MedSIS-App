@@ -1,0 +1,12 @@
+{
+  "name": "@medsis/tests",
+  "version": "1.0.0",
+  "description": "Test suite for MedSIS App",
+  "main": "__tests__/index.ts",
+  "scripts": {
+    "test": "node test-runner.js"
+  },
+  "keywords": ["tests", "medsis", "react-native"],
+  "author": "MedSIS Team",
+  "license": "MIT"
+}
