@@ -16,7 +16,7 @@ import { useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_BASE_URL } from '@/constants/Config';
-import { Search, ArrowLeft, X } from 'lucide-react-native';
+import { Search, ArrowLeft, X, Users } from 'lucide-react-native';
 import { messageService, User } from '@/services/messageService';
 
 // Loading State Skeleton Loader 
@@ -660,7 +660,8 @@ export default function MessagesScreen() {
             />
           ) : (
             <View className="flex-1 justify-center items-center px-4 py-20">
-              <Text className="text-lg font-medium" style={{ color: mutedColor }}>No users found</Text>
+              <Users size={64} color={mutedColor} />
+              <Text className="text-lg font-medium mt-4" style={{ color: mutedColor }}>No users found</Text>
               <Text className="text-sm text-center mt-2" style={{ color: mutedColor }}>Try searching with a different name</Text>
             </View>
           )}
