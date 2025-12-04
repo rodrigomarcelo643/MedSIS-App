@@ -1062,17 +1062,31 @@ export default function ChatScreen() {
           </Text>
         </View>
         
-        <TouchableOpacity onPress={() => {
+        <TouchableOpacity onPress={async () => {
           setNavigatingToInfo(true);
-          setTimeout(() => {
+          try {
+            // Fetch fresh online status before navigating
+            await checkUserOnlineStatus();
             const params = new URLSearchParams({
               name: String(name || ''),
               ...(avatar && { avatar: String(avatar) }),
-              user_type: String(user_type || '')
+              user_type: String(user_type || ''),
+              isOnline: String(userOnlineStatus)
             });
             router.push(`/chat-info/${safeId}?${params.toString()}`);
+          } catch (error) {
+            console.error('Error fetching status:', error);
+            // Navigate anyway with current status
+            const params = new URLSearchParams({
+              name: String(name || ''),
+              ...(avatar && { avatar: String(avatar) }),
+              user_type: String(user_type || ''),
+              isOnline: String(userOnlineStatus)
+            });
+            router.push(`/chat-info/${safeId}?${params.toString()}`);
+          } finally {
             setNavigatingToInfo(false);
-          }, 100);
+          }
         }}>
           <Info size={24} color={textColor} />
         </TouchableOpacity>

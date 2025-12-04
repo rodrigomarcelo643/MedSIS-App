@@ -90,7 +90,7 @@ interface LinkItem {
 
 export default function ChatInfoScreen() {
   const router = useRouter();
-  const { id, name, avatar, user_type, searchQuery: initialSearchQuery, showSearch: initialShowSearch } = useLocalSearchParams();
+  const { id, name, avatar, user_type, searchQuery: initialSearchQuery, showSearch: initialShowSearch, isOnline: initialOnlineStatus } = useLocalSearchParams();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const backgroundColor = useThemeColor({}, 'background');
@@ -126,6 +126,8 @@ export default function ChatInfoScreen() {
   const [mediaPage, setMediaPage] = useState(1);
   const [hasMoreMedia, setHasMoreMedia] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [userOnlineStatus, setUserOnlineStatus] = useState<boolean | null>(initialOnlineStatus === 'true' ? true : initialOnlineStatus === 'false' ? false : null);
+  const [statusLoading, setStatusLoading] = useState(true);
 
   const loadMoreMedia = () => {
     if (hasMoreMedia && activeTab === 'media' && allMediaMessages.length > 0 && !loadingMore) {
@@ -160,7 +162,31 @@ export default function ChatInfoScreen() {
 
   useEffect(() => {
     loadInitialData();
+    checkUserOnlineStatus();
   }, []);
+
+  const checkUserOnlineStatus = async () => {
+    setStatusLoading(true);
+    try {
+      // Simulate delay for skeleton loader
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const { users } = await messageService.getActiveUsers(user?.id || '', 1, 100);
+      const targetUser = users.find(u => (u.unique_key || u.id) === id);
+      if (targetUser) {
+        setUserOnlineStatus(targetUser.isOnline);
+      } else {
+        // If user not found in active users, they're offline
+        setUserOnlineStatus(false);
+      }
+    } catch (error) {
+      console.error('Error checking user online status:', error);
+      // Default to offline on error
+      setUserOnlineStatus(false);
+    } finally {
+      setStatusLoading(false);
+    }
+  };
 
 
 
@@ -450,12 +476,33 @@ export default function ChatInfoScreen() {
               className="absolute inset-0 w-24 h-24 rounded-full"
             />
           )}
-          <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-white" />
+          {/* Online Status Indicator */}
+          {statusLoading ? (
+            <View className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-4 border-white" style={{ backgroundColor: mutedColor + '50' }}>
+              <View className="flex-1 items-center justify-center">
+                <View className="w-2 h-2 rounded-full" style={{ backgroundColor: mutedColor }} />
+              </View>
+            </View>
+          ) : userOnlineStatus ? (
+            <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-white" />
+          ) : (
+            <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-gray-400 rounded-full border-4 border-white" />
+          )}
         </View>
         <Text className="text-2xl font-bold mt-4" style={{ color: textColor }}>
           {name || 'User'}
         </Text>
-        <Text className="text-sm" style={{ color: mutedColor }}>{user_type}</Text>
+        <View className="flex-row items-center">
+          <Text className="text-sm" style={{ color: mutedColor }}>{user_type}</Text>
+          <Text className="text-sm mx-2" style={{ color: mutedColor }}>•</Text>
+          {statusLoading ? (
+            <SkeletonLoader width={50} height={14} borderRadius={7} />
+          ) : (
+            <Text className="text-sm" style={{ color: userOnlineStatus ? '#10B981' : mutedColor }}>
+              {userOnlineStatus ? 'Online' : 'Offline'}
+            </Text>
+          )}
+        </View>
       </View>
 
       {/* Fixed Tabs */}
