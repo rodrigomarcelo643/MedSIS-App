@@ -97,6 +97,8 @@ export default function FolderScreen() {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [printingFiles, setPrintingFiles] = useState<boolean>(false);
   const [showDownloadConfirmModal, setShowDownloadConfirmModal] = useState<boolean>(false);
+  const [showFileDownloadModal, setShowFileDownloadModal] = useState<boolean>(false);
+  const [fileToDownload, setFileToDownload] = useState<{ file: any; reqId: string } | null>(null);
   
   // Delete confirmation modal state
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -999,11 +1001,13 @@ export default function FolderScreen() {
                     {req.name}
                   </Text>
                 </View>
-                <View
-                  className={`w-6 h-6 rounded-md flex items-center justify-center ${req.completed ? "bg-green-500" : "bg-gray-100 border border-gray-300"}`}
-                >
-                  {req.completed && <Check size={16} color="white" />}
-                </View>
+                {req.completed ? (
+                  <View className="w-6 h-6 bg-green-500 rounded-full items-center justify-center">
+                    <Check size={14} color="white" strokeWidth={3} />
+                  </View>
+                ) : (
+                  <View className="w-6 h-6 border-2 border-gray-300 rounded-full" />
+                )}
               </View>
 
               {/* Files Section */}
@@ -1117,24 +1121,29 @@ export default function FolderScreen() {
                       </View>
 
                       {/* Action Buttons */}
-                      <View className="flex-row">
+                      <View className="flex-row gap-1">
                         <TouchableOpacity
-                          className="p-2 mr-1 rounded-lg hover:bg-gray-100"
+                          className="bg-blue-50 border border-blue-200 p-2 rounded-full"
                           onPress={() => handleViewFile(file, req.id)}
+                          style={{ shadowColor: '#3b82f6', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 2, elevation: 2 }}
                         >
-                          <Eye size={16} color="#6b7280" />
+                          <Eye size={14} color="#2563eb" />
                         </TouchableOpacity>
                         <TouchableOpacity
-                          className="p-2 mr-1 rounded-lg hover:bg-gray-100"
-                          onPress={() => handleDownloadFile(file, req.id)}
+                          className="bg-green-50 border border-green-200 p-2 rounded-full"
+                          onPress={() => {
+                            setFileToDownload({ file, reqId: req.id });
+                            setShowFileDownloadModal(true);
+                          }}
                         >
-                          <Download size={16} color="#3b82f6" />
+                          <Download size={14} color="#059669" />
                         </TouchableOpacity>
                         <TouchableOpacity
-                          className="p-2 rounded-lg hover:bg-gray-100"
+                          className="bg-red-50 border border-red-200 p-2 rounded-full"
                           onPress={() => openDeleteModal(req.id, file.id, file.name)}
+                          style={{ shadowColor: '#ef4444', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 2, elevation: 2 }}
                         >
-                          <X size={16} color="#ef4444" />
+                          <Trash2 size={14} color="#dc2626" />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -1475,6 +1484,58 @@ export default function FolderScreen() {
           </View>
         </View>
       </Modal>
+      {/* File Download Confirmation Modal */}
+      <Modal
+        visible={showFileDownloadModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFileDownloadModal(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-center items-center p-4">
+          <View className="bg-white rounded-xl p-6 w-full max-w-md">
+            <View className="items-center mb-4">
+              <View className="bg-green-100 p-4 rounded-full">
+                <Download size={32} color="#059669" />
+              </View>
+            </View>
+            
+            <Text className="text-xl font-bold text-gray-800 text-center mb-2">
+              Download File
+            </Text>
+            
+            <Text className="text-gray-600 text-center mb-6">
+              Download "{fileToDownload?.file?.name}"?
+            </Text>
+
+            <View className="flex-row justify-between gap-4">
+              <TouchableOpacity
+                className="flex-1 bg-gray-200 py-4 rounded-lg"
+                onPress={() => setShowFileDownloadModal(false)}
+              >
+                <Text className="text-gray-800 text-center font-medium">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                className="flex-1 bg-green-600 py-4 rounded-lg flex-row items-center justify-center"
+                onPress={() => {
+                  setShowFileDownloadModal(false);
+                  if (fileToDownload) {
+                    handleDownloadFile(fileToDownload.file, fileToDownload.reqId);
+                  }
+                }}
+              >
+                <Download size={18} color="white" />
+                <Text className="text-white text-center font-medium ml-2">
+                  Download
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Feedback Modal */}
       <Modal
         visible={showFeedbackModal}
