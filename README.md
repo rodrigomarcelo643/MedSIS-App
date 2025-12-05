@@ -54,7 +54,6 @@ MedSIS-App/
 │   │   ├── learning-materials.tsx # Educational resources
 │   │   ├── messages.tsx         # Messages and conversations management
 │   │   ├── school-calendar.tsx   # Calendar details
-│   │   └── test-results.tsx     # Test results dashboard with visual stats
 │   ├── _layout.tsx              # Root layout configuration
 │   └── +not-found.tsx           # 404 error page
 ├── assets/                      # Static assets
@@ -139,7 +138,6 @@ MedSIS-App/
 - **app/screens/evaluations.tsx** - View evaluation results history and evaluator e-signatures
 - **app/screens/learning-materials.tsx** - Educational resources and materials
 - **app/screens/calendar.tsx** - Enhanced calendar with accurate time alignment for Philippine timezone
-- **app/screens/test-results.tsx** - Visual test results dashboard with pass/fail statistics
 - **app/notifications/index.tsx** - Push notification management with Philippine time conversion and feedback handling
 
 ### UI Components
