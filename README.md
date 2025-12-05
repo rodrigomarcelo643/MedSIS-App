@@ -134,7 +134,7 @@ MedSIS-App/
 - **app/(tabs)/profile.tsx** - User profile with editable personal and academic information
 - **app/(tabs)/ai-assistant.tsx** - AI-powered chatbot for student assistance
 - **app/(tabs)/folder.tsx** - Document management and file organization system
-- **app/(tabs)/calendar.tsx** - Academic calendar with events and schedules
+- **app/(tabs)/evaluation.tsx** - Evaluation Display with evaluator e-signatures
 
 ### Authentication Flow
 
