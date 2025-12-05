@@ -24,6 +24,22 @@
 
 A comprehensive mobile application designed specifically for medical students to upload academic requirements, view evaluation results history, and manage their educational journey. This first version release focuses on streamlined document submission, evaluation tracking, and essential academic tools with AI assistance and real-time communication features.
 
+## 🏥 Release v1.0.0 - "MedCore" - Complete Medical Student Management System
+
+**Release Date:** December 5, 2025
+
+### Streamlined Academic Management for Medical Students
+
+MedSIS App v1.0.0 "MedCore" delivers a comprehensive mobile solution specifically designed for medical students to efficiently manage their academic requirements and evaluations. This release focuses on core functionalities including secure document upload for academic requirements, real-time evaluation results tracking with e-signatures, AI-powered academic assistance, and seamless communication with faculty. Built with React Native and TypeScript, MedCore provides reliable cross-platform performance with Philippine timezone integration and robust security features tailored for medical education environments.
+
+**Key Highlights:**
+- 🔐 Enhanced security with OTP verification and password requirements
+- 📱 Cross-platform compatibility (iOS/Android) with native performance
+- 🤖 AI-powered student assistant for academic support
+- 💬 Real-time messaging system with live updates
+- 📊 Comprehensive evaluation tracking with e-signatures
+- 🌙 Dark/Light theme support with NativeWind styling
+- ⚡ 100% test coverage ensuring reliability and stability
 
 ## Project Structure
 
