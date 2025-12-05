@@ -137,7 +137,7 @@ MedSIS-App/
 - **app/screens/announcements.tsx** - Detailed view of school announcements with lazy loading and back-to-top navigation
 - **app/screens/evaluations.tsx** - View evaluation results history and evaluator e-signatures
 - **app/screens/learning-materials.tsx** - Educational resources and materials
-- **app/screens/calendar.tsx** - Enhanced calendar with accurate time alignment for Philippine timezone
+- **app/screens/evaluation.tsx** - Detailed view of Evaluated results and evaluator e-signatures
 - **app/notifications/index.tsx** - Push notification management with Philippine time conversion and feedback handling
 
 ### UI Components
@@ -235,7 +235,7 @@ MedSIS-App/
 - 🌙 Dark/Light theme support
 - 📱 Cross-platform compatibility (iOS/Android)
 
-## Version 1.0.0 - First Release
+## Version 1.0.0 
 
 ### Core Features
 
