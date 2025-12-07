@@ -4,7 +4,7 @@ import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowLeft,
-  CheckSquare,
+  CheckCircle2,
   ChevronDown,
   FileText,
   Scroll,
@@ -21,6 +21,7 @@ import {
   ActivityIndicator,
   Animated,
   Dimensions,
+  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -155,8 +156,10 @@ const PolicyAcceptance = () => {
           position: "top",
         });
 
-        // Navigate directly to home screen using replace
-        router.replace("/(tabs)/home");
+        // Keep loading modal visible for a moment before navigation
+        setTimeout(() => {
+          router.replace("/(tabs)/home");
+        }, 1000);
       } else {
         Toast.show({
           type: "error",
@@ -415,7 +418,7 @@ const PolicyAcceptance = () => {
           
               
               <TouchableOpacity
-                className={`flex-row items-center p-4 rounded-lg mb-4 ${
+                className={`flex-row items-center p-4 rounded mb-4 ${
                   state.policyAccepted
                     ? "bg-green-50 border-2 border-green-500"
                     : "bg-white border border-gray-300"
@@ -430,7 +433,7 @@ const PolicyAcceptance = () => {
                 disabled={!state.hasScrolledToBottom}
               >
                 {state.policyAccepted ? (
-                  <CheckSquare size={24} color="#15803d" />
+                  <CheckCircle2 size={24} color="#15803d" />
                 ) : (
                   <Square size={24} color="#9ca3af" />
                 )}
@@ -477,6 +480,25 @@ const PolicyAcceptance = () => {
       </ScrollView>
 
       <Toast />
+
+      {/* Loading Modal */}
+      <Modal
+        transparent
+        visible={state.loading}
+        animationType="fade"
+      >
+        <View className="flex-1 bg-black/50 justify-center items-center">
+          <View className="bg-white rounded-2xl p-8 items-center shadow-lg">
+            <ActivityIndicator size="large" color="#af1616" />
+            <Text className="text-gray-800 font-semibold mt-4 text-base">
+              Processing...
+            </Text>
+            <Text className="text-gray-600 text-sm mt-2">
+              Please wait
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
