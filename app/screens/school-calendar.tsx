@@ -427,12 +427,12 @@ const SchoolCalendar: React.FC = () => {
   }
 
   return (
-    <View className="flex-1 bg-gray-100" style={{ backgroundColor }}>
-      <View className=" pt-12 pb-4 px-5 flex-row items-center">
-        <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <ChevronLeft size={24}  />
+    <View className="flex-1 bg-gray-50 pt-10" style={{ backgroundColor }}>
+      <View className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200" style={{ backgroundColor: cardColor }}>
+        <TouchableOpacity onPress={() => router.back()} className="mr-3">
+          <ChevronLeft size={24} color={textColor} />
         </TouchableOpacity>
-        <Text className="text-xl font-bold">School Calendar</Text>
+        <Text className="text-xl font-bold" style={{ color: textColor }}>School Calendar</Text>
       </View>
 
       <ScrollView
