@@ -135,6 +135,7 @@ const LoginScreen = () => {
     }
   };
 
+// Form Validation 
   const validateLoginForm = () => {
     if (!loginData.student_id.trim()) {
       Toast.show({
@@ -159,6 +160,7 @@ const LoginScreen = () => {
     return true;
   };
 
+  // Login Logic 
   const handleLogin = async () => {
     if (!validateLoginForm()) return;
 
