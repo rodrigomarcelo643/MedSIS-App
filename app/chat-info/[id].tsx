@@ -7,7 +7,6 @@ import {
   Image,
   TextInput,
   ActivityIndicator,
-  ScrollView,
   Modal,
   Linking,
 } from 'react-native';
@@ -100,9 +99,7 @@ export default function ChatInfoScreen() {
   
   // Detect three-button navigation (same logic as tab layout)
   const hasThreeButtonNav = insets.bottom > 0;
-  
 
-  
   // Extract actual user ID from unique_key format (user_type_id)
   const actualUserId = (id as string).includes('_') ? (id as string).split('_')[1] : id as string;
 
@@ -128,7 +125,7 @@ export default function ChatInfoScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [userOnlineStatus, setUserOnlineStatus] = useState<boolean | null>(initialOnlineStatus === 'true' ? true : initialOnlineStatus === 'false' ? false : null);
   const [statusLoading, setStatusLoading] = useState(true);
-
+  
   const loadMoreMedia = () => {
     if (hasMoreMedia && activeTab === 'media' && allMediaMessages.length > 0 && !loadingMore) {
       setLoadingMore(true);
