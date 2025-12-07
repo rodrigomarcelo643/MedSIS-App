@@ -459,6 +459,9 @@ export default function ChatInfoScreen() {
         </View>
       )}
 
+      {/* Border Line Above Profile */}
+      <View className="h-px" style={{ backgroundColor: mutedColor + '20' }} />
+
       {/* Fixed Profile Section */}
       <View className="items-center py-6" style={{ backgroundColor: cardColor }}>
         <View className="relative">
@@ -489,7 +492,7 @@ export default function ChatInfoScreen() {
         <Text className="text-2xl font-bold mt-4" style={{ color: textColor }}>
           {name || 'User'}
         </Text>
-        <View className="flex-row items-center mt-1">
+        <View className="flex-row items-center mt-2 px-4 py-2 rounded-full" style={{ backgroundColor: userOnlineStatus ? '#10B98120' : mutedColor + '15' }}>
           <Text className="text-sm font-medium" style={{ color: mutedColor }}>
             {user_type ? String(user_type).charAt(0).toUpperCase() + String(user_type).slice(1) : 'User'}
           </Text>
@@ -499,13 +502,16 @@ export default function ChatInfoScreen() {
           ) : (
             <View className="flex-row items-center">
               <View className={`w-2 h-2 rounded-full mr-1.5 ${userOnlineStatus ? 'bg-green-500' : 'bg-gray-400'}`} />
-              <Text className="text-sm font-medium" style={{ color: userOnlineStatus ? '#10B981' : mutedColor }}>
+              <Text className="text-sm font-semibold" style={{ color: userOnlineStatus ? '#10B981' : mutedColor }}>
                 {userOnlineStatus ? 'Online' : 'Offline'}
               </Text>
             </View>
           )}
         </View>
       </View>
+
+      {/* Border Line Below Profile */}
+      <View className="h-px" style={{ backgroundColor: mutedColor + '20' }} />
 
       {/* Fixed Tabs */}
       <View className="flex-row border-b" style={{ backgroundColor: cardColor, borderBottomColor: mutedColor + '30' }}>
