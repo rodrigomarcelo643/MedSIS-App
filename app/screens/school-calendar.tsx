@@ -346,9 +346,9 @@ const SchoolCalendar: React.FC = () => {
   const SkeletonLoader = () => {
     return (
       <View className="flex-1 bg-gray-100" style={{ backgroundColor }}>
-        <View className="bg-maroon pt-12 pb-4 px-5 flex-row items-center">
-          <View className="h-6 w-6 bg-maroon-light rounded mr-3"></View>
-          <View className="h-6 bg-maroon-light rounded w-40"></View>
+        <View className="bg-[#af1616] pt-12 pb-4 px-5 flex-row items-center">
+          <View className="h-6 w-6 bg-[#af1616]-light rounded mr-3"></View>
+          <View className="h-6 bg-[#af1616]-light rounded w-40"></View>
         </View>
         <View className="p-5">
           {[1, 2, 3].map((item) => (
@@ -377,7 +377,7 @@ const SchoolCalendar: React.FC = () => {
       <Text className="text-gray-500 mb-4 text-center text-sm">{error}</Text>
       <TouchableOpacity
         onPress={() => fetchCalendarData()}
-        className="bg-maroon px-4 py-2 rounded flex-row items-center"
+        className="bg-[#af1616] px-4 py-2 rounded flex-row items-center"
       >
         <Ionicons name="refresh" size={16} color="white" className="mr-2" />
         <Text className="text-white">Try Again</Text>
@@ -395,25 +395,44 @@ const SchoolCalendar: React.FC = () => {
 
   if (!calendarData) {
     return (
-      <View className="flex-1 justify-center items-center p-5 bg-gray-100">
-        <Text className="text-gray-600 mb-4">No calendar data available</Text>
-        <TouchableOpacity
-         onPress={() => fetchCalendarData()}
-          className="bg-maroon px-4 py-2 rounded"
-        >
-          <Text className="text-white">Retry</Text>
-        </TouchableOpacity>
+      <View className="flex-1 bg-gray-100" style={{ backgroundColor }}>
+        <View className=" pt-12 pb-4 px-5 flex-row items-center">
+          <TouchableOpacity onPress={() => router.back()} className="mr-4">
+            <ChevronLeft size={24} color="white" />
+          </TouchableOpacity>
+          <Text className="text-xl font-bold">School Calendar</Text>
+        </View>
+        <View className="flex-1 justify-center items-center p-8">
+          <View className="bg-white rounded-2xl p-8 items-center shadow-lg" style={{ backgroundColor: cardColor }}>
+            <View className="bg-gray-100 rounded-full p-6 mb-4" style={{ backgroundColor: loadColor }}>
+              <Ionicons name="calendar-outline" size={64} color="#9ca3af" />
+            </View>
+            <Text className="text-xl font-bold text-gray-800 mb-2 text-center" style={{ color: textColor }}>
+              No Calendar Data
+            </Text>
+            <Text className="text-gray-500 text-center mb-6" style={{ color: mutedColor }}>
+              There are no academic calendars available at the moment.
+            </Text>
+            <TouchableOpacity
+              onPress={() => fetchCalendarData()}
+              className="bg-[#af1616] px-8 py-3 rounded-xl flex-row items-center shadow-sm"
+            >
+              <Ionicons name="refresh" size={20} color="white" className="mr-2" />
+              <Text className="text-white font-semibold ml-2">Retry</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     );
   }
 
   return (
     <View className="flex-1 bg-gray-100" style={{ backgroundColor }}>
-      <View className="bg-maroon pt-12 pb-4 px-5 flex-row items-center">
+      <View className=" pt-12 pb-4 px-5 flex-row items-center">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <ChevronLeft size={24} color={textColor} />
+          <ChevronLeft size={24}  />
         </TouchableOpacity>
-        <Text className="text-black text-xl font-bold" style={{ color:textColor }}>School Calendar</Text>
+        <Text className="text-xl font-bold">School Calendar</Text>
       </View>
 
       <ScrollView
@@ -422,8 +441,8 @@ const SchoolCalendar: React.FC = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#be2e2e"]}
-            tintColor={"#be2e2e"}
+            colors={["#af1616"]}
+            tintColor={"#af1616"}
           />
         }
         contentContainerStyle={{ 
@@ -432,27 +451,30 @@ const SchoolCalendar: React.FC = () => {
       >
         <View className="p-5">
           {filteredCalendars.length === 0 ? (
-            <View className="bg-white p-6 rounded-lg shadow items-center" style={{ backgroundColor: cardColor }}>
-              <Ionicons
-                name="calendar"
-                size={48}
-                color="#9ca3af"
-                className="mb-4"
-              />
-              <Text className="text-gray-500 text-center" style={{ color: textColor }}>
-                No academic calendars available for your year level.
+            <View className="bg-white p-8 rounded-2xl shadow-lg items-center" style={{ backgroundColor: cardColor }}>
+              <View className="bg-gray-100 rounded-full p-6 mb-4" style={{ backgroundColor: loadColor }}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={56}
+                  color="#9ca3af"
+                />
+              </View>
+              <Text className="text-lg font-bold text-gray-800 mb-2 text-center" style={{ color: textColor }}>
+                No Calendars Found
+              </Text>
+              <Text className="text-gray-500 text-center mb-6" style={{ color: mutedColor }}>
+                No academic calendars available for your year level at this time.
               </Text>
               <TouchableOpacity
                 onPress={onRefresh}
-                className="mt-4 flex-row items-center"
+                className="bg-[#af1616] px-6 py-3 rounded-xl flex-row items-center shadow-sm"
               >
                 <Ionicons
                   name="refresh"
-                  size={16}
-                  color="#be2e2e"
-                  className="mr-1"
+                  size={18}
+                  color="white"
                 />
-                <Text className="text-maroon text-sm">Refresh</Text>
+                <Text className="text-white font-semibold ml-2">Refresh</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -462,7 +484,7 @@ const SchoolCalendar: React.FC = () => {
                 className="bg-white p-4 rounded-lg shadow mb-4"
                 style={{ backgroundColor: cardColor }}
               >
-                <Text className="text-lg font-bold text-maroon mb-2" style={{ color: textColor }}>
+                <Text className="text-lg font-bold text-[#af1616] mb-2" style={{ color: textColor }}>
                   {calendar.title}
                 </Text>
 
@@ -516,7 +538,7 @@ const SchoolCalendar: React.FC = () => {
                               }
                               className="p-2"
                             >
-                              <Eye size={20} color="#be2e2e" />
+                              <Eye size={20} color="#af1616" />
                             </TouchableOpacity>
                           )}
 
@@ -528,9 +550,9 @@ const SchoolCalendar: React.FC = () => {
                             className="p-2"
                           >
                             {downloading === document.id ? (
-                              <ActivityIndicator size="small" color="#be2e2e" />
+                              <ActivityIndicator size="small" color="#af1616" />
                             ) : (
-                              <Download size={20} color="#be2e2e" />
+                              <Download size={20} color="#af1616" />
                             )}
                           </TouchableOpacity>
                         </View>
@@ -550,7 +572,7 @@ const SchoolCalendar: React.FC = () => {
         onRequestClose={() => setViewerVisible(false)}
       >
         <View className="flex-1 bg-black">
-          <View className="bg-maroon pt-12 pb-4 px-5 flex-row items-center">
+          <View className="bg-[#af1616] pt-12 pb-4 px-5 flex-row items-center">
             <TouchableOpacity
               onPress={() => setViewerVisible(false)}
               className="mr-4"
@@ -567,12 +589,12 @@ const SchoolCalendar: React.FC = () => {
           <View className="flex-1 justify-center items-center">
             {selectedDocument?.mime_type.includes("image") ? (
               <View className="flex-1 justify-center items-center">
-                <ImageIcon size={64} color="#be2e2e" />
+                <ImageIcon size={64} color="#af1616" />
                 <Text className="text-white mt-4 text-center">
                   Image preview not available. Download to view.
                 </Text>
                 <TouchableOpacity
-                  className="bg-maroon px-6 py-3 rounded-lg mt-4"
+                  className="bg-[#af1616] px-6 py-3 rounded-lg mt-4"
                   onPress={() => {
                     setViewerVisible(false);
                     if (selectedDocument) {
@@ -599,7 +621,7 @@ const SchoolCalendar: React.FC = () => {
                   Use the download button to view this file
                 </Text>
                 <TouchableOpacity
-                  className="bg-maroon px-6 py-3 rounded-lg mt-4"
+                  className="bg-[#af1616] px-6 py-3 rounded-lg mt-4"
                   onPress={() => {
                     setViewerVisible(false);
                     if (selectedDocument) {
