@@ -489,15 +489,20 @@ export default function ChatInfoScreen() {
         <Text className="text-2xl font-bold mt-4" style={{ color: textColor }}>
           {name || 'User'}
         </Text>
-        <View className="flex-row items-center">
-          <Text className="text-sm" style={{ color: mutedColor }}>{user_type}</Text>
+        <View className="flex-row items-center mt-1">
+          <Text className="text-sm font-medium" style={{ color: mutedColor }}>
+            {user_type ? String(user_type).charAt(0).toUpperCase() + String(user_type).slice(1) : 'User'}
+          </Text>
           <Text className="text-sm mx-2" style={{ color: mutedColor }}>•</Text>
           {statusLoading ? (
             <SkeletonLoader width={50} height={14} borderRadius={7} />
           ) : (
-            <Text className="text-sm" style={{ color: userOnlineStatus ? '#10B981' : mutedColor }}>
-              {userOnlineStatus ? 'Online' : 'Offline'}
-            </Text>
+            <View className="flex-row items-center">
+              <View className={`w-2 h-2 rounded-full mr-1.5 ${userOnlineStatus ? 'bg-green-500' : 'bg-gray-400'}`} />
+              <Text className="text-sm font-medium" style={{ color: userOnlineStatus ? '#10B981' : mutedColor }}>
+                {userOnlineStatus ? 'Online' : 'Offline'}
+              </Text>
+            </View>
           )}
         </View>
       </View>
