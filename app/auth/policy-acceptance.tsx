@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from '@/constants/Config';
 import axios from "axios";
-import { useLocalSearchParams, useRouter, Redirect } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowLeft,
   CheckSquare,
@@ -39,7 +39,6 @@ const PolicyAcceptance = () => {
     loading: false,
     policyAccepted: false,
     hasScrolledToBottom: false,
-    shouldRedirect: false,
   });
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -156,8 +155,8 @@ const PolicyAcceptance = () => {
           position: "top",
         });
 
-        // Trigger redirect after successful login
-        setState((prev) => ({ ...prev, shouldRedirect: true }));
+        // Navigate directly to home screen using replace
+        router.replace("/(tabs)/home");
       } else {
         Toast.show({
           type: "error",
@@ -180,11 +179,6 @@ const PolicyAcceptance = () => {
       setState((prev) => ({ ...prev, loading: false }));
     }
   };
-
-  // Redirect to home after successful policy acceptance
-  if (state.shouldRedirect && user) {
-    return <Redirect href="/(tabs)/home" />;
-  }
 
   return (
     <View className="flex-1 bg-white">
@@ -393,19 +387,19 @@ const PolicyAcceptance = () => {
 
           {/* Scroll to bottom indicator */}
           {!state.hasScrolledToBottom && (
-            <View className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200 shadow-sm">
+            <View className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <View className="flex-row items-center justify-center">
                 <Scroll size={18} color="#3b82f6" className="mr-2" />
-                <Text className="text-blue-700 text-center text-sm font-medium">
-                  Please scroll to the bottom to accept
+                <Text className="text-blue-700 text-center">
+                  Please scroll to the bottom to accept the policy
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={scrollToBottom}
-                className="flex-row items-center justify-center mt-2 bg-blue-100 rounded-lg py-2 px-4"
+                className="flex-row items-center justify-center mt-2"
               >
                 <ChevronDown size={16} color="#3b82f6" />
-                <Text className="text-blue-600 text-xs ml-1 font-medium">
+                <Text className="text-blue-600 text-sm ml-1">
                   Scroll to bottom
                 </Text>
               </TouchableOpacity>
@@ -417,12 +411,14 @@ const PolicyAcceptance = () => {
             style={{ opacity: fadeAnim }}
             className={state.hasScrolledToBottom ? "block" : "opacity-0"}
           >
-            <View className="bg-white rounded-xl p-0 mb-">
+            <View className="bg-gray-50  rounded-lg mb-6">
+          
+              
               <TouchableOpacity
-                className={`flex-row items-center p-4 rounded-xl mb-4 ${
+                className={`flex-row items-center p-4 rounded-lg mb-4 ${
                   state.policyAccepted
-                    ? "bg-green-50 border-2 border-green-500 shadow-sm"
-                    : "bg-gray-50 border-2 border-gray-300"
+                    ? "bg-green-50 border-2 border-green-500"
+                    : "bg-white border border-gray-300"
                 }`}
                 onPress={() =>
                   state.hasScrolledToBottom &&
@@ -439,7 +435,7 @@ const PolicyAcceptance = () => {
                   <Square size={24} color="#9ca3af" />
                 )}
                 <Text
-                  className={`text-sm font-semibold ml-3 flex-1 ${
+                  className={`text-base font-medium ml-3 flex-1 ${
                     state.policyAccepted ? "text-green-800" : "text-gray-600"
                   }`}
                 >
@@ -451,7 +447,7 @@ const PolicyAcceptance = () => {
                 className={`flex-row justify-between ${width < 380 ? "flex-col" : ""}`}
               >
                 <TouchableOpacity
-                  className={`bg-[#af1616] px-6 py-4 rounded-xl ${width < 380 ? "" : "flex-1"} shadow-md ${
+                  className={`bg-[#af1616] px-6 py-4 rounded-lg ${width < 380 ? "" : "flex-1"} ${
                     !state.policyAccepted ? "opacity-50" : ""
                   }`}
                   onPress={handleAcceptPolicy}
@@ -460,17 +456,17 @@ const PolicyAcceptance = () => {
                   {state.loading ? (
                     <ActivityIndicator color="white" />
                   ) : (
-                    <Text className="text-white text-center font-semibold">
+                    <Text className="text-white text-center font-medium">
                       Continue to MedSIS
                     </Text>
                   )}
                 </TouchableOpacity>
                 
                 <TouchableOpacity
-                  className={`bg-gray-200 px-6 py-4 rounded-xl ${width < 380 ? "mt-3" : "flex-1 ml-3"} shadow-sm`}
+                  className={`bg-gray-200 px-6 py-4 rounded-lg ${width < 380 ? "mt-3" : "flex-1 ml-3"}`}
                   onPress={() => router.replace("/auth/login")}
                 >
-                  <Text className="text-gray-700 text-center font-semibold">
+                  <Text className="text-gray-700 text-center font-medium">
                     Cancel
                   </Text>
                 </TouchableOpacity>
