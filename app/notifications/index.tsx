@@ -34,11 +34,11 @@ interface Notifications {
 const API_URL = `${API_BASE_URL}/api`;
 
 // Skeleton Loader Component
-const SkeletonLoader = ({ width, height, borderRadius = 4, style = {}, children }: { width: number | string; height: number; borderRadius?: number; style?: any; children?: React.ReactNode }) => {
+const SkeletonLoader = ({ width, height, borderRadius = 4, style = {}, children, loadColor }: { width: number | string; height: number; borderRadius?: number; style?: any; children?: React.ReactNode; loadColor?: string }) => {
   return (
     <View 
       className="bg-gray-200 dark:bg-gray-700 mb-2 overflow-hidden"
-      style={[{ width, height, borderRadius }, style]}
+      style={[{ width, height, borderRadius, backgroundColor: loadColor }, style]}
     >
       {children}
     </View>
@@ -430,25 +430,25 @@ const startPolling = useCallback(() => {
 
   // Notification Item Skeleton
   const NotificationSkeleton = () => (
-    <View className="flex-row items-start p-5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
-      <SkeletonLoader width={44} height={44} borderRadius={22} style={{ marginRight: 16 }}>
+    <View className="flex-row items-start p-5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900" style={{ backgroundColor: cardColor }}>
+      <SkeletonLoader width={44} height={44} borderRadius={22} style={{ marginRight: 16 }} loadColor={loadColor}>
         <SkeletonPulse />
       </SkeletonLoader>
       
       <View className="flex-1">
         <View className="flex-row items-start justify-between mb-2">
-          <SkeletonLoader width={120} height={20}>
+          <SkeletonLoader width={120} height={20} loadColor={loadColor}>
             <SkeletonPulse />
           </SkeletonLoader>
-          <SkeletonLoader width={16} height={16} borderRadius={8}>
+          <SkeletonLoader width={16} height={16} borderRadius={8} loadColor={loadColor}>
             <SkeletonPulse />
           </SkeletonLoader>
         </View>
         
-        <SkeletonLoader width="80%" height={16} style={{ marginBottom: 8 }}>
+        <SkeletonLoader width="80%" height={16} style={{ marginBottom: 8 }} loadColor={loadColor}>
           <SkeletonPulse />
         </SkeletonLoader>
-        <SkeletonLoader width={60} height={14}>
+        <SkeletonLoader width={60} height={14} loadColor={loadColor}>
           <SkeletonPulse />
         </SkeletonLoader>
       </View>
@@ -457,26 +457,26 @@ const startPolling = useCallback(() => {
 
   // Header Skeleton
   const HeaderSkeleton = () => (
-    <View className="pt-[50px] px-5 pb-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+    <View className="pt-[50px] px-5 pb-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800" style={{ backgroundColor: cardColor }}>
       <View className="flex-row items-center justify-between mb-4">
         <View className="flex-row items-center">
-          <SkeletonLoader width={40} height={40} borderRadius={20} style={{ marginRight: 8 }}>
+          <SkeletonLoader width={40} height={40} borderRadius={20} style={{ marginRight: 8 }} loadColor={loadColor}>
             <SkeletonPulse />
           </SkeletonLoader>
-          <SkeletonLoader width={120} height={28}>
+          <SkeletonLoader width={120} height={28} loadColor={loadColor}>
             <SkeletonPulse />
           </SkeletonLoader>
         </View>
-        <SkeletonLoader width={100} height={20}>
+        <SkeletonLoader width={100} height={20} loadColor={loadColor}>
           <SkeletonPulse />
         </SkeletonLoader>
       </View>
       
       <View className="flex-row justify-between items-center">
-        <SkeletonLoader width={80} height={16}>
+        <SkeletonLoader width={80} height={16} loadColor={loadColor}>
           <SkeletonPulse />
         </SkeletonLoader>
-        <SkeletonLoader width={60} height={16}>
+        <SkeletonLoader width={60} height={16} loadColor={loadColor}>
           <SkeletonPulse />
         </SkeletonLoader>
       </View>
@@ -510,7 +510,7 @@ const startPolling = useCallback(() => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-white dark:bg-gray-900">
+      <View className="flex-1 bg-white dark:bg-gray-900" style={{ backgroundColor }}>
         {/* Header Skeleton */}
         <HeaderSkeleton />
         
@@ -527,7 +527,7 @@ const startPolling = useCallback(() => {
   return (
     <View className="flex-1 bg-white dark:bg-gray-900" style={{ backgroundColor }}>
       {/* Header */}
-      <View className="pt-[50px] px-5 pb-4 bg-whiteborder-b border-gray-200" style={{ backgroundColor: cardColor}}>
+      <View className="pt-[50px] px-5 pb-4 bg-white border-b border-gray-200" style={{ backgroundColor: cardColor }}>
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
             <TouchableOpacity 
@@ -655,7 +655,7 @@ const startPolling = useCallback(() => {
         <View className="absolute bottom-4 right-4">
           <TouchableOpacity
             onPress={scrollToTop}
-            className="w-12 h-12 rounded-full bg-[#be2e2e] items-center justify-center shadow-lg"
+            className="w-12 h-12 rounded-full bg-[#af1616] items-center justify-center shadow-lg"
             style={{ elevation: 5 }}
           >
             <ArrowUp size={24} color="#FFFFFF" />
