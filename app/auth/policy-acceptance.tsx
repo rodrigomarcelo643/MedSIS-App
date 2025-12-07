@@ -9,6 +9,12 @@ import {
   FileText,
   Scroll,
   Square,
+  Shield,
+  Lock,
+  Users,
+  Clock,
+  AlertCircle,
+  Database,
 } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import {
@@ -198,209 +204,202 @@ const PolicyAcceptance = () => {
         ref={scrollViewRef}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        className="flex-1 px-4"
+        className="flex-1 px-4 bg-gray-50"
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         {/* Policy Content */}
-        <View className="bg-white p-2 mb-6 mt-6">
-          <View className="mb-6">
-            <View className="flex-row items-center mb-4">
-              <View className="bg-[#af1616]/10 p-2 rounded-full mr-3">
-                <FileText size={20} color="#af1616" />
+        <View className="mb-6 mt-6">
+
+          {/* Card 1: Terms */}
+          <View className="bg-white rounded-xl p-5 mb-4 shadow-sm border border-gray-100">
+            <View className="flex-row items-center mb-3">
+              <View className="bg-blue-100 p-2 rounded-lg mr-3">
+                <FileText size={20} color="#3b82f6" />
               </View>
-              <Text className="text-xl font-bold text-[#af1616]">
-                Data Policy Agreement
+              <Text className="text-lg font-bold text-gray-800 flex-1">
+                Terms and Conditions
               </Text>
             </View>
-
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Terms and Conditions
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
+            <Text className="text-sm text-gray-600 leading-5">
               The Medical Student Information System (MSIS) is designed to manage student academic records and documents in accordance with Republic Act No. 10173, also known as the Data Privacy Act of 2012, ensuring the protection of personal and sensitive information.
             </Text>
+          </View>
 
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              System Purpose
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
+          {/* Card 2: System Purpose */}
+          <View className="bg-white rounded-xl p-5 mb-4 shadow-sm border border-gray-100">
+            <View className="flex-row items-center mb-3">
+              <View className="bg-purple-100 p-2 rounded-lg mr-3">
+                <Database size={20} color="#9333ea" />
+              </View>
+              <Text className="text-lg font-bold text-gray-800 flex-1">
+                System Purpose
+              </Text>
+            </View>
+            <Text className="text-sm text-gray-600 leading-5">
               MSIS serves as the official repository for student academic documents, grades, and administrative records throughout your medical education journey.
             </Text>
+          </View>
 
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Document Integrity
+          {/* Card 3: Security */}
+          <View className="bg-white rounded-xl p-5 mb-4 shadow-sm border border-gray-100">
+            <View className="flex-row items-center mb-3">
+              <View className="bg-green-100 p-2 rounded-lg mr-3">
+                <Shield size={20} color="#15803d" />
+              </View>
+              <Text className="text-lg font-bold text-gray-800 flex-1">
+                Data Security
+              </Text>
+            </View>
+            <Text className="text-sm text-gray-600 leading-5 mb-2">
+              All student data is protected through multiple security layers:
             </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              All uploaded documents are verified for authenticity and stored with digital timestamps to maintain academic integrity and prevent unauthorized modifications.
+            <Text className="text-sm text-gray-600 leading-5">
+              • Document integrity with digital timestamps{"\n"}
+              • Strict confidentiality and access controls{"\n"}
+              • Encryption and regular security audits{"\n"}
+              • Academic use only
             </Text>
+          </View>
 
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Confidentiality Protection
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              All student records are treated with strict confidentiality. Access is limited to authorized personnel only, including faculty, administrators, and the student themselves.
-            </Text>
-
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Academic Use Only
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              Student information is used exclusively for educational administration, academic evaluation, and institutional compliance purposes.
-            </Text>
-
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Data Security Measures
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              All student data is protected through multiple security layers including encryption, access controls, and regular security audits to prevent unauthorized access or data breaches.
-            </Text>
-
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Student Rights
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
+          {/* Card 4: Student Rights */}
+          <View className="bg-white rounded-xl p-5 mb-4 shadow-sm border border-gray-100">
+            <View className="flex-row items-center mb-3">
+              <View className="bg-amber-100 p-2 rounded-lg mr-3">
+                <Users size={20} color="#d97706" />
+              </View>
+              <Text className="text-lg font-bold text-gray-800 flex-1">
+                Your Rights
+              </Text>
+            </View>
+            <Text className="text-sm text-gray-600 leading-5">
               Students have the right to access, review, and request corrections to their personal information stored in the system, in accordance with data privacy regulations.
             </Text>
+          </View>
 
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Student Document Management & Retention Policy
+          {/* Card 5: Retention Policy */}
+          <View className="bg-white rounded-xl p-5 mb-4 shadow-sm border border-gray-100">
+            <View className="flex-row items-center mb-3">
+              <View className="bg-indigo-100 p-2 rounded-lg mr-3">
+                <Clock size={20} color="#4f46e5" />
+              </View>
+              <Text className="text-lg font-bold text-gray-800 flex-1">
+                Document Retention
+              </Text>
+            </View>
+            <Text className="text-sm text-gray-600 leading-5 mb-3">
+              Your academic documents are managed with the highest security standards:
             </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              Your academic documents and records are managed with the highest security standards throughout your medical education journey:
-            </Text>
-
-            <Text className="text-base font-semibold text-gray-800 mb-2">
-              Year 1 to Year 4 Students (Active Enrollment)
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              • Full access to all uploaded documents and academic records{"\n"}
-              • Documents are backed up daily with 99.9% uptime guarantee{"\n"}
-              • Real-time synchronization across all authorized devices{"\n"}
-              • Version control for document updates and revisions{"\n"}
-              • Secure download capabilities for personal copies
-            </Text>
-
-            <Text className="text-base font-semibold text-gray-800 mb-2">
-              Post-Graduation (1 Year Recovery Period)
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              • Account converted to alumni status with limited access{"\n"}
-              • Document Recovery Window: 1 full year to download all personal documents{"\n"}
-              • Email notifications sent at 6 months and 1 month before deletion{"\n"}
-              • Bulk download feature available for easy document retrieval{"\n"}
-              • Academic transcripts remain accessible through official channels
-            </Text>
-
-            <Text className="text-base font-semibold text-gray-800 mb-2">
-              Document Disposal (After 1 Year Post-Graduation)
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              • Secure deletion using DoD 5220.22-M standards (3-pass overwrite){"\n"}
-              • Cryptographic erasure of encrypted data{"\n"}
-              • Physical destruction of backup media{"\n"}
-              • Certificate of destruction provided upon request{"\n"}
-              • Only official academic records retained in university archives
-            </Text>
-
-            <Text className="text-base font-semibold text-gray-800 mb-2">
-              Special Circumstances
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              • Dropped/Transferred Students: 6-month recovery period before deletion{"\n"}
-              • Disciplinary Cases: Relevant documents retained for 7 years as per institutional policy{"\n"}
-              • Legal Holds: Documents preserved as required by law or court order{"\n"}
-              • Emergency Access: Family members may request access with proper legal documentation
-            </Text>
-
-            <View className="bg-yellow-50 p-4 rounded-lg mb-4 border border-yellow-200">
-              <Text className="text-yellow-800 font-semibold mb-2">Important:</Text>
-              <Text className="text-yellow-700 text-sm">
-                It is your responsibility to download and secure personal copies of all important documents before the retention period expires. The university is not liable for any documents lost due to failure to retrieve them within the specified timeframe.
+            
+            <View className="bg-gray-50 rounded-lg p-3 mb-3">
+              <Text className="text-sm font-semibold text-gray-800 mb-1">
+                Active Students (Year 1-4)
+              </Text>
+              <Text className="text-xs text-gray-600 leading-4">
+                Full access • Daily backups • Real-time sync
+              </Text>
+            </View>
+            
+            <View className="bg-gray-50 rounded-lg p-3 mb-3">
+              <Text className="text-sm font-semibold text-gray-800 mb-1">
+                Post-Graduation
+              </Text>
+              <Text className="text-xs text-gray-600 leading-4">
+                1-year recovery period • Email notifications • Bulk download
+              </Text>
+            </View>
+            
+            <View className="bg-gray-50 rounded-lg p-3 mb-3">
+              <Text className="text-sm font-semibold text-gray-800 mb-1">
+                After 1 Year
+              </Text>
+              <Text className="text-xs text-gray-600 leading-4">
+                Secure deletion • DoD standards • Official records archived
               </Text>
             </View>
 
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Enhanced Security Measures
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              We implement multiple layers of security to protect your data:
-            </Text>
+            <View className="bg-amber-50 rounded-lg p-3 border border-amber-200">
+              <View className="flex-row items-start">
+                <AlertCircle size={16} color="#d97706" style={{ marginTop: 2, marginRight: 8 }} />
+                <Text className="text-xs text-amber-800 flex-1 leading-4">
+                  Download your documents before the retention period expires. The university is not liable for documents not retrieved within the timeframe.
+                </Text>
+              </View>
+            </View>
+          </View>
 
-            <Text className="text-base font-semibold text-gray-800 mb-2">
-              Password Protection:
+          {/* Card 6: Security Measures */}
+          <View className="bg-white rounded-xl p-5 mb-4 shadow-sm border border-gray-100">
+            <View className="flex-row items-center mb-3">
+              <View className="bg-red-100 p-2 rounded-lg mr-3">
+                <Lock size={20} color="#dc2626" />
+              </View>
+              <Text className="text-lg font-bold text-gray-800 flex-1">
+                Security Measures
+              </Text>
+            </View>
+            <Text className="text-sm text-gray-600 leading-5 mb-3">
+              Multiple layers of security protect your data:
             </Text>
-            <Text className="text-base text-gray-700 mb-3 leading-6">
-              bcrypt hashing with salt rounds
-            </Text>
+            <View className="space-y-2">
+              <Text className="text-xs text-gray-600 leading-4">
+                🔐 bcrypt password hashing{"\n"}
+                🔑 CAPTCHA + OTP authentication{"\n"}
+                🔒 AES-256 & TLS 1.3 encryption{"\n"}
+                👁️ 24/7 security monitoring{"\n"}
+                💾 Encrypted daily backups{"\n"}
+                ⚠️ 72-hour breach notification
+              </Text>
+            </View>
+          </View>
 
-            <Text className="text-base font-semibold text-gray-800 mb-2">
-              Authentication:
+          {/* Card 7: Data Sharing */}
+          <View className="bg-white rounded-xl p-5 mb-4 shadow-sm border border-gray-100">
+            <View className="flex-row items-center mb-3">
+              <View className="bg-teal-100 p-2 rounded-lg mr-3">
+                <Users size={20} color="#0d9488" />
+              </View>
+              <Text className="text-lg font-bold text-gray-800 flex-1">
+                Data Sharing Policy
+              </Text>
+            </View>
+            <Text className="text-sm text-gray-600 leading-5 mb-2">
+              Your data may be shared only:
             </Text>
-            <Text className="text-base text-gray-700 mb-3 leading-6">
-              • CAPTCHA verification on all logins{"\n"}
-              • OTP Integration{"\n"}
-              • 30-minute session timeout
+            <Text className="text-xs text-gray-600 leading-4">
+              • With government agencies (CHED, PRC){"\n"}
+              • For academic research (anonymized){"\n"}
+              • When legally compelled{"\n"}
+              • With alumni associations (opt-out available)
             </Text>
+            <View className="bg-green-50 rounded-lg p-2 mt-3">
+              <Text className="text-xs text-green-800 font-medium">
+                ✓ We never sell your data to third parties
+              </Text>
+            </View>
+          </View>
 
-            <Text className="text-base font-semibold text-gray-800 mb-2">
-              Data Encryption:
-            </Text>
-            <Text className="text-base text-gray-700 mb-3 leading-6">
-              • AES-256 for data at rest{"\n"}
-              • TLS 1.3 for data in transit
-            </Text>
-
-            <Text className="text-base font-semibold text-gray-800 mb-2">
-              Additional Security:
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              • Access Controls: Role-based access with audit logging{"\n"}
-              • Monitoring: 24/7 security monitoring{"\n"}
-              • Backups: Encrypted daily backups{"\n"}
-              • Alumni Data: Segregated storage with additional restrictions{"\n"}
-              • Breach Notification: Affected individuals will be notified within 72 hours of any data breach as required by law
-            </Text>
-
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Data Sharing & Third Parties
-            </Text>
-            <Text className="text-base text-gray-700 mb-4 leading-6">
-              Your data may be shared only under these circumstances:{"\n"}
-              • With government agencies as required by law (CHED, PRC, etc.){"\n"}
-              • For academic research (anonymized/aggregated only){"\n"}
-              • When legally compelled by court order{"\n"}
-              • With alumni associations (opt-out available){"\n\n"}
-              We never sell student or alumni data to third parties. All external sharing undergoes strict review by our Data Protection Officer.
-            </Text>
-
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Policy Updates & Contact Information
-            </Text>
-            <Text className="text-base text-gray-700 mb-6 leading-6">
-              This policy may be updated to comply with new regulations or institutional changes. Significant changes will be communicated via official MSIS notifications and email.{"\n\n"}
-              Questions or Concerns: Contact the College of Medicine Data Protection Officer or the MSIS Administrator for any inquiries regarding your document security and privacy rights.
-            </Text>
-
-            <Text className="text-base text-gray-700 mb-6 leading-6 italic border-l-4 border-[#af1616] pl-4 py-2 bg-gray-50">
-              By using the Medical Student Information System (MSIS), I acknowledge and agree to the terms outlined above. I understand my rights regarding document access, retention periods, and secure disposal procedures. I consent to the collection and processing of my academic data in accordance with the Data Privacy Act of 2012 (RA 10173) and institutional policies.
+          {/* Final Agreement */}
+          <View className="bg-gradient-to-r from-[#af1616]/5 to-[#15803d]/5 rounded-xl p-4 mb-4 border-l-4 border-[#af1616]">
+            <Text className="text-xs text-gray-700 leading-5 italic">
+              By using MSIS, I acknowledge and agree to the terms outlined above. I understand my rights regarding document access, retention periods, and secure disposal procedures. I consent to the collection and processing of my academic data in accordance with the Data Privacy Act of 2012 (RA 10173).
             </Text>
           </View>
 
           {/* Scroll to bottom indicator */}
           {!state.hasScrolledToBottom && (
-            <View className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <View className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200 shadow-sm">
               <View className="flex-row items-center justify-center">
                 <Scroll size={18} color="#3b82f6" className="mr-2" />
-                <Text className="text-blue-700 text-center">
-                  Please scroll to the bottom to accept the policy
+                <Text className="text-blue-700 text-center text-sm font-medium">
+                  Please scroll to the bottom to accept
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={scrollToBottom}
-                className="flex-row items-center justify-center mt-2"
+                className="flex-row items-center justify-center mt-2 bg-blue-100 rounded-lg py-2 px-4"
               >
                 <ChevronDown size={16} color="#3b82f6" />
-                <Text className="text-blue-600 text-sm ml-1">
+                <Text className="text-blue-600 text-xs ml-1 font-medium">
                   Scroll to bottom
                 </Text>
               </TouchableOpacity>
@@ -412,14 +411,12 @@ const PolicyAcceptance = () => {
             style={{ opacity: fadeAnim }}
             className={state.hasScrolledToBottom ? "block" : "opacity-0"}
           >
-            <View className="bg-gray-50 p-4 rounded-lg mb-6">
-          
-              
+            <View className="bg-white rounded-xl p-0 mb-">
               <TouchableOpacity
-                className={`flex-row items-center p-4 rounded-lg mb-4 ${
+                className={`flex-row items-center p-4 rounded-xl mb-4 ${
                   state.policyAccepted
-                    ? "bg-green-50 border-2 border-green-500"
-                    : "bg-white border border-gray-300"
+                    ? "bg-green-50 border-2 border-green-500 shadow-sm"
+                    : "bg-gray-50 border-2 border-gray-300"
                 }`}
                 onPress={() =>
                   state.hasScrolledToBottom &&
@@ -436,7 +433,7 @@ const PolicyAcceptance = () => {
                   <Square size={24} color="#9ca3af" />
                 )}
                 <Text
-                  className={`text-base font-medium ml-3 flex-1 ${
+                  className={`text-sm font-semibold ml-3 flex-1 ${
                     state.policyAccepted ? "text-green-800" : "text-gray-600"
                   }`}
                 >
@@ -448,7 +445,7 @@ const PolicyAcceptance = () => {
                 className={`flex-row justify-between ${width < 380 ? "flex-col" : ""}`}
               >
                 <TouchableOpacity
-                  className={`bg-[#af1616] px-6 py-4 rounded-lg ${width < 380 ? "" : "flex-1"} ${
+                  className={`bg-[#af1616] px-6 py-4 rounded-xl ${width < 380 ? "" : "flex-1"} shadow-md ${
                     !state.policyAccepted ? "opacity-50" : ""
                   }`}
                   onPress={handleAcceptPolicy}
@@ -457,17 +454,17 @@ const PolicyAcceptance = () => {
                   {state.loading ? (
                     <ActivityIndicator color="white" />
                   ) : (
-                    <Text className="text-white text-center font-medium">
+                    <Text className="text-white text-center font-semibold">
                       Continue to MedSIS
                     </Text>
                   )}
                 </TouchableOpacity>
                 
                 <TouchableOpacity
-                  className={`bg-gray-200 px-6 py-4 rounded-lg ${width < 380 ? "mt-3" : "flex-1 ml-3"}`}
+                  className={`bg-gray-200 px-6 py-4 rounded-xl ${width < 380 ? "mt-3" : "flex-1 ml-3"} shadow-sm`}
                   onPress={() => router.replace("/auth/login")}
                 >
-                  <Text className="text-gray-700 text-center font-medium">
+                  <Text className="text-gray-700 text-center font-semibold">
                     Cancel
                   </Text>
                 </TouchableOpacity>
