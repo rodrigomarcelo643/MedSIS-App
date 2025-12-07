@@ -14,13 +14,7 @@ export default function Index() {
   }
 
   if (user) {
-    // Check if user has accepted policy
-    if (user.policy_accepted === 1) {
-      return <Redirect href="/(tabs)/home" />;
-    }
-    // If user exists but hasn't accepted policy, stay on current screen
-    // The policy acceptance screen will handle the flow
-    return null;
+   return <Redirect href="/(tabs)/home" />;
   }
 
   return <Redirect href="/auth/login" />;
