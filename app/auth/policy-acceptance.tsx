@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from '@/constants/Config';
 import axios from "axios";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, Redirect } from "expo-router";
 import {
   ArrowLeft,
   CheckSquare,
@@ -39,6 +39,7 @@ const PolicyAcceptance = () => {
     loading: false,
     policyAccepted: false,
     hasScrolledToBottom: false,
+    shouldRedirect: false,
   });
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -155,8 +156,8 @@ const PolicyAcceptance = () => {
           position: "top",
         });
 
-        // Navigate directly to home screen using replace
-        router.replace("/(tabs)/home");
+        // Trigger redirect after successful login
+        setState((prev) => ({ ...prev, shouldRedirect: true }));
       } else {
         Toast.show({
           type: "error",
@@ -179,6 +180,11 @@ const PolicyAcceptance = () => {
       setState((prev) => ({ ...prev, loading: false }));
     }
   };
+
+  // Redirect to home after successful policy acceptance
+  if (state.shouldRedirect && user) {
+    return <Redirect href="/(tabs)/home" />;
+  }
 
   return (
     <View className="flex-1 bg-white">
