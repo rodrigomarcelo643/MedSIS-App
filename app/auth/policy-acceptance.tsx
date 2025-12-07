@@ -98,7 +98,7 @@ const PolicyAcceptance = () => {
             // Create complete user data with policy accepted and any additional info
             const userData = {
               ...result.user, // Use the complete user object from API
-              avatar: result.user.avatar || "https://i.pravatar.cc/150",
+              avatar: result.user.avatar || "https://msis.eduisync.io/swu-head.png",
               contact_number: result.user.contact_number || "No phone added",
               joinDate: result.user.joinDate || "Member since 2023",
               policy_accepted: 1, // Set to accepted
