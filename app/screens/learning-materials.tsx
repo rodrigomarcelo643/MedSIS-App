@@ -303,7 +303,7 @@ const LearningMaterialsScreen: React.FC = () => {
               <TouchableOpacity
                 key={subject.value}
                 className={`flex-row items-center px-4 py-3 ${
-                  selectedSubject === subject.value ? 'bg-maroon-100' : 'bg-white'
+                  selectedSubject === subject.value ? 'bg-[#af1616]-100' : 'bg-white'
                 }`}
                 onPress={() => {
                   setSelectedSubject(subject.value);
@@ -315,7 +315,7 @@ const LearningMaterialsScreen: React.FC = () => {
                 ) : (
                   <View className="w-4 h-4" />
                 )}
-                <Text className={`ml-2 ${selectedSubject === subject.value ? 'text-maroon-800 font-semibold' : 'text-gray-700'}`}>
+                <Text className={`ml-2 ${selectedSubject === subject.value ? 'text-[#af1616]-800 font-semibold' : 'text-gray-700'}`}>
                   {subject.label}
                 </Text>
               </TouchableOpacity>
@@ -333,7 +333,7 @@ const LearningMaterialsScreen: React.FC = () => {
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
             <ChevronLeft size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-maroon-800">Learning Materials</Text>
+          <Text className="text-xl font-bold text-[#af1616]-800">Learning Materials</Text>
         </View>
         <SkeletonLoader />
       </View>
@@ -347,13 +347,13 @@ const LearningMaterialsScreen: React.FC = () => {
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
             <ChevronLeft size={24} color="#800000" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-maroon-800">Learning Materials</Text>
+          <Text className="text-xl font-bold text-[#af1616]-800">Learning Materials</Text>
         </View>
         <View className="flex-1 justify-center items-center p-5">
           <BookOpen size={48} color="#800000" />
-          <Text className="mt-4 text-maroon-700 text-center">{error}</Text>
+          <Text className="mt-4 text-[#af1616]-700 text-center">{error}</Text>
           <TouchableOpacity 
-            className="mt-4 px-6 py-3 bg-maroon-600 rounded-lg"
+            className="mt-4 px-6 py-3 bg-[#af1616]-600 rounded-lg"
             onPress={fetchLearningMaterials}
           >
             <Text className="text-white font-semibold">Try Again</Text>
@@ -372,7 +372,7 @@ const LearningMaterialsScreen: React.FC = () => {
         <Text className="text-xl font-bold" style={{ color:textColor }}>Learning Materials</Text>
         <View className="flex-1"></View>
         <TouchableOpacity 
-          className="flex-row items-center bg-maroon-100 rounded-full px-4 py-2"
+          className="flex-row items-center bg-[#af1616]-100 rounded-full px-4 py-2"
           onPress={() => setShowSubjectDropdown(true)}
         >
           <Filter size={16} color={textColor} />
@@ -416,14 +416,32 @@ const LearningMaterialsScreen: React.FC = () => {
       >
         {filteredMaterials.length === 0 ? (
           <View className="flex-1 justify-center items-center py-20 px-5">
-            <BookOpen size={48} color="#9ca3af" />
-            <Text className="mt-4 text-gray-500 text-lg font-medium">No learning materials found</Text>
-            <Text className="mt-2 text-gray-400 text-center">
-              {searchQuery || selectedSubject !== 'all' 
-                ? 'Try changing your search or filters.'
-                : 'No materials available for your year level yet.'
-              }
-            </Text>
+            <View className="bg-white rounded-2xl shadow-md p-8 items-center max-w-sm" style={{ backgroundColor: cardColor }}>
+              <View className="w-20 h-20 bg-[#af1616]/10 rounded-full items-center justify-center mb-4">
+                <BookOpen size={40} color="#af1616" />
+              </View>
+              <Text className="text-xl font-bold text-gray-800 text-center mb-2" style={{ color: textColor }}>
+                No Materials Found
+              </Text>
+              <Text className="text-gray-500 text-center text-sm leading-5" style={{ color: mutedColor }}>
+                {searchQuery || selectedSubject !== 'all' 
+                  ? 'Try adjusting your search terms or filter settings to find what you need.'
+                  : 'Learning materials for your year level will be available soon. Check back later!'
+                }
+              </Text>
+              {(searchQuery || selectedSubject !== 'all') && (
+                <TouchableOpacity 
+                  className="mt-6 flex-row items-center bg-[#af1616] rounded-lg px-5 py-3"
+                  onPress={() => {
+                    setSearchQuery('');
+                    setSelectedSubject('all');
+                  }}
+                >
+                  <X size={16} color="#ffffff" />
+                  <Text className="text-white font-semibold ml-2">Clear Filters</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         ) : (
           <View className="p-4">
@@ -433,14 +451,14 @@ const LearningMaterialsScreen: React.FC = () => {
               return (
                 <View 
                   key={material.id} 
-                  className="bg-white rounded-sm shadow-sm p-4 mb-4 border-l-4 border-[#be2e2e]"
+                  className="bg-white rounded-sm shadow-sm p-4 mb-4 border-l-4 border-[#af1616]"
                   style={{ backgroundColor: cardColor }}
                 >
                   <View className="flex-row justify-between items-center mb-3">
                     <View className="flex-row items-center">
-                      <View className="flex-row items-center bg-maroon-100 rounded-full px-3 py-1">
+                      <View className="flex-row items-center bg-[#af1616]-100 rounded-full px-3 py-1">
                         <Image source={require("../../assets/images/pdf.png")} className="w-5 h-5" />
-                        <Text className="ml-2 text-maroon-800 text-sm font-medium" style={{ color:textColor }}>
+                        <Text className="ml-2 text-[#af1616]-800 text-sm font-medium" style={{ color:textColor }}>
                           {material.subject}
                         </Text>
                       </View>
@@ -467,7 +485,7 @@ const LearningMaterialsScreen: React.FC = () => {
                     
                     <TouchableOpacity 
                       className={`flex-row items-center px-3 rounded-lg ${
-                        downloading === material.id ? 'bg-[#be2e2e]' : 'bg-[#be2e2e]'
+                        downloading === material.id ? 'bg-[#af1616]' : 'bg-[#af1616]'
                       }`}
                       onPress={() => handleDownload(material)}
                       disabled={downloading === material.id}
