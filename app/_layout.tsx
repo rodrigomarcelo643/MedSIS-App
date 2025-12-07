@@ -134,7 +134,7 @@ export default function RootLayout() {
   // Track app readiness
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      console.log("🔤 Fonts loaded or error, setting appIsReady = true");
+      //console.log("🔤 Fonts loaded or error, setting appIsReady = true");
       setAppIsReady(true);
     }
   }, [fontsLoaded, fontError]);
@@ -146,13 +146,13 @@ export default function RootLayout() {
 
       try {
         if (Platform.OS !== "web") {
-          console.log("📱 Hiding native splash screen");
+          //console.log("📱 Hiding native splash screen");
           await SplashScreen.hideAsync();
         }
 
         setTimeout(() => {
           if (isMountedRef.current && splashAnimationCompleted.current) {
-            console.log("🟢 Minimum splash time passed, hiding custom splash");
+            //console.log("🟢 Minimum splash time passed, hiding custom splash");
             setShowCustomSplash(false);
           }
         }, minimumSplashTimeRef.current);
@@ -174,10 +174,10 @@ export default function RootLayout() {
   const handleSplashAnimationComplete = () => {
     splashAnimationCompleted.current = true;
     const elapsedTime = Date.now() - startTimeRef.current;
-    console.log("🎬 Splash animation completed, elapsed:", elapsedTime);
+    //console.log("🎬 Splash animation completed, elapsed:", elapsedTime);
 
     if (appIsReady && elapsedTime >= minimumSplashTimeRef.current) {
-      console.log("🟢 Conditions met, hiding custom splash now");
+      // console.log("🟢 Conditions met, hiding custom splash now");
       setShowCustomSplash(false);
     }
   };
