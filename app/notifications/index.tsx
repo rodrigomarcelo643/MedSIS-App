@@ -9,7 +9,6 @@ import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
   Alert,
   Modal,
-  Platform,
   RefreshControl,
   ScrollView,
   Text,
