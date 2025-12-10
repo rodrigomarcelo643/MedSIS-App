@@ -555,7 +555,7 @@ const LoginScreen = () => {
           </View>
         </View>
       </ScrollView>
-
+      {/** Toast UI */}
       <Toast />
     </KeyboardAvoidingView>
   );
