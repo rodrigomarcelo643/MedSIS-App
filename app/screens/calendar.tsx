@@ -7,7 +7,7 @@ import axios from "axios";
 import { useRouter } from "expo-router";
 import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Dimensions, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Dimensions, Modal, Platform, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface CalendarEvent {

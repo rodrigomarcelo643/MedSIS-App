@@ -30,7 +30,7 @@ A comprehensive mobile application designed specifically for medical students to
 
 ### Streamlined Academic Management for Medical Students
 
-MedSIS App v1.0.0  delivers a comprehensive mobile solution specifically designed for medical students to efficiently manage their academic requirements and evaluations. This release focuses on core functionalities including secure document upload for academic requirements, real-time evaluation results tracking with e-signatures, AI-powered academic assistance, and seamless communication with faculty. Built with React Native and TypeScript, provides reliable cross-platform performance with Philippine timezone integration and robust security features tailored for medical education environments.
+MedSIS App v1.0.0  delivers a comprehensive mobile solution specifically designed for medical students to efficiently manage their academic requirements and evaluations. This release focuses on core functionalities including secure document upload for academic requirements, real-time evaluation results tracking with e-signatures, AI-powered academic assistance, and seamless communication with faculty.  
 
 **Key Highlights:**
 

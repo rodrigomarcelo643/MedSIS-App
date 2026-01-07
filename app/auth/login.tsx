@@ -79,7 +79,7 @@ const LoginScreen = () => {
         });
       }
     };
-
+    // Check if user needs to accept policy (if coming from policy screen)
     checkPolicyStatus();
 
     // Animate logo + app name smoothly
@@ -97,6 +97,8 @@ const LoginScreen = () => {
     ]).start();
   }, []);
 
+  //==============================================
+  // Animation Functions 
   const labelPosition = (anim: Animated.Value) =>
     anim.interpolate({
       inputRange: [0, 1],
@@ -117,7 +119,10 @@ const LoginScreen = () => {
       bounciness: 10,
     }).start();
   };
+  //==========================================================================
 
+  //=========================================================================
+  // Input Logic Functions
   const handleInputChange = (field: string, value: string) => {
     setLoginData((prev) => ({ ...prev, [field]: value }));
     if (loginState.error) setLoginState((prev) => ({ ...prev, error: "" }));
@@ -134,8 +139,9 @@ const LoginScreen = () => {
       animateLabel(anim, 0);
     }
   };
-
-// Form Validation 
+//=============================================================================
+//=============================================================================
+// Form Validation Function 
   const validateLoginForm = () => {
     if (!loginData.student_id.trim()) {
       Toast.show({
@@ -159,8 +165,8 @@ const LoginScreen = () => {
     
     return true;
   };
-
-  // Login Logic 
+  // ================================================================
+  // <!--- Main Login Logic 
   const handleLogin = async () => {
     if (!validateLoginForm()) return;
 
@@ -297,8 +303,9 @@ const LoginScreen = () => {
       }));
     }
   };
-
-  // Animations for logo + text
+// ============================================================================================
+// ============================================================================================
+// Logo Animations
   const logoStyle = {
     opacity: logoAnim,
     transform: [
@@ -555,7 +562,7 @@ const LoginScreen = () => {
           </View>
         </View>
       </ScrollView>
-
+      {/** Toast UI */}
       <Toast />
     </KeyboardAvoidingView>
   );
