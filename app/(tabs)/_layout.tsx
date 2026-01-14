@@ -26,7 +26,10 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   View,
+  NativeModules,
 } from "react-native";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, {
   useAnimatedStyle,
   useSharedValue,
@@ -63,10 +66,23 @@ const Skeleton = ({ width, height, borderRadius = 4, style = {} }: { width: numb
   );
 };
 
+// Helper function to detect three-button navigation
+const useNavigationMode = () => {
+  const insets = useSafeAreaInsets();
+  
+  // Detection for both iOS and Android: three-button nav/home indicator has > 0 bottom inset
+  const hasThreeButtonNav = React.useMemo(() => {
+    return insets.bottom > 0;
+  }, [insets.bottom]);
+
+  return { hasThreeButtonNav, insets };
+};
+
 export default function TabLayout() {
   const router = useRouter();
   const segments = useSegments(); 
   const { theme } = useTheme();
+  const { hasThreeButtonNav, insets } = useNavigationMode();
 
   // Theme Change
   const backgroundColor = useThemeColor({}, 'background');
@@ -93,6 +109,13 @@ export default function TabLayout() {
 
   // Track header visibility
   const [showHeader, setShowHeader] = useState(true);
+  
+  // Debug logging
+  console.log('hasThreeButtonNav:', hasThreeButtonNav, 'insets.bottom:', insets.bottom, 'Platform.OS:', Platform.OS);
+
+  // Calculate tab bar padding and styling based on navigation mode (same for iOS and Android)
+  const tabBarPadding = hasThreeButtonNav ? 40 : 35;
+  const tabBarBottomOffset = hasThreeButtonNav ? insets.bottom : 4;
 
   // Load notification sound
   useEffect(() => {
@@ -398,22 +421,24 @@ export default function TabLayout() {
   }));
 
   return (
-    <View className="flex-1">
-      {!isWeb && (
-        <View
-          style={{ height: StatusBar.currentHeight, backgroundColor: "#fff" }}
-        />
-      )}
-
-      {showHeader && renderHeader()}
-
+    <GestureHandlerRootView className="flex-1">
       <View className="flex-1">
-        <Tabs
+        {!isWeb && (
+          <View
+            style={{ height: StatusBar.currentHeight, backgroundColor: "#fff" }}
+          />
+        )}
+
+        {showHeader && renderHeader()}
+
+        <View className="flex-1">
+          <Tabs
           screenOptions={{
             headerShown: false,
             tabBarStyle: {
-              height: 65,
-              paddingBottom: 8,
+              height: hasThreeButtonNav ? 80 + insets.bottom : 80,
+              paddingBottom: hasThreeButtonNav ? tabBarPadding + insets.bottom : tabBarPadding,
+              paddingTop: 8,
               position: "relative",
             },
             tabBarButton: HapticTab,
@@ -421,6 +446,7 @@ export default function TabLayout() {
             tabBarLabelStyle: {
               fontSize: 12,
               marginBottom: 0,
+              marginTop: 4,
             },
             tabBarActiveTintColor: tintColor,
             tabBarInactiveTintColor: theme === 'dark' ? '#9BA1A6' : '#687076',
@@ -529,10 +555,10 @@ export default function TabLayout() {
           style={[
             {
               position: "absolute",
-              bottom: 10,
+              bottom: tabBarBottomOffset + 8,
               left: 0,
               width: tabWidth,
-              height: 50,
+              height: 60,
               borderRadius: 10,
               backgroundColor: "rgba(140, 35, 35, 0.08)", 
             },
@@ -545,7 +571,7 @@ export default function TabLayout() {
           style={[
             {
               position: "absolute",
-              bottom: 2,
+              bottom: tabBarBottomOffset + 4,
               left: 0,
               width: tabWidth * 0.5,
               height: 3,
@@ -556,7 +582,8 @@ export default function TabLayout() {
             underlineStyle,
           ]}
         />
+        </View>
       </View>
-    </View>
+    </GestureHandlerRootView>
   );
 }

@@ -42,23 +42,23 @@ export const messageService = {
   ): Promise<{ users: User[]; hasMore: boolean }> => {
     try {
       const url = `${API_BASE}/get_users.php?current_user_id=${userId}`;
-      console.log('🚀 Frontend: Calling getActiveUsers API:', url);
+      //console.log('🚀 Frontend: Calling getActiveUsers API:', url);
       
       const response = await fetch(url);
-      console.log('📡 Frontend: Response status:', response.status, response.statusText);
+      //console.log('📡 Frontend: Response status:', response.status, response.statusText);
       
       const text = await response.text();
-      console.log('📄 Frontend: Raw response text:', text.substring(0, 500) + (text.length > 500 ? '...' : ''));
+      //console.log('📄 Frontend: Raw response text:', text.substring(0, 500) + (text.length > 500 ? '...' : ''));
       
       const data = JSON.parse(text);
-      console.log('📊 Frontend: Parsed response data:', {
+      /*console.log('📊 Frontend: Parsed response data:', {
         hasError: !!data.error,
         error: data.error,
         userCount: data.users?.length || 0,
         totalCount: data.count,
         debug: data.debug
       });
-      
+      */
       // Log online status details and ensure proper boolean conversion
       if (data.users) {
         data.users = data.users.map((user: any) => ({
@@ -68,8 +68,8 @@ export const messageService = {
         
         const onlineUsers = data.users.filter((u: any) => u.isOnline === true);
         const offlineUsers = data.users.filter((u: any) => u.isOnline === false);
-        console.log('🟢 Online users found:', onlineUsers.length);
-        console.log('🔴 Offline users found:', offlineUsers.length);
+       // console.log('🟢 Online users found:', onlineUsers.length);
+       //console.log('🔴 Offline users found:', offlineUsers.length);
         onlineUsers.forEach((u: any) => {
           console.log(`   ${u.name} (${u.user_type}) - Online: ${u.isOnline} (type: ${typeof u.isOnline})`);
         });
@@ -82,11 +82,12 @@ export const messageService = {
       const usersWithAvatars = users.filter((u: User) => u.avatar_url);
       const usersWithoutAvatars = users.filter((u: User) => !u.avatar_url);
       
-      console.log('🖼️ Frontend: Avatar analysis:', {
+      /*console.log('🖼️ Frontend: Avatar analysis:', {
         totalUsers: users.length,
         withAvatars: usersWithAvatars.length,
         withoutAvatars: usersWithoutAvatars.length
       });
+      */
       
       users.forEach((user: User, index: number) => {
         console.log(`👤 Frontend: User #${index + 1}:`, {

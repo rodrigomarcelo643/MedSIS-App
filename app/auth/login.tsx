@@ -58,9 +58,9 @@ const LoginScreen = () => {
 
   const isWeb = Platform.OS === "web";
 
+
   useEffect(() => {
     clearUser();
-
     // Check if user needs to accept policy (if coming from policy screen)
     const checkPolicyStatus = async () => {
       // If we have a user in context but they haven't accepted policy
@@ -135,6 +135,7 @@ const LoginScreen = () => {
     }
   };
 
+// Form Validation 
   const validateLoginForm = () => {
     if (!loginData.student_id.trim()) {
       Toast.show({
@@ -159,6 +160,7 @@ const LoginScreen = () => {
     return true;
   };
 
+  // Login Logic 
   const handleLogin = async () => {
     if (!validateLoginForm()) return;
 
@@ -241,7 +243,7 @@ const LoginScreen = () => {
             // Regular login successful with policy accepted
             const userData = {
               ...result.user,
-              avatar: result.user.avatar || "https://i.pravatar.cc/150",
+              avatar: result.user.avatar || "https://msis.eduisync.io/swu-head.png",
               contact_number: result.user.contact_number || "No phone added",
               joinDate: result.user.joinDate || "Member since 2023",
               policy_accepted: result.user.policy_accepted || 1,

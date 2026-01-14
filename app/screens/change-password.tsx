@@ -18,19 +18,23 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from "react-native-toast-message";
-
 
 const API_URL = `${API_BASE_URL}/api/change_password.php`;
 
 const ChangePassword = () => {
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   // Theme Change 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const borderColor = useThemeColor({}, 'border');
   const mutedColor = useThemeColor({}, 'muted');
+  
+  // Detect three-button navigation
+  const hasThreeButtonNav = Platform.OS === 'android' && insets.bottom === 0;
 
   const navigation = useNavigation();
   const [passwords, setPasswords] = useState({
@@ -46,7 +50,16 @@ const ChangePassword = () => {
     isCurrentPasswordFocused: false,
     isNewPasswordFocused: false,
     isConfirmPasswordFocused: false,
+    otpSent: false,
+    resendLoading: false,
   });
+
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otpError, setOtpError] = useState('');
+  const otpInputs = useRef<Array<TextInput | null>>([]);
+  const [timer, setTimer] = useState(0);
+  const [sentOtp, setSentOtp] = useState('');
+  const [otpExpiry, setOtpExpiry] = useState<number>(0);
 
   const [passwordValidation, setPasswordValidation] = useState({
     hasMinLength: false,
@@ -54,6 +67,7 @@ const ChangePassword = () => {
     hasNumber: false,
     hasUpperCase: false,
     isNotCommon: false,
+    isDifferentFromCurrent: true,
     allValid: false,
   });
 
@@ -87,7 +101,16 @@ const ChangePassword = () => {
 
   useEffect(() => {
     validatePassword(passwords.new_password);
-  }, [passwords.new_password]);
+  }, [passwords.new_password, passwords.current_password]);
+
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [timer]);
 
   const validatePassword = (password: string) => {
     const validations = {
@@ -96,6 +119,7 @@ const ChangePassword = () => {
       hasNumber: /\d/.test(password),
       hasUpperCase: /[A-Z]/.test(password),
       isNotCommon: !commonPasswords.includes(password.toLowerCase()),
+      isDifferentFromCurrent: password !== passwords.current_password,
     };
 
     setPasswordValidation({
@@ -187,12 +211,12 @@ const ChangePassword = () => {
 
     let isValid = true;
 
-    if (!passwords.current_password.trim()) {
+    if (!passwords.current_password || !passwords.current_password.trim()) {
       newErrors.current_password = "Current password is required";
       isValid = false;
     }
 
-    if (!passwords.new_password.trim()) {
+    if (!passwords.new_password || !passwords.new_password.trim()) {
       newErrors.new_password = "New password is required";
       isValid = false;
     } else if (!passwordValidation.allValid) {
@@ -200,7 +224,7 @@ const ChangePassword = () => {
       isValid = false;
     }
 
-    if (!passwords.confirm_password.trim()) {
+    if (!passwords.confirm_password || !passwords.confirm_password.trim()) {
       newErrors.confirm_password = "Please confirm your password";
       isValid = false;
     } else if (passwords.new_password !== passwords.confirm_password) {
@@ -208,75 +232,138 @@ const ChangePassword = () => {
       isValid = false;
     }
 
-    setErrors(newErrors);
+    if (!isValid) {
+      setErrors(newErrors);
+      console.log('Validation failed:', newErrors);
+      console.log('Current passwords state:', passwords);
+      console.log('Password validation:', passwordValidation);
+    }
     return isValid;
   };
 
-  const handleChangePassword = async () => {
+  const requestOTP = async () => {
     if (!validateForm()) return;
+
+    setState((prev) => ({ ...prev, loading: true }));
+    setErrors({ current_password: "", new_password: "", confirm_password: "" });
+
+    try {
+      console.log('Sending OTP request to:', API_URL);
+      console.log('User ID:', user?.id);
+      
+      const response = await axios.post(API_URL, {
+        action: "request_otp",
+        user_id: user?.id,
+      });
+
+      console.log('OTP Response:', response.data);
+
+      if (response.data.success) {
+        setSentOtp(response.data.otp);
+        setOtpExpiry(Date.now() + 600000);
+        setState((prev) => ({ ...prev, otpSent: true, loading: false }));
+        setTimer(60);
+        Toast.show({
+          type: 'success',
+          text1: 'OTP Sent',
+          text2: `Check ${user?.email || 'your email'}`,
+        });
+      } else {
+        console.log('OTP request failed:', response.data.message);
+        showModal("error", "Error", response.data.message);
+        setState((prev) => ({ ...prev, loading: false }));
+      }
+    } catch (error: any) {
+      console.log('OTP Error:', error);
+      console.log('Error response:', error.response?.data);
+      console.log('Error message:', error.message);
+      const errorMsg = error.response?.data?.message || error.message || "Failed to send OTP";
+      showModal("error", "Error", errorMsg);
+      setState((prev) => ({ ...prev, loading: false }));
+    }
+  };
+
+  const resendOTP = async () => {
+    setState((prev) => ({ ...prev, resendLoading: true }));
+    setOtp(['', '', '', '', '', '']);
+    setOtpError('');
+
+    try {
+      const response = await axios.post(API_URL, {
+        action: "request_otp",
+        user_id: user?.id,
+      });
+
+      if (response.data.success) {
+        setSentOtp(response.data.otp);
+        setOtpExpiry(Date.now() + 600000);
+        setTimer(60);
+        Toast.show({ type: 'success', text1: 'OTP Resent', text2: `Check ${user?.email || 'your email'}` });
+      } else {
+        Toast.show({ type: 'error', text1: 'Failed to resend', text2: response.data.message });
+      }
+    } catch (error: any) {
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to resend OTP' });
+    } finally {
+      setState((prev) => ({ ...prev, resendLoading: false }));
+    }
+  };
+
+  const handleOtpChange = (value: string, index: number) => {
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    setOtpError('');
+    if (value && index < 5) otpInputs.current[index + 1]?.focus();
+  };
+
+  const handleOtpKeyPress = (e: any, index: number) => {
+    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+      otpInputs.current[index - 1]?.focus();
+    }
+  };
+
+  const verifyOTPAndChangePassword = async () => {
+    const otpCode = otp.join('');
+    if (otpCode.length !== 6) {
+      setOtpError('Please enter complete OTP');
+      return;
+    }
+
+    if (Date.now() > otpExpiry) {
+      setOtpError('OTP has expired');
+      return;
+    }
+
+    if (otpCode !== sentOtp) {
+      setOtpError('Invalid OTP');
+      return;
+    }
 
     setState((prev) => ({ ...prev, loading: true }));
 
     try {
-      const requestData = {
+      const response = await axios.post(API_URL, {
+        action: "change_password",
         user_id: user?.id,
         current_password: passwords.current_password,
         new_password: passwords.new_password,
-      };
-
-      const response = await axios.post(API_URL, requestData, {
-        headers: { "Content-Type": "application/json" },
-        timeout: 10000,
       });
 
-      const result = response.data;
-
-      if (result.success) {
-        // Clear form
-        setPasswords({
-          current_password: "",
-          new_password: "",
-          confirm_password: "",
-        });
-
-        // Reset animations
-        Animated.timing(currentLabelPosition, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: false,
-        }).start();
-        Animated.timing(newLabelPosition, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: false,
-        }).start();
-        Animated.timing(confirmLabelPosition, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: false,
-        }).start();
-
-        showModal(
-          "success",
-          "Success",
-          result.message || "Password changed successfully"
-        );
+      if (response.data.success) {
+        setPasswords({ current_password: "", new_password: "", confirm_password: "" });
+        setOtp(['', '', '', '', '', '']);
+        setSentOtp('');
+        setOtpExpiry(0);
+        setState((prev) => ({ ...prev, otpSent: false, loading: false }));
+        showModal("success", "Success", "Password changed successfully");
       } else {
-        showModal(
-          "error",
-          "Error",
-          result.message || "Failed to change password"
-        );
+        setOtpError(response.data.message);
+        setState((prev) => ({ ...prev, loading: false }));
       }
     } catch (error: any) {
-      showModal(
-        "error",
-        "Error",
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to change password"
-      );
-    } finally {
+      setOtpError("Failed to change password");
       setState((prev) => ({ ...prev, loading: false }));
     }
   };
@@ -354,25 +441,23 @@ const ChangePassword = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
+      className="flex-1 bg-gray-50"
+      style={{ backgroundColor }}
     >
+      {/* Fixed Header */}
+      <View className="flex-row items-center px-4 py-4 pt-10 bg-white border-b border-gray-200" style={{ backgroundColor: cardColor }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3">
+          <ArrowLeft size={24} color={textColor} />
+        </TouchableOpacity>
+        <Text className="text-xl font-bold" style={{ color: textColor }}>Change Password</Text>
+      </View>
+
       <ScrollView
-        className="flex-1 px-3 py-6 mt-10"
+        className="flex-1 px-3 py-6"
         keyboardShouldPersistTaps="handled"
         style={{ backgroundColor }}
+        contentContainerStyle={{ paddingBottom: hasThreeButtonNav ? 48 : 0 }}
       >
-        {/* Header */}
-        <View className="flex-row items-center mb-6">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="mr-4 p-2 rounded-full bg-gray-100"
-          >
-            <ArrowLeft size={24} color="#af1616" />
-          </TouchableOpacity>
-          <Text className="text-2xl font-bold text-[#af1616]">
-            Change Password
-          </Text>
-        </View>
 
         <View className="bg-white p-3 mt-10 rounded-xl shadow-sm" style={{ backgroundColor: cardColor }}>
           {/* Current Password Input */}
@@ -601,8 +686,8 @@ const ChangePassword = () => {
 
           {/* Password Validation */}
           {passwords.new_password.length > 0 && (
-            <View className="mt-0 mb-3 p-3 bg-gray-50 rounded-lg">
-              <Text className="text-sm font-medium text-gray-600 mb-2">
+            <View className="mt-0 mb-3 p-3 rounded-lg" style={{ backgroundColor: backgroundColor }}>
+              <Text className="text-sm font-medium mb-2" style={{ color: mutedColor }}>
                 Password requirements:
               </Text>
               <View className="ml-1">
@@ -654,7 +739,7 @@ const ChangePassword = () => {
                     At least one uppercase letter
                   </Text>
                 </View>
-                <View className="flex-row items-center">
+                <View className="flex-row items-center mb-1">
                   {passwordValidation.isNotCommon ? (
                     <Check size={14} color="#10b981" />
                   ) : (
@@ -666,26 +751,96 @@ const ChangePassword = () => {
                     Not a common password
                   </Text>
                 </View>
+                <View className="flex-row items-center">
+                  {passwordValidation.isDifferentFromCurrent ? (
+                    <Check size={14} color="#10b981" />
+                  ) : (
+                    <X size={14} color="#ef4444" />
+                  )}
+                  <Text
+                    className={`text-xs ml-2 ${passwordValidation.isDifferentFromCurrent ? "text-green-600" : "text-red-600"}`}
+                  >
+                    Different from current password
+                  </Text>
+                </View>
               </View>
             </View>
           )}
 
-          {/* Submit Button */}
-          <TouchableOpacity
-            className={`h-14 bg-[#af1616] rounded-lg justify-center items-center flex-row shadow-sm ${
-              state.loading ? "opacity-80" : ""
-            }`}
-            onPress={handleChangePassword}
-            disabled={state.loading}
-          >
-            {state.loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-white text-lg font-semibold">
-                Change Password
-              </Text>
-            )}
-          </TouchableOpacity>
+          {/* OTP Section or Submit Button */}
+          {!state.otpSent ? (
+            <TouchableOpacity
+              className={`h-14 bg-[#af1616] rounded-xl justify-center items-center flex-row shadow-lg ${state.loading ? "opacity-80" : ""}`}
+              onPress={requestOTP}
+              disabled={state.loading}
+              style={{ elevation: 3 }}
+            >
+              {state.loading ? (
+                <ActivityIndicator color="white" size="small" />
+              ) : (
+                <Text className="text-white text-base font-bold">Send OTP to Email</Text>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <View>
+              <Text className="text-sm font-semibold mb-3" style={{ color: textColor }}>Enter OTP Code</Text>
+              <View className="flex-row justify-between mb-4">
+                {otp.map((digit, index) => (
+                  <TextInput
+                    key={index}
+                    ref={(ref) => { if (ref) otpInputs.current[index] = ref; }}
+                    className="w-12 h-14 border-2 rounded-xl text-center text-xl font-bold"
+                    style={{ borderColor: otpError ? '#ef4444' : digit ? '#af1616' : mutedColor + '40', color: textColor, backgroundColor: cardColor }}
+                    value={digit}
+                    onChangeText={(value) => {
+                      if (value.length > 1) {
+                        const digits = value.replace(/\D/g, '').slice(0, 6).split('');
+                        const newOtp = [...otp];
+                        digits.forEach((d, i) => {
+                          if (index + i < 6) newOtp[index + i] = d;
+                        });
+                        setOtp(newOtp);
+                        const nextIndex = Math.min(index + digits.length, 5);
+                        otpInputs.current[nextIndex]?.focus();
+                      } else {
+                        handleOtpChange(value, index);
+                      }
+                    }}
+                    onKeyPress={(e) => handleOtpKeyPress(e, index)}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    selectTextOnFocus
+                    onFocus={() => {
+                      otpInputs.current[index]?.setNativeProps({
+                        selection: { start: 0, end: otp[index].length }
+                      });
+                    }}
+                  />
+                ))}
+              </View>
+              {otpError ? <Text className="text-red-500 text-xs mb-3">{otpError}</Text> : null}
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-sm" style={{ color: mutedColor }}>Didn't receive code?</Text>
+                <TouchableOpacity onPress={resendOTP} disabled={timer > 0 || state.resendLoading}>
+                  <Text className="text-sm font-semibold" style={{ color: timer > 0 ? mutedColor : '#af1616' }}>
+                    {state.resendLoading ? 'Sending...' : timer > 0 ? `Resend in ${timer}s` : 'Resend OTP'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                className={`h-14 bg-[#af1616] rounded-xl justify-center items-center flex-row shadow-lg ${state.loading ? "opacity-80" : ""}`}
+                onPress={verifyOTPAndChangePassword}
+                disabled={state.loading}
+                style={{ elevation: 3 }}
+              >
+                {state.loading ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <Text className="text-white text-base font-bold">Verify & Change Password</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
 

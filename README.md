@@ -24,6 +24,23 @@
 
 A comprehensive mobile application designed specifically for medical students to upload academic requirements, view evaluation results history, and manage their educational journey. This first version release focuses on streamlined document submission, evaluation tracking, and essential academic tools with AI assistance and real-time communication features.
 
+## 🏥 Release v1.0.0
+
+**Release Date:** December 5, 2025
+
+### Streamlined Academic Management for Medical Students
+
+MedSIS App v1.0.0  delivers a comprehensive mobile solution specifically designed for medical students to efficiently manage their academic requirements and evaluations. This release focuses on core functionalities including secure document upload for academic requirements, real-time evaluation results tracking with e-signatures, AI-powered academic assistance, and seamless communication with faculty. Built with React Native and TypeScript, provides reliable cross-platform performance with Philippine timezone integration and robust security features tailored for medical education environments.
+
+**Key Highlights:**
+
+- 🔐 Enhanced security with OTP verification and password requirements
+- 📱 Cross-platform compatibility (iOS/Android) with native performance
+- 🤖 AI-powered student assistant for academic support
+- 💬 Real-time messaging system with live updates
+- 📊 Comprehensive evaluation tracking with e-signatures
+- 🌙 Dark/Light theme support with NativeWind styling
+- ⚡ 100% test coverage ensuring reliability and stability
 
 ## Project Structure
 
@@ -54,7 +71,6 @@ MedSIS-App/
 │   │   ├── learning-materials.tsx # Educational resources
 │   │   ├── messages.tsx         # Messages and conversations management
 │   │   ├── school-calendar.tsx   # Calendar details
-│   │   └── test-results.tsx     # Test results dashboard with visual stats
 │   ├── _layout.tsx              # Root layout configuration
 │   └── +not-found.tsx           # 404 error page
 ├── assets/                      # Static assets
@@ -92,7 +108,7 @@ MedSIS-App/
 │   ├── services/                # Service layer tests
 │   ├── components/              # UI component tests
 │   ├── utils/                   # Utility function tests
-│   └── test-runner.ts           # Test execution and reporting
+│   └── test-runner.js          # Test execution and reporting
 ├── scripts/                     # Build and utility scripts
 │   └── reset-project.js         # Project reset utilities
 ├── android/                     # Android-specific configuration
@@ -119,7 +135,7 @@ MedSIS-App/
 - **app/(tabs)/profile.tsx** - User profile with editable personal and academic information
 - **app/(tabs)/ai-assistant.tsx** - AI-powered chatbot for student assistance
 - **app/(tabs)/folder.tsx** - Document management and file organization system
-- **app/(tabs)/calendar.tsx** - Academic calendar with events and schedules
+- **app/(tabs)/evaluation.tsx** - Evaluation Display with evaluator e-signatures
 
 ### Authentication Flow
 
@@ -138,8 +154,7 @@ MedSIS-App/
 - **app/screens/announcements.tsx** - Detailed view of school announcements with lazy loading and back-to-top navigation
 - **app/screens/evaluations.tsx** - View evaluation results history and evaluator e-signatures
 - **app/screens/learning-materials.tsx** - Educational resources and materials
-- **app/screens/calendar.tsx** - Enhanced calendar with accurate time alignment for Philippine timezone
-- **app/screens/test-results.tsx** - Visual test results dashboard with pass/fail statistics
+- **app/screens/evaluation.tsx** - Detailed view of Evaluated results and evaluator e-signatures
 - **app/notifications/index.tsx** - Push notification management with Philippine time conversion and feedback handling
 
 ### UI Components
@@ -237,7 +252,7 @@ MedSIS-App/
 - 🌙 Dark/Light theme support
 - 📱 Cross-platform compatibility (iOS/Android)
 
-## Version 1.0.0 - First Release
+## Version 1.0.0
 
 ### Core Features
 

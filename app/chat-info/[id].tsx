@@ -7,13 +7,13 @@ import {
   Image,
   TextInput,
   ActivityIndicator,
-  ScrollView,
   Modal,
   Linking,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
   ArrowLeft, 
   Search, 
@@ -89,15 +89,17 @@ interface LinkItem {
 
 export default function ChatInfoScreen() {
   const router = useRouter();
-  const { id, name, avatar, user_type, searchQuery: initialSearchQuery, showSearch: initialShowSearch } = useLocalSearchParams();
+  const { id, name, avatar, user_type, searchQuery: initialSearchQuery, showSearch: initialShowSearch, isOnline: initialOnlineStatus } = useLocalSearchParams();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
   
+  // Detect three-button navigation (same logic as tab layout)
+  const hasThreeButtonNav = insets.bottom > 0;
 
-  
   // Extract actual user ID from unique_key format (user_type_id)
   const actualUserId = (id as string).includes('_') ? (id as string).split('_')[1] : id as string;
 
@@ -121,7 +123,9 @@ export default function ChatInfoScreen() {
   const [mediaPage, setMediaPage] = useState(1);
   const [hasMoreMedia, setHasMoreMedia] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-
+  const [userOnlineStatus, setUserOnlineStatus] = useState<boolean | null>(initialOnlineStatus === 'true' ? true : initialOnlineStatus === 'false' ? false : null);
+  const [statusLoading, setStatusLoading] = useState(true);
+  
   const loadMoreMedia = () => {
     if (hasMoreMedia && activeTab === 'media' && allMediaMessages.length > 0 && !loadingMore) {
       setLoadingMore(true);
@@ -155,7 +159,31 @@ export default function ChatInfoScreen() {
 
   useEffect(() => {
     loadInitialData();
+    checkUserOnlineStatus();
   }, []);
+
+  const checkUserOnlineStatus = async () => {
+    setStatusLoading(true);
+    try {
+      // Simulate delay for skeleton loader
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const { users } = await messageService.getActiveUsers(user?.id || '', 1, 100);
+      const targetUser = users.find(u => (u.unique_key || u.id) === id);
+      if (targetUser) {
+        setUserOnlineStatus(targetUser.isOnline);
+      } else {
+        // If user not found in active users, they're offline
+        setUserOnlineStatus(false);
+      }
+    } catch (error) {
+      console.error('Error checking user online status:', error);
+      // Default to offline on error
+      setUserOnlineStatus(false);
+    } finally {
+      setStatusLoading(false);
+    }
+  };
 
 
 
@@ -398,9 +426,10 @@ export default function ChatInfoScreen() {
         </TouchableOpacity>
         <Text className="text-xl font-bold" style={{ color: textColor }}>Chat Info</Text>
         <View className="flex-1" />
-        <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
+       
+       {/** <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
           <Search size={24} color={textColor} />
-        </TouchableOpacity>
+        </TouchableOpacity> **/}
       </View>
 
       {/* Fixed Search Bar */}
@@ -430,6 +459,9 @@ export default function ChatInfoScreen() {
         </View>
       )}
 
+      {/* Border Line Above Profile */}
+      <View className="h-px" style={{ backgroundColor: mutedColor + '20' }} />
+
       {/* Fixed Profile Section */}
       <View className="items-center py-6" style={{ backgroundColor: cardColor }}>
         <View className="relative">
@@ -444,13 +476,42 @@ export default function ChatInfoScreen() {
               className="absolute inset-0 w-24 h-24 rounded-full"
             />
           )}
-          <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-white" />
+          {/* Online Status Indicator */}
+          {statusLoading ? (
+            <View className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-4 border-white" style={{ backgroundColor: mutedColor + '50' }}>
+              <View className="flex-1 items-center justify-center">
+                <View className="w-2 h-2 rounded-full" style={{ backgroundColor: mutedColor }} />
+              </View>
+            </View>
+          ) : userOnlineStatus ? (
+            <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-white" />
+          ) : (
+            <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-gray-400 rounded-full border-4 border-white" />
+          )}
         </View>
         <Text className="text-2xl font-bold mt-4" style={{ color: textColor }}>
           {name || 'User'}
         </Text>
-        <Text className="text-sm" style={{ color: mutedColor }}>{user_type}</Text>
+        <View className="flex-row items-center mt-2 px-4 py-2 rounded-full" style={{ backgroundColor: userOnlineStatus ? '#10B98120' : mutedColor + '15' }}>
+          <Text className="text-sm font-medium" style={{ color: mutedColor }}>
+            {user_type ? String(user_type).charAt(0).toUpperCase() + String(user_type).slice(1) : 'User'}
+          </Text>
+          <Text className="text-sm mx-2" style={{ color: mutedColor }}>•</Text>
+          {statusLoading ? (
+            <SkeletonLoader width={50} height={14} borderRadius={7} />
+          ) : (
+            <View className="flex-row items-center">
+              <View className={`w-2 h-2 rounded-full mr-1.5 ${userOnlineStatus ? 'bg-green-500' : 'bg-gray-400'}`} />
+              <Text className="text-sm font-semibold" style={{ color: userOnlineStatus ? '#10B981' : mutedColor }}>
+                {userOnlineStatus ? 'Online' : 'Offline'}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
+
+      {/* Border Line Below Profile */}
+      <View className="h-px" style={{ backgroundColor: mutedColor + '20' }} />
 
       {/* Fixed Tabs */}
       <View className="flex-row border-b" style={{ backgroundColor: cardColor, borderBottomColor: mutedColor + '30' }}>
@@ -559,6 +620,7 @@ export default function ChatInfoScreen() {
             maxToRenderPerBatch={5}
             windowSize={5}
             initialNumToRender={10}
+            contentContainerStyle={{ paddingBottom: hasThreeButtonNav ? insets.bottom : 0 }}
             ListFooterComponent={activeTab === 'media' && loadingMore ? (
               <View className="py-4 items-center">
                 <ActivityIndicator size="small" color="#af1616" />

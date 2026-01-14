@@ -19,7 +19,8 @@ import {
   User
 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Modal, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, Platform, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Types based on your database schema
 interface Announcement {
@@ -68,21 +69,21 @@ const priorityBorderColors = {
 };
 
 // Skeleton Loader Component
-const SkeletonLoader = () => {
+const SkeletonLoader = ({ cardColor, loadColor }: { cardColor: string; loadColor: string }) => {
   return (
     <View className="p-4">
       {[1, 2, 3, 4 ].map((item) => (
-        <View key={item} className="bg-white rounded-xl p-4 mb-4">
+        <View key={item} className="bg-white rounded-xl p-4 mb-4" style={{ backgroundColor: cardColor }}>
           <View className="flex-row justify-between items-center mb-3">
-            <View className="h-6 w-24 bg-gray-200 rounded-full"></View>
-            <View className="h-6 w-16 bg-gray-200 rounded-full"></View>
+            <View className="h-6 w-24 bg-gray-200 rounded-full" style={{ backgroundColor: loadColor }}></View>
+            <View className="h-6 w-16 bg-gray-200 rounded-full" style={{ backgroundColor: loadColor }}></View>
           </View>
-          <View className="h-6 w-3/4 bg-gray-200 rounded mb-2"></View>
-          <View className="h-4 w-full bg-gray-200 rounded mb-1"></View>
-          <View className="h-4 w-5/6 bg-gray-200 rounded mb-3"></View>
+          <View className="h-6 w-3/4 bg-gray-200 rounded mb-2" style={{ backgroundColor: loadColor }}></View>
+          <View className="h-4 w-full bg-gray-200 rounded mb-1" style={{ backgroundColor: loadColor }}></View>
+          <View className="h-4 w-5/6 bg-gray-200 rounded mb-3" style={{ backgroundColor: loadColor }}></View>
           <View className="flex-row justify-between items-center">
-            <View className="h-4 w-20 bg-gray-200 rounded"></View>
-            <View className="h-4 w-24 bg-gray-200 rounded"></View>
+            <View className="h-4 w-20 bg-gray-200 rounded" style={{ backgroundColor: loadColor }}></View>
+            <View className="h-4 w-24 bg-gray-200 rounded" style={{ backgroundColor: loadColor }}></View>
           </View>
         </View>
       ))}
@@ -91,21 +92,21 @@ const SkeletonLoader = () => {
 };
 
 // Lazy Loader Component
-const LazyLoader = () => {
+const LazyLoader = ({ cardColor, loadColor }: { cardColor: string; loadColor: string }) => {
   return (
     <View className="p-4">
       {[1, 2].map((item) => (
-        <View key={item} className="bg-white rounded-xl p-4 mb-4">
+        <View key={item} className="bg-white rounded-xl p-4 mb-4" style={{ backgroundColor: cardColor }}>
           <View className="flex-row justify-between items-center mb-3">
-            <View className="h-6 w-24 bg-gray-200 rounded-full"></View>
-            <View className="h-6 w-16 bg-gray-200 rounded-full"></View>
+            <View className="h-6 w-24 bg-gray-200 rounded-full" style={{ backgroundColor: loadColor }}></View>
+            <View className="h-6 w-16 bg-gray-200 rounded-full" style={{ backgroundColor: loadColor }}></View>
           </View>
-          <View className="h-6 w-3/4 bg-gray-200 rounded mb-2"></View>
-          <View className="h-4 w-full bg-gray-200 rounded mb-1"></View>
-          <View className="h-4 w-5/6 bg-gray-200 rounded mb-3"></View>
+          <View className="h-6 w-3/4 bg-gray-200 rounded mb-2" style={{ backgroundColor: loadColor }}></View>
+          <View className="h-4 w-full bg-gray-200 rounded mb-1" style={{ backgroundColor: loadColor }}></View>
+          <View className="h-4 w-5/6 bg-gray-200 rounded mb-3" style={{ backgroundColor: loadColor }}></View>
           <View className="flex-row justify-between items-center">
-            <View className="h-4 w-20 bg-gray-200 rounded"></View>
-            <View className="h-4 w-24 bg-gray-200 rounded"></View>
+            <View className="h-4 w-20 bg-gray-200 rounded" style={{ backgroundColor: loadColor }}></View>
+            <View className="h-4 w-24 bg-gray-200 rounded" style={{ backgroundColor: loadColor }}></View>
           </View>
         </View>
       ))}
@@ -115,12 +116,26 @@ const LazyLoader = () => {
 
 const AnnouncementsScreen: React.FC = () => {
   const { user, logout } = useAuth();
+  const insets = useSafeAreaInsets();
 
   //Theme Changer 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
+  const loadColor = useThemeColor({}, 'loaderCard');
+  
+  // Enhanced navigation detection
+  const hasThreeButtonNav = React.useMemo(() => {
+    if (Platform.OS === 'ios') {
+      return insets.bottom > 20; // iOS home indicator
+    }
+    return insets.bottom > 0; // Android three-button nav
+  }, [insets.bottom]);
+
+  const isGestureNav = React.useMemo(() => {
+    return Platform.OS === 'android' && insets.bottom === 0;
+  }, [insets.bottom]);
 
   const router = useRouter();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -327,32 +342,32 @@ const AnnouncementsScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-50 pt-10">
-        <View className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200">
+      <View className="flex-1 bg-gray-50 pt-10" style={{ backgroundColor }}>
+        <View className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200" style={{ backgroundColor: cardColor }}>
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
-            <ChevronLeft size={24} color="#800000" />
+            <ChevronLeft size={24} color={textColor} />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-maroon-800">Announcements</Text>
+          <Text className="text-xl font-bold" style={{ color: textColor }}>Announcements</Text>
         </View>
-        <SkeletonLoader />
+        <SkeletonLoader cardColor={cardColor} loadColor={loadColor} />
       </View>
     );
   }
 
   if (error) {
     return (
-      <View className="flex-1 bg-gray-50 pt-10">
-        <View className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200">
+      <View className="flex-1 bg-gray-50 pt-10" style={{ backgroundColor }}>
+        <View className="flex-row items-center px-4 py-4 bg-white border-b border-gray-200" style={{ backgroundColor: cardColor }}>
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
-            <ChevronLeft size={24} color="#800000" />
+            <ChevronLeft size={24} color={textColor} />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-maroon-800">Announcements</Text>
+          <Text className="text-xl font-bold" style={{ color: textColor }}>Announcements</Text>
         </View>
         <View className="flex-1 justify-center items-center p-5">
-          <AlertTriangle size={48} color="#800000" />
-          <Text className="mt-4 text-maroon-700 text-center">{error}</Text>
+          <AlertTriangle size={48} color="#af1616" />
+          <Text className="mt-4 text-center" style={{ color: textColor }}>{error}</Text>
           <TouchableOpacity 
-            className="mt-4 px-6 py-3 bg-maroon-600 rounded-lg"
+            className="mt-4 px-6 py-3 bg-[#af1616] rounded-lg"
             onPress={fetchAnnouncements}
           >
             <Text className="text-white font-semibold">Try Again</Text>
@@ -394,17 +409,35 @@ const AnnouncementsScreen: React.FC = () => {
         className="flex-1"
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        contentContainerStyle={{ 
+          paddingBottom: hasThreeButtonNav ? insets.bottom + 16 : isGestureNav ? 24 : 16 
+        }}
       >
         {displayedAnnouncements.length === 0 ? (
           <View className="flex-1 justify-center items-center py-20 px-5">
-            <Bell size={48} color="#9ca3af" />
-            <Text className="mt-4 text-gray-500 text-lg font-medium">No announcements found</Text>
-            <Text className="mt-2 text-gray-400 text-center">
-              {selectedPriority !== 'all' 
-                ? `No ${selectedPriority} priority announcements found. Try changing your filter.`
-                : 'Check back later for new announcements.'
-              }
-            </Text>
+            <View className="bg-white rounded-2xl shadow-md p-8 items-center max-w-sm" style={{ backgroundColor: cardColor }}>
+              <View className="w-20 h-20 bg-[#af1616]/10 rounded-full items-center justify-center mb-4">
+                <Bell size={40} color="#af1616" />
+              </View>
+              <Text className="text-xl font-bold text-gray-800 text-center mb-2" style={{ color: textColor }}>
+                No Announcements Found
+              </Text>
+              <Text className="text-gray-500 text-center text-sm leading-5" style={{ color: mutedColor }}>
+                {selectedPriority !== 'all' 
+                  ? `No ${selectedPriority} priority announcements available. Try adjusting your filter settings.`
+                  : 'Check back later for new announcements and updates from your school.'
+                }
+              </Text>
+              {selectedPriority !== 'all' && (
+                <TouchableOpacity 
+                  className="mt-6 flex-row items-center bg-[#af1616] rounded-lg px-5 py-3"
+                  onPress={() => setSelectedPriority('all')}
+                >
+                  <Filter size={16} color="#ffffff" />
+                  <Text className="text-white font-semibold ml-2">Clear Filter</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         ) : (
           <View className="p-4">
@@ -461,11 +494,11 @@ const AnnouncementsScreen: React.FC = () => {
               );
             })}
             
-            {loadingMore && <LazyLoader />}
+            {loadingMore && <LazyLoader cardColor={cardColor} loadColor={loadColor} />}
             
             {displayedAnnouncements.length < filteredAnnouncements.length && !loadingMore && (
               <TouchableOpacity 
-                className="bg-maroon-600 rounded-lg p-4 items-center mt-4"
+                className="bg-[#af1616] rounded-lg p-4 items-center mt-4"
                 onPress={loadMore}
               >
                 <Text className="text-white font-semibold">Load More</Text>
@@ -480,19 +513,7 @@ const AnnouncementsScreen: React.FC = () => {
         <View className="absolute bottom-4 right-4">
           <TouchableOpacity
             onPress={scrollToTop}
-            className="w-12 h-12 rounded-full bg-[#800000] items-center justify-center shadow-lg"
-            style={{ elevation: 5 }}
-          >
-            <ArrowUp size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-      )}
-      {/* Back to Top Button */}
-      {showBackToTop && (
-        <View className="absolute bottom-4 right-4">
-          <TouchableOpacity
-            onPress={scrollToTop}
-            className="w-12 h-12 rounded-full bg-[#800000] items-center justify-center shadow-lg"
+            className="w-12 h-12 rounded-full bg-[#af1616] items-center justify-center shadow-lg"
             style={{ elevation: 5 }}
           >
             <ArrowUp size={24} color="#FFFFFF" />

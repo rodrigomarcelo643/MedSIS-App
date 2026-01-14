@@ -414,14 +414,7 @@ const Evaluations: React.FC = () => {
           </View>
 
           {/* Additional Stats */}
-          <View className="flex-row justify-between border-t border-gray-100 pt-4">
-            <View className="items-center">
-              <Text className="text-lg font-bold text-amber-600">
-                {evaluationData.summary.in_progress_courses}
-              </Text>
-              <Text style={{ fontSize: 12, color: mutedColor }}>In Progress</Text>
-            </View>
-
+          <View className="flex-row justify-end  border-t border-gray-100 pt-4">
             <View className="items-center">
               <Text className="text-lg font-bold text-orange-500">
                 {evaluationData.summary.pending_courses}

@@ -19,7 +19,6 @@ import {
 } from "react-native";
 import "react-native-reanimated";
 import "../global.css";
-
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider as CustomThemeProvider } from "@/contexts/ThemeContext";
 
@@ -29,20 +28,43 @@ SplashScreen.preventAutoHideAsync();
 function MainLayout() {
   const { theme } = useTheme();
   const { user, loading } = useAuth();
-
-  console.log("🔄 MainLayout render - user:", user, "loading:", loading);
-
+  //console.log("🔄 MainLayout render - user:", user, "loading:", loading);
   // Loading session if user not yet loaded 
-  if (loading) {
-    console.log("⏳ Auth still loading, showing ActivityIndicator");
-    return (
-      <View className="flex-1 justify-center items-center bg-white">
+ if (loading) {
+  return (
+    <View className="flex-1 justify-center items-center bg-white px-6">
+      
+      {/* Animated circle or pulse */}
+      <View className="mb-6">
         <ActivityIndicator size="large" color="#af1616" />
-        <Text className="mt-3 text-gray-700">Loading session...</Text>
       </View>
-    );
-  }
 
+      {/* Title */}
+      <Text className="text-xl font-semibold text-gray-800">
+        Loading your session
+      </Text>
+
+      {/* Subtitle */}
+      <Text className="mt-2 text-gray-500 text-center">
+        Please wait while we prepare everything for you...
+      </Text>
+
+      {/* Fake loading progress dots */}
+      <View className="flex-row mt-6 space-x-2">
+        <View className="w-3 h-3 bg-red-600 rounded-full opacity-70" />
+        <View className="w-3 h-3 bg-red-500 rounded-full opacity-50" />
+        <View className="w-3 h-3 bg-red-400 rounded-full opacity-30" />
+      </View>
+
+      {/* Optional: App logo */}
+      {/* <Image 
+        source={require("../assets/swu-header.png")}
+        className="w-20 h-20 mt-10 opacity-90"
+      /> */}
+
+    </View>
+  );
+}
   return (
     <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
@@ -67,28 +89,28 @@ function MainLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="notifications/index"
-          options={{ title: "Notifications", headerShown: true }}
+          options={{ title: "Notifications", headerShown: false }}
         />
         <Stack.Screen name="+not-found" />
         <Stack.Screen
           name="screens/announcements"
-          options={{ title: "Announcements", headerShown: true }}
+          options={{ title: "Announcements", headerShown: false  }}
         />
         <Stack.Screen
           name="screens/learning-materials"
-          options={{ title: "Learning Materials", headerShown: true }}
+          options={{ title: "Learning Materials", headerShown: false }}
         />
         <Stack.Screen
           name="screens/calendar"
-          options={{ title: "Calendar", headerShown: true }}
+          options={{ title: "Calendar", headerShown: false  }}
         />
         <Stack.Screen
           name="screens/school-calendar"
-          options={{ title: "School Calendar", headerShown: true }}
+          options={{ title: "School Calendar", headerShown: false }}
         />
         <Stack.Screen
           name="screens/change-password"
-          options={{ title: "ChangePassword", headerShown: true }}
+          options={{ title: "ChangePassword", headerShown: false  }}
         />
       </Stack>
       <StatusBar style="auto" />
@@ -112,7 +134,7 @@ export default function RootLayout() {
   // Track app readiness
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      console.log("🔤 Fonts loaded or error, setting appIsReady = true");
+      //console.log("🔤 Fonts loaded or error, setting appIsReady = true");
       setAppIsReady(true);
     }
   }, [fontsLoaded, fontError]);
@@ -124,13 +146,13 @@ export default function RootLayout() {
 
       try {
         if (Platform.OS !== "web") {
-          console.log("📱 Hiding native splash screen");
+          //console.log("📱 Hiding native splash screen");
           await SplashScreen.hideAsync();
         }
 
         setTimeout(() => {
           if (isMountedRef.current && splashAnimationCompleted.current) {
-            console.log("🟢 Minimum splash time passed, hiding custom splash");
+            //console.log("🟢 Minimum splash time passed, hiding custom splash");
             setShowCustomSplash(false);
           }
         }, minimumSplashTimeRef.current);
@@ -152,10 +174,10 @@ export default function RootLayout() {
   const handleSplashAnimationComplete = () => {
     splashAnimationCompleted.current = true;
     const elapsedTime = Date.now() - startTimeRef.current;
-    console.log("🎬 Splash animation completed, elapsed:", elapsedTime);
+    //console.log("🎬 Splash animation completed, elapsed:", elapsedTime);
 
     if (appIsReady && elapsedTime >= minimumSplashTimeRef.current) {
-      console.log("🟢 Conditions met, hiding custom splash now");
+      // console.log("🟢 Conditions met, hiding custom splash now");
       setShowCustomSplash(false);
     }
   };

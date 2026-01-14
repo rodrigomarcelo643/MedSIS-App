@@ -192,8 +192,21 @@ const OTPVerification = () => {
     setState(prev => ({ ...prev, loading: true }));
     
     try {
+      // Parse user_data to get the password, or use student_id as default for first login
+      let userPassword = student_id; // Default to student_id for first login
+      if (user_data && typeof user_data === 'string') {
+        try {
+          const parsedData = JSON.parse(user_data);
+          userPassword = parsedData.password || student_id;
+        } catch (e) {
+          console.error('Error parsing user_data:', e);
+        }
+      }
+
       const requestData = {
         student_id,
+        password: userPassword,
+        resend_otp: true,
       };
 
       const response = await axios.post(APP_URL, requestData, {
@@ -354,13 +367,15 @@ const OTPVerification = () => {
             password: passwords.new_password
           };
           console.log("updated data" , updatedUserData);
-          router.push({
-            pathname: "/auth/policy-acceptance",
-            params: { 
-              student_id,
-              user_data: JSON.stringify(updatedUserData)
-            }
-          });
+          setTimeout(() => {
+            router.push({
+              pathname: "/auth/policy-acceptance",
+              params: { 
+                student_id,
+                user_data: JSON.stringify(updatedUserData)
+              }
+            });
+          }, 100);
         } else if (result.user) {
           // If no policy acceptance needed, login directly
           const userData = {

@@ -12,11 +12,13 @@ import {
   ActivityIndicator,
   Modal,
   Linking,
+  Keyboard,
 } from 'react-native';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_BASE_URL } from '@/constants/Config';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ArrowLeft,
   Send,
@@ -142,11 +144,24 @@ export default function ChatScreen() {
   const router = useRouter();
   const { id, name, avatar, user_type, isOnline, highlightMessage } = useLocalSearchParams();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   // Theme Change
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
+  
+  // Enhanced navigation detection
+  const hasThreeButtonNav = React.useMemo(() => {
+    if (Platform.OS === 'ios') {
+      return insets.bottom > 20; // iOS home indicator
+    }
+    return insets.bottom > 0; // Android three-button nav
+  }, [insets.bottom]);
+
+  const isGestureNav = React.useMemo(() => {
+    return Platform.OS === 'android' && insets.bottom === 0;
+  }, [insets.bottom]);
   
   // Extract actual user ID from unique_key format (user_type_id) with safety checks
   const safeId = String(id || '').substring(0, 50); // Ensure ID is not too long
@@ -176,6 +191,7 @@ export default function ChatScreen() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [navigatingToInfo, setNavigatingToInfo] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const isMountedRef = useRef(true);
 
@@ -184,6 +200,14 @@ export default function ChatScreen() {
     setLoading(true);
     loadMessages(1, false);
     markAsRead();
+    
+    // Keyboard listeners
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
     
     // Handle message highlighting
     if (highlightMessage) {
@@ -195,11 +219,17 @@ export default function ChatScreen() {
         }
       }, 3000);
       
-      return () => clearTimeout(highlightTimer);
+      return () => {
+        clearTimeout(highlightTimer);
+        keyboardDidShowListener.remove();
+        keyboardDidHideListener.remove();
+      };
     }
     
     return () => {
       isMountedRef.current = false;
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
     };
   }, [actualUserId, highlightMessage]);
 
@@ -993,11 +1023,7 @@ export default function ChatScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      style={{ flex: 1, backgroundColor }}
-    >
+    <View style={{ flex: 1, backgroundColor }}>
       
       {/* Header */}
       <View
@@ -1036,17 +1062,31 @@ export default function ChatScreen() {
           </Text>
         </View>
         
-        <TouchableOpacity onPress={() => {
+        <TouchableOpacity onPress={async () => {
           setNavigatingToInfo(true);
-          setTimeout(() => {
+          try {
+            // Fetch fresh online status before navigating
+            await checkUserOnlineStatus();
             const params = new URLSearchParams({
               name: String(name || ''),
               ...(avatar && { avatar: String(avatar) }),
-              user_type: String(user_type || '')
+              user_type: String(user_type || ''),
+              isOnline: String(userOnlineStatus)
             });
             router.push(`/chat-info/${safeId}?${params.toString()}`);
+          } catch (error) {
+            console.error('Error fetching status:', error);
+            // Navigate anyway with current status
+            const params = new URLSearchParams({
+              name: String(name || ''),
+              ...(avatar && { avatar: String(avatar) }),
+              user_type: String(user_type || ''),
+              isOnline: String(userOnlineStatus)
+            });
+            router.push(`/chat-info/${safeId}?${params.toString()}`);
+          } finally {
             setNavigatingToInfo(false);
-          }, 100);
+          }
         }}>
           <Info size={24} color={textColor} />
         </TouchableOpacity>
@@ -1185,7 +1225,12 @@ export default function ChatScreen() {
         {/* Input Area */}
         <View
           className="flex-row items-end px-4 py-3 border-t"
-          style={{ backgroundColor, borderTopColor: mutedColor + '30' }}
+          style={{ 
+            backgroundColor, 
+            borderTopColor: mutedColor + '30',
+            paddingBottom: hasThreeButtonNav ? insets.bottom : isGestureNav ? 8 : 0,
+            transform: [{ translateY: keyboardVisible ? -270 : 0 }]
+          }}
         >
           <TouchableOpacity
             onPress={() => setShowAttachments(!showAttachments)}
@@ -1345,6 +1390,6 @@ export default function ChatScreen() {
           )}
         </View>
       </Modal>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
