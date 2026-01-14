@@ -36,6 +36,7 @@ import Reanimated, {
   withTiming,
 } from "react-native-reanimated";
 
+
 const Skeleton = ({ width, height, borderRadius = 4, style = {} }: { width: number; height: number; borderRadius?: number; style?: object }) => {
   
   // Theme Change
@@ -321,6 +322,7 @@ export default function TabLayout() {
           <Skeleton width={36} height={36} borderRadius={18} />
         ) : (
           <>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/home")} className="flex-row items-center">
             <Image
               source={require("../../assets/images/swu-head.png")}
               className="w-9 h-9 mr-2"
@@ -349,6 +351,7 @@ export default function TabLayout() {
                 SIS
               </Text>
             </Text>
+            </TouchableOpacity>
           </>
         )}
       </View>

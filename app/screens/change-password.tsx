@@ -3,7 +3,7 @@ import { API_BASE_URL } from '@/constants/Config';
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
-import { ArrowLeft, Check, Eye, EyeOff, Key, X } from "lucide-react-native";
+import { ArrowLeft, Check, Eye, EyeOff, Key, Mail, X } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -767,21 +767,39 @@ const ChangePassword = () => {
             </View>
           )}
 
-          {/* OTP Section or Submit Button */}
-          {!state.otpSent ? (
-            <TouchableOpacity
-              className={`h-14 bg-[#af1616] rounded-xl justify-center items-center flex-row shadow-lg ${state.loading ? "opacity-80" : ""}`}
-              onPress={requestOTP}
-              disabled={state.loading}
-              style={{ elevation: 3 }}
-            >
-              {state.loading ? (
-                <ActivityIndicator color="white" size="small" />
-              ) : (
-                <Text className="text-white text-base font-bold">Send OTP to Email</Text>
-              )}
-            </TouchableOpacity>
-          ) : (
+          {/* Email Input with Get OTP Button */}
+          {!state.otpSent && (
+            <View className="mb-2 mt-3">
+              <View className="flex-row items-center gap-2">
+                <View className="flex-1 flex-row items-center border rounded-lg px-3 py-1.5" style={{ borderColor: mutedColor + '80' }}>
+                  <Mail size={18} color="#6b7280" />
+                  <TextInput
+                    className="flex-1 ml-0 text-[12px]"
+                    style={{ color: textColor }}
+                    value={user?.email || ''}
+                    editable={false}
+                    placeholder="No email"
+                    placeholderTextColor={mutedColor}
+                  />
+                </View>
+                <TouchableOpacity
+                  className="bg-[#af1616] rounded-lg px-4 py-4"
+                  onPress={requestOTP}
+                  disabled={state.loading || !user?.email}
+                  style={{ opacity: state.loading || !user?.email ? 0.5 : 1 }}
+                >
+                  {state.loading ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <Text className="text-white text-sm font-bold">Get OTP</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* OTP Section */}
+          {state.otpSent && (
             <View>
               <Text className="text-sm font-semibold mb-3" style={{ color: textColor }}>Enter OTP Code</Text>
               <View className="flex-row justify-between mb-4">

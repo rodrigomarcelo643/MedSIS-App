@@ -1,6 +1,5 @@
-
 /**
- * Temporary Base Url 
- * @Author: Marcelo Rodrigo 
+ * Backend API BASE URL
+ * @Author: Marcelo Rodrigo
  */
-export const API_BASE_URL = 'https://msis.eduisync.io';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL!;
