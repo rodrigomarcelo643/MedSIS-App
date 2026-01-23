@@ -24,6 +24,7 @@ import {
 } from 'lucide-react-native';
 import { messageService, Message } from '@/services/messageService';
 import { API_BASE_URL } from '@/constants/Config';
+import { MediaItem, LinkItem } from '@/@types/chat';
 
 // Skeleton loader component
 const SkeletonLoader = ({ width, height, borderRadius = 4 }: { width: number | string; height: number; borderRadius?: number }) => {
@@ -71,21 +72,7 @@ const FileIcon = ({ type, fileName }: { type: string; fileName?: string }) => {
   }
 };
 
-interface MediaItem {
-  id: string;
-  type: 'image' | 'file' | 'link';
-  url: string;
-  name?: string;
-  timestamp: Date;
-  fileName?: string;
-}
 
-interface LinkItem {
-  id: string;
-  url: string;
-  text: string;
-  timestamp: Date;
-}
 
 export default function ChatInfoScreen() {
   const router = useRouter();
