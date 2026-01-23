@@ -9,39 +9,7 @@ import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, Searc
 import { useEffect, useState } from "react";
 import { Dimensions, Modal, Platform, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start: Date;
-  event: string; 
-  end: Date;
-  color: string;
-  description: string;
-  course: string;
-  location: string;
-  year_level: string;
-}
-
-interface ApiEvent {
-  id: string;
-  title: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  color?: string;
-  description?: string;
-  year_level?: string;
-}
-
-type ViewMode = "month" | "week" | "day";
-type NavigationDirection = "prev" | "next";
-
-interface WeekRange {
-  start: Date;
-  end: Date;
-  dates: Date[];
-}
+import { CalendarEvent, ApiEvent, ViewMode, NavigationDirection, WeekRange } from '@/@types/screens/calendar';
 
 
 // Define the maroon color theme
