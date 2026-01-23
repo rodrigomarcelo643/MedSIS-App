@@ -48,75 +48,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-
-interface UserData {
-  id: string;
-  user_id?: string;
-  student_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  gender?: string;
-  nationality?: string;
-  foreigner_specify?: string;
-  contact_number?: string;
-  program?: string;
-  year_level_id?: number;
-  year_level_name?: string;
-  academic_year?: string;
-  avatar?: string;
-  avatar_url?: string;
-  avatar_data?: string;
-}
-
-interface User {
-  user_id: number;
-}
-interface EditData {
-  first_name: string;
-  last_name: string;
-  gender: string;
-  nationality: string;
-  foreigner_specify: string;
-  contact_number: string;
-}
-
-interface ExpandedSections {
-  personal: boolean;
-  academic: boolean;
-  contact: boolean;
-}
-
-interface UpdateModal {
-  visible: boolean;
-  success: boolean;
-  message: string;
-}
-
-interface InfoItemProps {
-  icon: React.ComponentType<{ size: number; color: string }>;
-  label: string;
-  value?: string;
-  editable?: boolean;
-  field?: keyof EditData;
-  inputRef?: React.RefObject<TextInput>;
-  keyboardType?: KeyboardTypeOptions;
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-  multiline?: boolean;
-}
-
-interface NationalityInputProps {
-  value?: string;
-  label: string;
-}
-
-interface SectionProps {
-  title: string;
-  icon: React.ComponentType<{ size: number; color: string }>;
-  children: React.ReactNode;
-  isExpanded: boolean;
-  onToggle: () => void;
-}
+import { UserData, ProfileUser, EditData, ExpandedSections, UpdateModal, InfoItemProps, NationalityInputProps, SectionProps } from '@/@types/tabs';
 
 const API_URL = `${API_BASE_URL}/api`;
 
