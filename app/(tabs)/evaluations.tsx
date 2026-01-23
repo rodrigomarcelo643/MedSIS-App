@@ -17,49 +17,7 @@ import {
   View,
 } from "react-native";
 import { Circle, Svg } from "react-native-svg";
-
-interface Evaluation {
-  curriculum_course_id: number;
-  student_grade_id: number | null;
-  student_id: string | null;
-  grade: string | null;
-  remarks: string | null;
-  evaluator_name: string | null;
-  evaluator_signature: string | null;
-  evaluator_signature_data: string | null;
-  date_evaluated: string | null;
-  code: string;
-  title: string;
-  year_level: string;
-  term: string;
-  units: number;
-}
-
-interface EvaluationSummary {
-  total_courses: number;
-  passed_courses: number;
-  failed_courses: number;
-  in_progress_courses: number;
-  pending_courses: number;
-  completion_percentage: number;
-}
-
-interface EvaluationResponse {
-  student: {
-    id: string;
-    student_id: string;
-    first_name: string;
-    last_name: string;
-    academic_year: string;
-    program: string;
-    evaluation_status: string;
-  };
-  has_matching_curriculum: boolean;
-  curriculum_academic_year: string;
-  evaluations: Evaluation[];
-  summary: EvaluationSummary;
-  error?: string;
-}
+import { Evaluation, EvaluationSummary, EvaluationResponse } from '@/@types/tabs';
 
 const Evaluations: React.FC = () => {
   const { user } = useAuth();
