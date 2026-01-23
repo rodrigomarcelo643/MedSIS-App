@@ -38,36 +38,7 @@ import {
   View
 } from "react-native";
 import Toast from "react-native-toast-message";
-
-interface UploadedFile {
-  id: string;
-  name: string;
-  size: number;
-  uri: string;
-  type: 'image' | 'pdf' | 'word' | 'document';
-  mimeType: string;
-  uploaded_at?: string;
-  status?: string;
-  feedback?: string;
-}
-
-interface Requirement {
-  id: string;
-  name: string;
-  completed: boolean;
-  file_count: number;
-  uploadedFiles: UploadedFile[];
-}
-
-interface FileInfo {
-  name: string;
-  size: number;
-  uri: string;
-  type: 'image' | 'pdf' | 'word' | 'document';
-  mimeType: string;
-}
-
-type FilterType = 'all' | 'completed' | 'not-completed';
+import { UploadedFile, Requirement, FileInfo, FilterType } from '@/@types/tabs';
 
 export default function FolderScreen() {
   const { user } = useAuth();
