@@ -25,25 +25,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-interface Message {
-  id: string;
-  text: string;
-  sender: "user" | "bot";
-  timestamp: Date;
-  isTyping?: boolean;
-  context?: any;
-}
-
-interface QuickLink {
-  id: string;
-  title: string;
-  description: string;
-  icon: any;
-  color: string;
-  action: string;
-  context: string;
-}
+import { Message, QuickLink } from '@/@types/tabs';
 
 export default function AIAssistant() {
   const { user } = useAuth();
