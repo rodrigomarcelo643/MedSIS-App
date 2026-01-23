@@ -18,16 +18,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-interface Notifications {
-  id: number,
-  type: string,
-  title: string,
-  message: string,
-  time: string,
-  read?: boolean,
-  avatar?: string
-}
+import { Notifications } from '@/@types/notifications';
 
 
 const API_URL = `${API_BASE_URL}/api`;
