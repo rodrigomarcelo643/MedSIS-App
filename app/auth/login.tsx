@@ -11,7 +11,6 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
-  Linking,
   Platform,
   ScrollView,
   Text,
@@ -551,9 +550,7 @@ const LoginScreen = () => {
             {/* Forgot password */}
             <TouchableOpacity
               className="mt-3 items-center"
-              onPress={() =>
-                Linking.openURL(`${API_BASE_URL}/forgot-password`)
-              }
+              onPress={() => router.navigate("/auth/forgot-password" as any)}
             >
               <Text className="text-[#af1616] text-[15px] font-medium">
                 Forgot password?
