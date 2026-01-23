@@ -14,38 +14,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-
-interface SkeletonLoaderProps {
-  width: number | string;
-  height: number | string;
-  borderRadius?: number;
-  style?: ViewStyle;
-  children?: React.ReactNode;
-}
-
-interface QuickLinkCardProps {
-  title: string;
-  description: string;
-  onPress: () => void;
-  color: string;
-  bgImage: ImageSourcePropType;
-}
-
-interface WelcomeHeaderProps {
-  user: any;
-  onProfilePress: () => void;
-}
-
-interface QuickLink {
-  id: number;
-  title: string;
-  description: string;
-  color: string;
-  count: number;
-  bgImage: ImageSourcePropType;
-  onPress: () => void;
-  icon: React.ReactNode;
-}
+import { SkeletonLoaderProps, QuickLinkCardProps, WelcomeHeaderProps, HomeQuickLink } from '@/@types/tabs';
 
 // Skeleton Loader Component
 const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
@@ -163,7 +132,7 @@ export default function Home() {
   ];
 
   // Quick links data with icons
-  const quickLinks: QuickLink[] = [
+  const quickLinks: HomeQuickLink[] = [
     {
       id: 1,
       title: "Announcements",
