@@ -77,6 +77,10 @@ function MainLayout() {
           options={{ title: "Login", headerShown: false }}
         />
         <Stack.Screen
+          name="auth/forgot-password"
+          options={{ title: "Forgot Password", headerShown: false }}
+        />
+        <Stack.Screen
           name="auth/otp-verification"
           options={{ title: "OTP Verification", headerShown: false }}
         />
