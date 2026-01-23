@@ -21,22 +21,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, RefreshControl, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-// Types based on your database schema
-interface LearningMaterial {
-  id: number;
-  title: string;
-  description: string | null;
-  file_path: string;
-  file_name: string;
-  file_type: string;
-  file_size: number;
-  subject: string;
-  year_level: number;
-  user_id: number;
-  created_at: string;
-  updated_at: string;
-}
+import { LearningMaterial } from '@/@types/screens/learning-materials';
 
 // File type icons mapping
 const fileTypeIcons = {
