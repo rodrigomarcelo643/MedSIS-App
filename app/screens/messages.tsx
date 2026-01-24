@@ -118,11 +118,12 @@ export default function MessagesScreen() {
       // Debug conversation users online status
       const onlineConvUsers = newUsers.filter(u => u.isOnline);
       const offlineConvUsers = newUsers.filter(u => !u.isOnline);
-      
+     
+      /** 
       console.log('💬 CONVERSATION USERS:');
       console.log('  🟢 ONLINE (' + onlineConvUsers.length + '):', onlineConvUsers.map(u => `${u.name} (${u.user_type})`));
       console.log('  🔴 OFFLINE (' + offlineConvUsers.length + '):', offlineConvUsers.map(u => `${u.name} (${u.user_type})`));
-      
+      **/
       // Sort users: latest message time first (most recent conversations at top)
       const sortedUsers = newUsers.sort((a, b) => {
         // Use raw timestamp for accurate sorting
@@ -178,11 +179,12 @@ export default function MessagesScreen() {
       const onlineUsers = allUsers.filter(u => u.isOnline);
       const offlineUsers = allUsers.filter(u => !u.isOnline);
 
+      /** 
       // Logs Identifying Users List of (Online / Offline )
       console.log('🟢 ONLINE USERS (' + onlineUsers.length + '):', onlineUsers.map(u => `${u.name} (${u.user_type})`));
       console.log('🔴 OFFLINE USERS (' + offlineUsers.length + '):', offlineUsers.map(u => `${u.name} (${u.user_type})`));
       console.log('📊 Total users loaded:', allUsers.length);
-      
+      **/
       // Remove duplicates based on unique_key
       const uniqueUsers = allUsers.filter((user, index, self) => 
         index === self.findIndex(u => u.unique_key === user.unique_key)
