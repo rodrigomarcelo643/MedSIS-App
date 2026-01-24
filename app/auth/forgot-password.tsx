@@ -254,7 +254,7 @@ const ForgotPasswordScreen = () => {
         Toast.show({
           type: "success",
           text1: "OTP Verified ✅",
-          text2: result.message || "Password reset link sent to your email",
+          text2: result.message || "OTP verified successfully",
           position: "top",
         });
 
@@ -263,10 +263,13 @@ const ForgotPasswordScreen = () => {
           verifying: false,
         }));
 
-        // Navigate back to login after success
+        // Navigate to reset password screen
         setTimeout(() => {
-          router.back();
-        }, 2000);
+          router.push({
+            pathname: "/auth/reset-password" as any,
+            params: { email: formData.email }
+          });
+        }, 1000);
       } else {
         Toast.show({
           type: "error",
