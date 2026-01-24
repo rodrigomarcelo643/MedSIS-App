@@ -1,35 +1,7 @@
 // Message API service with real backend integration
 import { Platform } from 'react-native';
 import { API_BASE_URL } from '@/constants/Config';
-
-export interface User {
-  id: string;
-  name: string;
-  avatar_url?: string;
-  isOnline: boolean;
-  lastMessage?: string;
-  lastMessageTime?: string;
-  lastMessageTimestamp?: string;
-  messageStatus?: string;
-  unreadCount: number;
-  user_type?: string;
-  unique_key?: string;
-}
-
-export interface Message {
-  id: string;
-  text: string;
-  senderId: string;
-  receiverId: string;
-  timestamp: Date;
-  type: "text" | "image" | "file";
-  fileUrl?: string;
-  fileName?: string;
-  isSeen: boolean;
-  isCurrentUser?: boolean;
-  isEdited?: boolean;
-}
-
+import { User, Message, GetUsersResponse, SendMessageRequest } from '@/@types/screens/messages';
 
 const API_BASE = `${API_BASE_URL}/api/messages`;
 
@@ -39,7 +11,7 @@ export const messageService = {
     userId: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<{ users: User[]; hasMore: boolean }> => {
+  ): Promise<GetUsersResponse> => {
     try {
       const url = `${API_BASE}/get_users.php?current_user_id=${userId}`;
       //console.log('🚀 Frontend: Calling getActiveUsers API:', url);
@@ -115,7 +87,7 @@ export const messageService = {
     userId: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<{ users: User[]; hasMore: boolean }> => {
+  ): Promise<GetUsersResponse> => {
     try {
       const response = await fetch(
         `${API_BASE}/get_conversations.php?current_user_id=${userId}`
@@ -153,7 +125,7 @@ export const messageService = {
 
   // Send a new message
   sendMessage: async (
-    message: Omit<Message, "id" | "timestamp" | "isRead"> & { fileData?: string; recipientOnline?: boolean }
+    message: SendMessageRequest
   ): Promise<Message> => {
     const response = await fetch(`${API_BASE}/send_message.php`, {
       method: "POST",
