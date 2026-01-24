@@ -17,7 +17,8 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_BASE_URL } from '@/constants/Config';
 import { Search, ArrowLeft, X, Users } from 'lucide-react-native';
-import { messageService, User } from '@/services/messageService';
+import { messageService } from '@/services/messageService';
+import { User } from '@/@types/screens/messages';
 
 // Loading State Skeleton Loader 
 const SkeletonLoader = ({ width, height, borderRadius = 4 }: { width: number | string; height: number; borderRadius?: number }) => {
