@@ -1,4 +1,6 @@
 // Message service types
+
+// User Types 
 export interface User {
   id: string;
   name: string;
@@ -13,6 +15,7 @@ export interface User {
   unique_key?: string;
 }
 
+// Message Types 
 export interface Message {
   id: string;
   text: string;
@@ -33,6 +36,7 @@ export interface GetUsersResponse {
   hasMore: boolean;
 }
 
+// Send Message Request Type 
 export interface SendMessageRequest extends Omit<Message, "id" | "timestamp" | "isRead"> {
   fileData?: string;
   recipientOnline?: boolean;
