@@ -35,7 +35,8 @@ import {
 } from 'lucide-react-native';
 import { launchImageLibraryAsync, MediaTypeOptions } from 'expo-image-picker';
 import { getDocumentAsync } from 'expo-document-picker';
-import { messageService, Message } from '@/services/messageService';
+import { Message } from '@/@types/screens/messages'
+import { messageService } from '@/services/messageService';
 
 // File icon component
 const FileIcon = ({ type, fileName }: { type: string; fileName?: string }) => {
