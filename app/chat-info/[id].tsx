@@ -22,7 +22,8 @@ import {
   Link, 
   X 
 } from 'lucide-react-native';
-import { messageService, Message } from '@/services/messageService';
+import { Message } from "@/@types/screens/messages";
+import { messageService } from '@/services/messageService';
 import { API_BASE_URL } from '@/constants/Config';
 import { MediaItem, LinkItem } from '@/@types/chat';
 
