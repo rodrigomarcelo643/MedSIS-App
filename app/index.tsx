@@ -3,7 +3,17 @@ import { Redirect } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 
 export default function Index() {
-  const { user, loading } = useAuth();
+  const authContext = useAuth();
+  
+  if (!authContext || !authContext.hasOwnProperty('user')) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#af1616" />
+      </View>
+    );
+  }
+  
+  const { user, loading } = authContext;
 
   if (loading) {
     return (
