@@ -5,6 +5,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { messageService } from "@/services/messageService";
 import { API_BASE_URL } from '@/constants/Config';
+import axios from 'axios';
 import { Audio } from 'expo-av';
 import { Tabs, useRouter, useSegments } from "expo-router";
 import {
@@ -163,11 +164,18 @@ export default function TabLayout() {
 
     const fetchNotificationCount = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/get_student_notifications.php?user_id=${user.id}`
+        const response = await axios.get(
+          `${API_BASE_URL}/api/get_student_notifications.php?user_id=${user.id}`,
+          {
+            timeout: 10000,
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
         );
 
-        const data = await response.json();
+        const data = response.data;
         
         if (data.success) {
           // Count only unread notifications (status !== 'read')

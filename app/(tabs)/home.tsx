@@ -14,7 +14,12 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { SkeletonLoaderProps, QuickLinkCardProps, WelcomeHeaderProps, HomeQuickLink } from '@/@types/tabs';
+import { 
+  SkeletonLoaderProps, 
+  QuickLinkCardProps, 
+  WelcomeHeaderProps, 
+  HomeQuickLink 
+} from '@/@types/tabs';
 
 // Skeleton Loader Component
 const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({

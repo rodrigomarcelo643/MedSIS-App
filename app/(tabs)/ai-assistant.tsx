@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from '@/constants/Config';
 import { useThemeColor } from "@/hooks/useThemeColor";
+import axios from 'axios';
 import {
   BookOpen,
   Calendar,
@@ -223,27 +224,24 @@ export default function AIAssistant() {
       abortControllerRef.current = new AbortController();
       const signal = abortControllerRef.current.signal;
 
-      const response = await fetch(
+      const response = await axios.post(
         `${API_BASE_URL}/api/ai/ai_integration.php`,
         {
-          method: "POST",
+          user_id: user.id,
+          query: message,
+          context: context,
+        },
+        {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            user_id: user.id,
-            query: message,
-            context: context,
-          }),
           signal: signal,
+          timeout: 30000,
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
       // Json Response
-      const data = await response.json();
+      const data = response.data;
 
       if (data.success) {
         return {

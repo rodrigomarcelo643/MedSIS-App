@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import Toast from "react-native-toast-message";
 import { API_BASE_URL } from '@/constants/Config';
 import { User, AuthContextType } from '@/@types/auth';
+import axios from 'axios';
 // Context To pass variables 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -23,10 +24,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Activate user session
   const activateSession = async (userId: string) => {
     try {
-      await fetch(`${API_BASE_URL}/api/login.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ update_session: true, user_id: userId })
+      await axios.post(`${API_BASE_URL}/api/login.php`, {
+        update_session: true,
+        user_id: userId
       });
       //console.log('Session activated for user:', userId);
     } catch (error) {
@@ -37,10 +37,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Remove user session
   const removeSession = async (userId: string) => {
     try {
-      await fetch(`${API_BASE_URL}/api/logout.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId })
+      await axios.post(`${API_BASE_URL}/api/logout.php`, {
+        user_id: userId
       });
       //console.log('Session removed for user:', userId);
     } catch (error) {
@@ -163,15 +161,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     try {
       const API_URL = `${API_BASE_URL}/api`;
-      const response = await fetch(`${API_URL}/get_user_data.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: user.id }),
+      const response = await axios.post(`${API_URL}/get_user_data.php`, {
+        user_id: user.id
       });
       
-      const data = await response.json();
+      const data = response.data;
       
       if (data.success && data.user) {
         await login(data.user); // Update with latest data including avatar_data
@@ -191,19 +185,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     try {
       const API_URL = `${API_BASE_URL}/api`;
-      const response = await fetch(`${API_URL}/change_password.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          current_password: currentPassword,
-          new_password: newPassword
-        }),
+      const response = await axios.post(`${API_URL}/change_password.php`, {
+        user_id: user.id,
+        current_password: currentPassword,
+        new_password: newPassword
       });
 
-      const data = await response.json();
+      const data = response.data;
       
       if (data.success) {
         Toast.show({

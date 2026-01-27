@@ -26,6 +26,7 @@ import { Message } from "@/@types/screens/messages";
 import { messageService } from '@/services/messageService';
 import { API_BASE_URL } from '@/constants/Config';
 import { MediaItem, LinkItem } from '@/@types/chat';
+import axios from 'axios';
 
 // Skeleton loader component
 const SkeletonLoader = ({ width, height, borderRadius = 4 }: { width: number | string; height: number; borderRadius?: number }) => {
@@ -206,8 +207,8 @@ export default function ChatInfoScreen() {
         return;
       }
       
-      const response = await fetch(`${API_BASE_URL}/api/messages/get_messages.php?sender_id=${user?.id}&receiver_id=${actualUserId}&page=1&limit=1000`);
-      const data = await response.json();
+      const response = await axios.get(`${API_BASE_URL}/api/messages/get_messages.php?sender_id=${user?.id}&receiver_id=${actualUserId}&page=1&limit=1000`);
+      const data = response.data;
       
       if (data.success && data.messages) {
         setAllMessages(data.messages);

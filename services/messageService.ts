@@ -2,6 +2,7 @@
 import { Platform } from 'react-native';
 import { API_BASE_URL } from '@/constants/Config';
 import { User, Message, GetUsersResponse, SendMessageRequest } from '@/@types/screens/messages';
+import axios from 'axios';
 
 const API_BASE = `${API_BASE_URL}/api/messages`;
 
@@ -16,13 +17,18 @@ export const messageService = {
       const url = `${API_BASE}/get_users.php?current_user_id=${userId}`;
       //console.log('🚀 Frontend: Calling getActiveUsers API:', url);
       
-      const response = await fetch(url);
-      //console.log('📡 Frontend: Response status:', response.status, response.statusText);
+      const response = await axios.get(
+        `${API_BASE}/get_users.php?current_user_id=${userId}`,
+        {
+          timeout: 10000,
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
       
-      const text = await response.text();
-      //console.log('📄 Frontend: Raw response text:', text.substring(0, 500) + (text.length > 500 ? '...' : ''));
-      
-      const data = JSON.parse(text);
+      const data = response.data;
       /*console.log('📊 Frontend: Parsed response data:', {
         hasError: !!data.error,
         error: data.error,
@@ -89,11 +95,17 @@ export const messageService = {
     limit: number = 10
   ): Promise<GetUsersResponse> => {
     try {
-      const response = await fetch(
-        `${API_BASE}/get_conversations.php?current_user_id=${userId}`
+      const response = await axios.get(
+        `${API_BASE}/get_conversations.php?current_user_id=${userId}`,
+        {
+          timeout: 10000,
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
       );
-      const text = await response.text();
-      const data = JSON.parse(text);
+      const data = response.data;
       
       if (data.error) throw new Error(data.error);
       let users = data.users || [];
@@ -113,10 +125,17 @@ export const messageService = {
 
   // Get messages for a specific chat
   getChatMessages: async (userId: string, chatId: string): Promise<Message[]> => {
-    const response = await fetch(
-      `${API_BASE}/get_messages.php?current_user_id=${userId}&other_user_id=${chatId}`
+    const response = await axios.get(
+      `${API_BASE}/get_messages.php?current_user_id=${userId}&other_user_id=${chatId}`,
+      {
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
     );
-    const data = await response.json();
+    const data = response.data;
     return data.messages.map((msg: Message) => ({
       ...msg,
       timestamp: new Date(msg.timestamp),
@@ -127,10 +146,9 @@ export const messageService = {
   sendMessage: async (
     message: SendMessageRequest
   ): Promise<Message> => {
-    const response = await fetch(`${API_BASE}/send_message.php`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const response = await axios.post(
+      `${API_BASE}/send_message.php`,
+      {
         sender_id: message.senderId,
         receiver_id: message.receiverId,
         message: message.text,
@@ -139,9 +157,15 @@ export const messageService = {
         fileData: message.fileData,
         fileName: message.fileName,
         recipient_online: message.recipientOnline,
-      }),
-    });
-    const data = await response.json();
+      },
+      {
+        timeout: 15000,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = response.data;
     if (!data.success || !data.message) {
       throw new Error(data.error || 'Failed to send message');
     }
@@ -154,10 +178,17 @@ export const messageService = {
   // Get unread message count
   getUnreadCount: async (userId: string): Promise<number> => {
     try {
-      const response = await fetch(
-        `${API_BASE}/get_conversations.php?current_user_id=${userId}`
+      const response = await axios.get(
+        `${API_BASE}/get_conversations.php?current_user_id=${userId}`,
+        {
+          timeout: 10000,
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
       );
-      const data = await response.json();
+      const data = response.data;
       if (data.error) return 0;
       return data.users.reduce(
         (total: number, user: User) => total + user.unreadCount,
@@ -172,10 +203,17 @@ export const messageService = {
   // Search users
   searchUsers: async (userId: string, query: string): Promise<User[]> => {
     if (!query.trim()) return [];
-    const response = await fetch(
-      `${API_BASE}/get_users.php?current_user_id=${userId}`
+    const response = await axios.get(
+      `${API_BASE}/get_users.php?current_user_id=${userId}`,
+      {
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
     );
-    const data = await response.json();
+    const data = response.data;
     return data.users.filter((user: User) =>
       user.name.toLowerCase().includes(query.toLowerCase())
     );
@@ -183,27 +221,42 @@ export const messageService = {
 
   // Mark messages as read
   markAsRead: async (userId: string, chatId: string): Promise<void> => {
-    await fetch(`${API_BASE}/mark_read.php`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    await axios.post(
+      `${API_BASE}/mark_read.php`,
+      {
         current_user_id: userId,
         other_user_id: chatId
-      })
-    });
+      },
+      {
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
   },
 
   // Update message statuses when user comes online
   updateMessageStatuses: async (userId: string): Promise<void> => {
     try {
-      await fetch(`${API_BASE}/update_message_status.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await axios.post(
+        `${API_BASE}/update_message_status.php`,
+        {
           user_id: userId
-        })
-      });
-    } catch (error) {
+        },
+        {
+          timeout: 10000,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    } catch (error: any) {
+      // Silently handle 404 errors for missing endpoint
+      if (error?.response?.status === 404) {
+        console.log('Message status update endpoint not available');
+        return;
+      }
       console.error('Error updating message statuses:', error);
     }
   },

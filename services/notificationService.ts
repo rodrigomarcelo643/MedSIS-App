@@ -1,8 +1,24 @@
 import Constants from "expo-constants";
 import { isDevice, modelName } from "expo-device";
-import { setNotificationHandler, getPermissionsAsync, requestPermissionsAsync, getExpoPushTokenAsync, setNotificationChannelAsync, AndroidImportance, addNotificationReceivedListener, addNotificationResponseReceivedListener, scheduleNotificationAsync, AndroidNotificationPriority, setBadgeCountAsync, NotificationBehavior, Notification, NotificationResponse } from "expo-notifications";
+import { 
+  setNotificationHandler, 
+  getPermissionsAsync, 
+  requestPermissionsAsync, 
+  getExpoPushTokenAsync, 
+  setNotificationChannelAsync, 
+  AndroidImportance, 
+  addNotificationReceivedListener, 
+  addNotificationResponseReceivedListener, 
+  scheduleNotificationAsync, 
+  AndroidNotificationPriority, 
+  setBadgeCountAsync, 
+  NotificationBehavior, 
+  Notification, 
+  NotificationResponse 
+} from "expo-notifications";
 import { Platform } from "react-native";
 import { API_BASE_URL } from '@/constants/Config';
+import axios from 'axios';
 
 // Configure notification handling
 setNotificationHandler({
@@ -19,23 +35,17 @@ export const savePushToken = async (
   token: string
 ): Promise<boolean> => {
   try {
-    const response = await fetch(
+    const response = await axios.post(
       `${API_BASE_URL}/api/save_push_token.php`,
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          push_token: token,
-          platform: Platform.OS,
-          device_name: modelName || "Unknown Device",
-        }),
+        user_id: userId,
+        push_token: token,
+        platform: Platform.OS,
+        device_name: modelName || "Unknown Device",
       }
     );
 
-    const data = await response.json();
+    const data = response.data;
     return data.success === true;
   } catch (error) {
     console.error("Error saving push token:", error);
@@ -132,23 +142,17 @@ export const sendPushNotification = async (
   data: Record<string, unknown> = {}
 ) => {
   try {
-    const response = await fetch(
+    const response = await axios.post(
       `${API_BASE_URL}/api/send_notification.php`,
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          title,
-          message,
-          data,
-        }),
+        user_id: userId,
+        title,
+        message,
+        data,
       }
     );
 
-    const result = await response.json();
+    const result = response.data;
     return result.success === true;
   } catch (error) {
     console.error("Error sending push notification:", error);
@@ -162,10 +166,10 @@ export const fetchNotificationCount = async (
   userId: number
 ): Promise<number> => {
   try {
-    const response = await fetch(
+    const response = await axios.get(
       `${API_BASE_URL}/api/get_notification_count.php?user_id=${userId}`
     );
-    const data = await response.json();
+    const data = response.data;
 
     if (data.success) {
       const unreadCount = data.unread_count || 0;

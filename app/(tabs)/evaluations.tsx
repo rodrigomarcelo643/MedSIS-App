@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { Circle, Svg } from "react-native-svg";
 import { Evaluation, EvaluationSummary, EvaluationResponse } from '@/@types/tabs';
+import axios from 'axios';
 
 const Evaluations: React.FC = () => {
   const { user } = useAuth();
@@ -44,10 +45,17 @@ const Evaluations: React.FC = () => {
         Alert.alert("Error", "User ID not found");
         return;
       }
-      const response = await fetch(
-        `${API_BASE_URL}/api/evaluations/get_evaluation.php?user_id=${user.id}`
+      const response = await axios.get(
+        `${API_BASE_URL}/api/evaluations/get_evaluation.php?user_id=${user.id}`,
+        {
+          timeout: 10000,
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
       );
-      const data: EvaluationResponse = await response.json();
+      const data: EvaluationResponse = response.data;
 
       if (data.error) {
         Alert.alert("Error", data.error);

@@ -37,6 +37,7 @@ import { launchImageLibraryAsync, MediaTypeOptions } from 'expo-image-picker';
 import { getDocumentAsync } from 'expo-document-picker';
 import { Message } from '@/@types/screens/messages'
 import { messageService } from '@/services/messageService';
+import axios from 'axios';
 
 // File icon component
 const FileIcon = ({ type, fileName }: { type: string; fileName?: string }) => {
@@ -285,10 +286,9 @@ export default function ChatScreen() {
   const updateUserSession = async () => {
     try {
       if (user?.id) {
-        await fetch(`${API_BASE_URL}/api/login.php`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ update_session: true, user_id: user.id })
+        await axios.post(`${API_BASE_URL}/api/login.php`, {
+          update_session: true,
+          user_id: user.id
         });
       }
     } catch (error) {
@@ -333,8 +333,8 @@ export default function ChatScreen() {
       const url = `${API_BASE_URL}/api/messages/get_messages.php?sender_id=${encodeURIComponent(user.id)}&receiver_id=${encodeURIComponent(actualUserId)}&page=${pageNum}&limit=20`;
       console.log('Fetching messages from:', url);
       
-      const response = await fetch(url);
-      const data = await response.json();
+      const response = await axios.get(url);
+      const data = response.data;
       
       console.log('API Response:', data);
       console.log('Messages count:', data.messages?.length || 0);
@@ -391,15 +391,15 @@ export default function ChatScreen() {
         }
       }, 15000); // Increased to 15 seconds
       
-      const response = await fetch(`${API_BASE_URL}/api/messages/get_messages.php?sender_id=${encodeURIComponent(user.id)}&receiver_id=${encodeURIComponent(actualUserId)}&page=1&limit=20`, {
+      const response = await axios.get(`${API_BASE_URL}/api/messages/get_messages.php?sender_id=${encodeURIComponent(user.id)}&receiver_id=${encodeURIComponent(actualUserId)}&page=1&limit=20`, {
         signal: controller.signal
       });
       
       clearTimeout(timeoutId);
       
-      if (!response.ok || !isMountedRef.current) return;
+      if (!response.data || !isMountedRef.current) return;
       
-      const data = await response.json();
+      const data = response.data;
       
       if (data.success && Array.isArray(data.messages) && isMountedRef.current) {
         const newMessages = data.messages.filter((m: Message) => m && m.id && m.timestamp).sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
@@ -734,26 +734,13 @@ export default function ChatScreen() {
     setEditLoading(true);
     setShowEditModal(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/messages/edit_message.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message_id: editingMessage,
-          new_text: editText.trim(),
-          user_id: user?.id
-        })
+      const response = await axios.post(`${API_BASE_URL}/api/messages/edit_message.php`, {
+        message_id: editingMessage,
+        new_text: editText.trim(),
+        user_id: user?.id
       });
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const text = await response.text();
-      if (!text) {
-        throw new Error('Empty response from server');
-      }
-      
-      const data = JSON.parse(text);
+      const data = response.data;
       if (data.success) {
         // Immediately show edited message
         setMessages(prev => prev.map(msg => 
@@ -779,25 +766,12 @@ export default function ChatScreen() {
     setUnsendingMessage(messageId);
     setShowUnsendModal(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/messages/unsend_message.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message_id: messageId,
-          user_id: user?.id
-        })
+      const response = await axios.post(`${API_BASE_URL}/api/messages/unsend_message.php`, {
+        message_id: messageId,
+        user_id: user?.id
       });
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const text = await response.text();
-      if (!text) {
-        throw new Error('Empty response from server');
-      }
-      
-      const data = JSON.parse(text);
+      const data = response.data;
       if (data.success) {
         // Immediately show "Message removed" for instant feedback
         setMessages(prev => prev.map(msg => 
