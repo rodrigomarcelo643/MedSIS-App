@@ -21,7 +21,7 @@ tests/
 │   └── ui.test.ts          # UI component validation tests
 ├── utils/                   # Utility function tests
 │   └── validation.test.ts  # Form and data validation tests
-├── test-runner.ts          # Main test runner and reporter
+├── test-runner.js         # Main test runner and reporter
 └── README.md               # This file
 ```
 
