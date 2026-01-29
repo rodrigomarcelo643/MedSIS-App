@@ -24,6 +24,18 @@
 
 A comprehensive mobile application designed specifically for medical students to upload academic requirements, view evaluation results history, and manage their educational journey. This first version release focuses on streamlined document submission, evaluation tracking, and essential academic tools with AI assistance and real-time communication features.
 
+## 📱 Download APK
+
+**Ready to install?** Download the latest APK build:
+
+<div align="center">
+  <a href="https://drive.google.com/drive/folders/1DARepPLB5fiFQW9WmEsbbW44oSkSkGMp" target="_blank">
+    <img src="https://img.shields.io/badge/Download%20APK-Google%20Drive-4285F4?style=for-the-badge&logo=googledrive&logoColor=white" alt="Download APK" />
+  </a>
+</div>
+
+> **Note:** Download the APK file from Google Drive and install on your Android device. Make sure to enable "Install from unknown sources" in your device settings.
+
 ## 🏥 Release v1.0.0
 
 **Release Date:** December 5, 2025
