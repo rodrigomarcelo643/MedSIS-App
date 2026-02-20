@@ -27,7 +27,7 @@ export const messageService = {
           },
         }
       );
-      
+        
       const data = response.data;
       /*console.log('📊 Frontend: Parsed response data:', {
         hasError: !!data.error,
