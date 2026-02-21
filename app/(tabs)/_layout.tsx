@@ -1,10 +1,10 @@
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
+import { API_BASE_URL } from '@/constants/Config';
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { messageService } from "@/services/messageService";
-import { API_BASE_URL } from '@/constants/Config';
 import axios from 'axios';
 import { Audio } from 'expo-av';
 import { Tabs, useRouter, useSegments } from "expo-router";
@@ -13,7 +13,6 @@ import {
   ClipboardList,
   Folder as FolderIcon,
   Home as HomeIcon,
-  MessageCircle as MessageIcon,
   User as UserIcon
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
@@ -26,16 +25,15 @@ import {
   Text,
   TouchableOpacity,
   useWindowDimensions,
-  View,
-  NativeModules,
+  View
 } from "react-native";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 const Skeleton = ({ width, height, borderRadius = 4, style = {} }: { width: number; height: number; borderRadius?: number; style?: object }) => {
@@ -124,7 +122,7 @@ export default function TabLayout() {
     const loadSound = async () => {
       try {
         const { sound } = await Audio.Sound.createAsync(
-          require('@/assets/sounds/notification-sound.mp3')
+          require('@/assets/sounds/notification_sound.mp3')
         );
         soundRef.current = sound;
       } catch (error) {
