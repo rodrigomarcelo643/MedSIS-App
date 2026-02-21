@@ -194,22 +194,18 @@ export const messageService = {
       throw new Error(data.error || 'Failed to send message');
     }
     
-    // Send push notification with actual sender name
+    // Send push notification only to receiver (not sender)
     try {
-      console.log('🔔 Sending push notification...');
-      console.log('Sender name being sent:', senderName);
-      
-      if (!senderName) {
-        console.warn('⚠️ No sender name provided, will show as "Someone"');
-      }
+      console.log('🔔 Sending push notification to receiver only...');
       
       const pushResponse = await axios.post(`${API_BASE_URL}/api/send_push_notification.php`, {
         sender_id: message.senderId,
         receiver_id: message.receiverId,
         message: message.text,
         sender_name: senderName || 'Someone',
+        notify_sender: false, // Only notify receiver
       });
-      console.log('✅ Push notification sent:', pushResponse.data);
+      console.log('✅ Push notification sent to receiver:', pushResponse.data);
     } catch (error: any) {
       console.error('❌ Failed to send push notification:', error.response?.data || error.message);
     }
