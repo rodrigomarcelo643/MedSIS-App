@@ -21,6 +21,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from "react-native-toast-message";
 
+// Configuration URL for change password backend logic
 const API_URL = `${API_BASE_URL}/api/change_password.php`;
 
 const ChangePassword = () => {
@@ -35,7 +36,7 @@ const ChangePassword = () => {
   
   // Detect three-button navigation
   const hasThreeButtonNav = Platform.OS === 'android' && insets.bottom === 0;
-
+  // Navigation 
   const navigation = useNavigation();
   const [passwords, setPasswords] = useState({
     current_password: "",
@@ -53,14 +54,14 @@ const ChangePassword = () => {
     otpSent: false,
     resendLoading: false,
   });
-
+  // OTP states 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [otpError, setOtpError] = useState('');
   const otpInputs = useRef<Array<TextInput | null>>([]);
   const [timer, setTimer] = useState(0);
   const [sentOtp, setSentOtp] = useState('');
   const [otpExpiry, setOtpExpiry] = useState<number>(0);
-
+  // Password validation states 
   const [passwordValidation, setPasswordValidation] = useState({
     hasMinLength: false,
     hasSpecialChar: false,
@@ -70,13 +71,13 @@ const ChangePassword = () => {
     isDifferentFromCurrent: true,
     allValid: false,
   });
-
+  // Errpr handling states 
   const [errors, setErrors] = useState({
     current_password: "",
     new_password: "",
     confirm_password: "",
   });
-
+ // modal states 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalData, setModalData] = useState({
     type: "", // 'success' or 'error'
