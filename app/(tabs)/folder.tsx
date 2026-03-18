@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { API_BASE_URL } from '@/constants/Config';
+import { API_BASE_URL, ML_API_BASE_URL } from '@/constants/Config';
 import { useThemeColor } from "@/hooks/useThemeColor";
 import axios from "axios";
 import * as DocumentPicker from "expo-document-picker";
@@ -21,7 +21,7 @@ import {
   ZoomIn,
   ZoomOut
 } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   ActivityIndicator,
@@ -39,6 +39,75 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { UploadedFile, Requirement, FileInfo, FilterType } from '@/@types/tabs';
+
+// Auto-upload quality modal with countdown
+function QualityModalContent({
+  sharpPercentage, blurPercentage, pendingImageUpload, onUpload, countdown, onCountdownChange, onReset
+}: {
+  sharpPercentage: number;
+  blurPercentage: number;
+  pendingImageUpload: { reqId: string | null; fileInfo: FileInfo } | null;
+  onUpload: (upload: { reqId: string | null; fileInfo: FileInfo }) => Promise<void>;
+  countdown: number;
+  onCountdownChange: (n: number | ((prev: number) => number)) => void;
+  onReset: () => void;
+}) {
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    onReset();
+    timerRef.current = setInterval(() => {
+      onCountdownChange((prev: number) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          if (pendingImageUpload) onUpload(pendingImageUpload);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
+
+  return (
+    <View className="flex-1 bg-black/50 justify-center items-center p-4">
+      <View className="bg-white rounded-xl p-6 w-full max-w-md">
+        <View className="items-center mb-3">
+          <View className="bg-green-100 p-4 rounded-full">
+            <Check size={32} color="#16a34a" />
+          </View>
+        </View>
+
+        <Text className="text-xl font-bold text-gray-800 text-center mb-1">Image Quality Check</Text>
+        <Text className="text-gray-500 text-sm text-center mb-4">Analysis complete — image is acceptable</Text>
+
+        <View className="mb-5">
+          <View className="flex-row justify-between mb-1">
+            <Text className="text-sm font-medium text-gray-700">Sharp</Text>
+            <Text className="text-sm font-bold text-green-600">{sharpPercentage}%</Text>
+          </View>
+          <View className="w-full bg-gray-200 rounded-full h-3 mb-3">
+            <View className="bg-green-500 h-3 rounded-full" style={{ width: `${sharpPercentage}%` }} />
+          </View>
+
+          <View className="flex-row justify-between mb-1">
+            <Text className="text-sm font-medium text-gray-700">Blur</Text>
+            <Text className="text-sm font-bold text-orange-500">{blurPercentage}%</Text>
+          </View>
+          <View className="w-full bg-gray-200 rounded-full h-3">
+            <View className="bg-orange-400 h-3 rounded-full" style={{ width: `${blurPercentage}%` }} />
+          </View>
+        </View>
+
+        <View className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+          <Text className="text-green-800 text-xs text-center">✓ Image passed quality validation. Uploading in {countdown}s...</Text>
+        </View>
+
+        <ActivityIndicator size="small" color="#be2e2e" />
+      </View>
+    </View>
+  );
+}
 
 export default function FolderScreen() {
   const { user } = useAuth();
@@ -79,6 +148,15 @@ export default function FolderScreen() {
   // Feedback modal state
   const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
   const [selectedFeedback, setSelectedFeedback] = useState<string>("");
+
+  // Blur check modal state
+  const [checkingBlur, setCheckingBlur] = useState<boolean>(false);
+  const [showQualityModal, setShowQualityModal] = useState<boolean>(false);
+  const [showBlurErrorModal, setShowBlurErrorModal] = useState<boolean>(false);
+  const [blurPercentage, setBlurPercentage] = useState<number>(0);
+  const [sharpPercentage, setSharpPercentage] = useState<number>(0);
+  const [pendingImageUpload, setPendingImageUpload] = useState<{ reqId: string | null; fileInfo: FileInfo } | null>(null);
+  const [qualityCountdown, setQualityCountdown] = useState<number>(3);
   
   // Image viewing state
   const [imageLoading, setImageLoading] = useState<boolean>(false);
@@ -284,6 +362,39 @@ export default function FolderScreen() {
     }
   };
 
+  // Check image blur via ML API — returns { isBlurry, blurScore, sharpScore }
+  // API response: { is_blurry: boolean, blur_score: number, confidence_score: number }
+  // blur_score is Laplacian variance: higher = sharper (threshold ~100)
+  const checkImageBlur = async (fileInfo: FileInfo): Promise<{ isBlurry: boolean; blurScore: number; sharpScore: number }> => {
+    try {
+      const formData = new FormData();
+      formData.append('file', {
+        uri: fileInfo.uri,
+        name: fileInfo.name,
+        type: fileInfo.mimeType || 'image/jpeg',
+      } as any);
+
+      const response = await axios.post(
+        `${ML_API_BASE_URL}/api/app/blur-check`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 }
+      );
+
+      const data = response.data;
+      // blur_score: Laplacian variance — cap at 1000 for display, normalize to 0-100%
+      const rawScore: number = typeof data?.blur_score === 'number' ? data.blur_score : 0;
+      const isBlurry: boolean = data?.is_blurry === true;
+      // sharpScore: how sharp (0-100%), blurScore: inverse for display
+      const sharpScore = Math.min(100, Math.round((rawScore / 1000) * 100));
+      const blurScore = 100 - sharpScore;
+
+      return { isBlurry, blurScore, sharpScore };
+    } catch (err) {
+      console.log('Blur check error:', err);
+      return { isBlurry: false, blurScore: 0, sharpScore: 100 };
+    }
+  };
+
   // Pick image file
   const pickImage = async () => {
     try {
@@ -307,8 +418,6 @@ export default function FolderScreen() {
         base64: false,
       });
 
-      console.log("Image picker result:", result);
-
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         const fileInfo: FileInfo = {
@@ -318,9 +427,21 @@ export default function FolderScreen() {
           type: 'image',
           mimeType: asset.mimeType || 'image/jpeg',
         };
-        
-        console.log("Uploading image:", fileInfo);
-        await handleFileUpload(selectedRequirement, fileInfo);
+
+        // Run blur check before uploading
+        setCheckingBlur(true);
+        const { isBlurry, blurScore, sharpScore } = await checkImageBlur(fileInfo);
+        setCheckingBlur(false);
+
+        setBlurPercentage(blurScore);
+        setSharpPercentage(sharpScore);
+        setPendingImageUpload({ reqId: selectedRequirement, fileInfo });
+
+        if (isBlurry || blurScore > 40) {
+          setShowBlurErrorModal(true);
+        } else {
+          setShowQualityModal(true);
+        }
       }
     } catch (err) {
       console.log("Image picker error:", err);
@@ -1506,6 +1627,94 @@ export default function FolderScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Analyzing Overlay */}
+      <Modal visible={checkingBlur} transparent={true} animationType="fade">
+        <View className="flex-1 bg-black/50 justify-center items-center p-4">
+          <View className="bg-white rounded-xl p-6 w-full max-w-md items-center">
+            <ActivityIndicator size="large" color="#be2e2e" />
+            <Text className="text-gray-800 text-lg font-semibold mt-4">Analyzing Image</Text>
+            <Text className="text-gray-500 text-sm mt-1">Checking image quality...</Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Quality Result Modal — acceptable, auto-uploads after 3s */}
+      <Modal
+        visible={showQualityModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {}}
+      >
+        <QualityModalContent
+          sharpPercentage={sharpPercentage}
+          blurPercentage={blurPercentage}
+          pendingImageUpload={pendingImageUpload}
+          onUpload={async (upload) => {
+            setShowQualityModal(false);
+            await handleFileUpload(upload.reqId, upload.fileInfo);
+            setPendingImageUpload(null);
+          }}
+          onCountdownChange={setQualityCountdown}
+          countdown={qualityCountdown}
+          onReset={() => setQualityCountdown(3)}
+        />
+      </Modal>
+
+      {/* Blur Error Modal — rejected (blur >= 50%) */}
+      <Modal
+        visible={showBlurErrorModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => { setShowBlurErrorModal(false); setPendingImageUpload(null); }}
+      >
+        <View className="flex-1 bg-black/50 justify-center items-center p-4">
+          <View className="bg-white rounded-xl p-6 w-full max-w-md">
+            <View className="items-center mb-3">
+              <View className="bg-red-100 p-4 rounded-full">
+                <AlertTriangle size={32} color="#dc2626" />
+              </View>
+            </View>
+
+            <Text className="text-xl font-bold text-gray-800 text-center mb-1">Image Quality Check</Text>
+            <Text className="text-gray-500 text-sm text-center mb-4">Analysis complete — image is too blurry</Text>
+
+            {/* Confidence bars */}
+            <View className="mb-5">
+              {/* Blur */}
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-sm font-medium text-gray-700">Blur</Text>
+                <Text className="text-sm font-bold text-red-600">{blurPercentage}%</Text>
+              </View>
+              <View className="w-full bg-gray-200 rounded-full h-3 mb-3">
+                <View className="bg-red-500 h-3 rounded-full" style={{ width: `${blurPercentage}%` }} />
+              </View>
+
+              {/* Sharp */}
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-sm font-medium text-gray-700">Sharp</Text>
+                <Text className="text-sm font-bold text-gray-500">{sharpPercentage}%</Text>
+              </View>
+              <View className="w-full bg-gray-200 rounded-full h-3">
+                <View className="bg-gray-400 h-3 rounded-full" style={{ width: `${sharpPercentage}%` }} />
+              </View>
+            </View>
+
+            <View className="bg-red-50 border border-red-200 rounded-lg p-3 mb-5">
+              <Text className="text-red-800 text-xs text-center font-medium">✗ Image failed quality validation.</Text>
+              <Text className="text-red-700 text-xs text-center mt-1">Please retake or choose a clearer image before uploading.</Text>
+            </View>
+
+            <TouchableOpacity
+              className="bg-[#be2e2e] py-3 rounded-lg"
+              onPress={() => { setShowBlurErrorModal(false); setPendingImageUpload(null); }}
+            >
+              <Text className="text-white text-center font-medium">Try Another Image</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
 
       {/* Feedback Modal */}
       <Modal
