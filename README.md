@@ -290,5 +290,3 @@ MedSIS-App/
 # MSIS - Medical Student Information System 📱
 
 # Click the Link for the website version: https://msis.eduisync.io/
-
-Co Author test 
