@@ -291,9 +291,4 @@ MedSIS-App/
 
 # Click the Link for the website version: https://msis.eduisync.io/
 
-## 👥 Co-Authorship
-
-This project uses co-authorship for collaborative commits. To add a co-author:
-
-Co-authored-by: SentinelPH <sentinelph657@gmail.com>
 
