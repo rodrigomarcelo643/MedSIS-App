@@ -6,6 +6,8 @@ node_modules/
 #environment variables
 .env
 .env.local
+.env.development
+.env.production
 # Expo
 .expo/
 dist/
