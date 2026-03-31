@@ -1,4 +1,5 @@
 // Test utilities without Jest dependencies
+import axios from 'axios';
 import { ML_API_BASE_URL } from '@/constants/Config';
 
 const expect = (actual: any) => ({
@@ -32,24 +33,32 @@ async function checkImageBlur(mockResponse: any): Promise<number> {
 }
 
 describe('Folder Screen - Image Blur Check Tests', () => {
-  let mockFetch: any;
+  let mockAxios: any;
 
   beforeEach(() => {
-    mockFetch = { mockResolvedValueOnce: () => {}, mockRejectedValueOnce: () => {} };
-    global.fetch = mockFetch;
+    mockAxios = { mockResolvedValueOnce: () => {}, mockRejectedValueOnce: () => {} };
+    // Simple mock implementation without Jest
+    axios.get = async (url: string) => {
+      if (mockAxios.mockResolvedValueOnce) {
+        const mock = mockAxios.mockResolvedValueOnce;
+        if (typeof mock === 'function') {
+          return await mock(url);
+        }
+      }
+      return { data: {} };
+    };
   });
 
   describe('ML API /api/review Endpoint', () => {
     it('should pass - ML API health check returns active status', async () => {
       const mockResponse = { service: 'Image Review Agent API', status: 'active' };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      } as Response);
+      mockAxios.mockResolvedValueOnce = async () => ({
+        data: mockResponse,
+      });
 
-      const response = await fetch(`${ML_API_BASE_URL}/api/health`);
-      const data = await response.json();
+      const response = await axios.get(`${ML_API_BASE_URL}/api/health`);
+      const data = response.data;
 
       expect(data.status).toBe('active');
     });
@@ -145,10 +154,12 @@ describe('Folder Screen - Image Blur Check Tests', () => {
     });
 
     it('should fail - network error during blur check is handled gracefully', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+      mockAxios.mockRejectedValueOnce = async () => {
+        throw new Error('Network error');
+      };
 
       try {
-        await fetch(`${ML_API_BASE_URL}/api/review`);
+        await axios.get(`${ML_API_BASE_URL}/api/review`);
       } catch (error) {
         expect(error).toBeInstanceOf(Error);
         expect((error as Error).message).toBe('Network error');
@@ -167,13 +178,12 @@ describe('Folder Screen - Image Blur Check Tests', () => {
         },
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      } as Response);
+      mockAxios.mockResolvedValueOnce = async () => ({
+        data: mockResponse,
+      });
 
-      const response = await fetch(`${ML_API_BASE_URL}/api/health`);
-      const data = await response.json();
+      const response = await axios.get(`${ML_API_BASE_URL}/api/health`);
+      const data = response.data;
 
       expect(data.endpoints.review).toBe('/api/review');
     });
