@@ -13,7 +13,7 @@ const expect = (actual: any) => ({
   toHaveLength: (length: number) => actual?.length === length,
   toContain: (item: any) => actual?.includes?.(item) || false,
   toBeInstanceOf: (constructor: any) => actual instanceof constructor
-});
+}); 
 
 const describe = (name: string, fn: () => void) => fn();
 const it = (name: string, fn: () => void | Promise<void>) => fn();
