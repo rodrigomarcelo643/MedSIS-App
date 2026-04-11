@@ -66,23 +66,14 @@ MedSIS-App/
 │   │   ├── folder.tsx           # File management system
 │   │   ├── home.tsx             # Dashboard/home screen
 │   │   └── profile.tsx          # User profile management
-│   ├── auth/                    # Authentication screens
-│   │   ├── login.tsx            # Login interface
-│   │   ├── otp-verification.tsx # Enhanced OTP verification with password requirements
-│   │   └── policy-acceptance.tsx # Comprehensive privacy policy acceptance
+│   ├── auth/                    # Main Authentication screens
+│   │   ├── login.tsx            # Login interface container
+│   │   ├── otp-verification.tsx # OTP wrapper
+│   │   └── policy-acceptance.tsx# Policy wrapper
 │   ├── chat/                    # Chat and messaging screens
-│   │   └── [id].tsx             # Individual chat conversation screen
 │   ├── chat-info/               # Chat information screens
-│   │   └── [id].tsx             # Chat details and media sharing
 │   ├── notifications/           # Notification screens
-│   │   └── index.tsx            # Notifications with Philippine time and feedback handling
 │   ├── screens/                 # Additional app screens
-│   │   ├── announcements.tsx    # School announcements with lazy loading
-│   │   ├── calendar.tsx         # Enhanced calendar with Philippine timezone
-│   │   ├── change-password.tsx  # Password change functionality
-│   │   ├── learning-materials.tsx # Educational resources
-│   │   ├── messages.tsx         # Messages and conversations management
-│   │   ├── school-calendar.tsx   # Calendar details
 │   ├── _layout.tsx              # Root layout configuration
 │   └── +not-found.tsx           # 404 error page
 ├── assets/                      # Static assets
@@ -90,7 +81,14 @@ MedSIS-App/
 │   ├── images/                  # App images and icons (including swu-head.png)
 │   ├── sounds/                  # Notification sounds
 │   └── styles/                  # Global styles and layouts
-├── components/                  # Reusable UI components
+├── components/                  # Modular Component Architecture
+│   ├── ai-assistant/            # Isolated AI layout and items
+│   ├── auth/                    # Modals, forms & logic for login/otp/reset
+│   ├── chat/                    # Messaging blocks & input areas
+│   ├── evaluations/             # Modular evaluation wrappers & grade uploads
+│   ├── folder/                  # Extracted requirement UI & states
+│   ├── home/                    # Component break-down for dashboard screen
+│   ├── profile/                 # Separated fields and user actions for profiles
 │   ├── ui/                      # Platform-specific UI components
 │   │   ├── IconSymbol.tsx       # Icon symbol components
 │   │   ├── RotatingDots.tsx     # Loading animations
@@ -98,8 +96,7 @@ MedSIS-App/
 │   ├── Avatar.tsx               # User profile picture component
 │   ├── Card.tsx                 # Reusable card layout component
 │   ├── Input.tsx                # Form input components
-│   ├── SplashScreen.tsx         # App loading screen
-│   └── *.tsx                    # Other common components
+│   └── SplashScreen.tsx         # App loading screen
 ├── constants/                   # App constants and configuration
 │   ├── Colors.ts                # Color definitions and themes
 │   └── Config.ts                # Centralized API configuration
@@ -169,12 +166,14 @@ MedSIS-App/
 - **app/screens/evaluation.tsx** - Detailed view of Evaluated results and evaluator e-signatures
 - **app/notifications/index.tsx** - Push notification management with Philippine time conversion and feedback handling
 
-### UI Components
+### Modular Component Architecture (NEW!)
 
-- **components/ui/** - Platform-specific components for iOS/Android
-- **components/Avatar.tsx** - User profile picture component
-- **components/Card.tsx** - Reusable card layout component
-- **components/SplashScreen.tsx** - App loading screen
+The codebase has recently undergone a major refactoring to break down monolithic screens into highly modular, reusable, and easy-to-maintain components:
+- **components/auth/** - Self-contained components for complex authentication flows (modals, validation inputs).
+- **components/evaluations/** - Sub-components explicitly handling student grade uploads and evaluation displays.
+- **components/folder/** - Reusable requirement list items and modular folder structural components.
+- **components/profile/**, **components/home/**, **components/chat/** - Dedicated component ecosystems for each major feature area, ensuring the `app/` screen files remain purely compositional.
+- **components/ui/** - Core native elements bridging React Native / iOS / Android UI primitives.
 
 ## Get Started
 
