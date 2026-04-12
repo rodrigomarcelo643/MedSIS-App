@@ -6,14 +6,11 @@ import * as FileSystem from "expo-file-system";
 import * as IntentLauncher from "expo-intent-launcher";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { ChevronLeft, Download, Eye, ImageIcon } from "lucide-react-native";
+import { ChevronLeft } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
-  Image,
   Linking,
-  Modal,
   Platform,
   RefreshControl,
   ScrollView,
@@ -24,48 +21,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AcademicCalendar, AcademicCalendarDocument, SchoolCalendarResponse } from '@/@types/screens/school-calendar';
 
-const FileIcon = ({ mimeType }: { mimeType: string }) => {
-  if (mimeType.includes("pdf")) {
-    return (
-      <Image
-        source={require("../../assets/images/pdf.png")}
-        className="w-6 h-6"
-      />
-    );
-  } else if (mimeType.includes("word") || mimeType.includes("document")) {
-    return (
-      <Image
-        source={require("../../assets/images/docs.png")}
-        className="w-6 h-6"
-      />
-    );
-  } else if (mimeType.includes("png")) {
-    return (
-      <Image
-        source={require("../../assets/images/png.png")}
-        className="w-6 h-6"
-      />
-    );
-  } else if (
-    mimeType.includes("jpg") ||
-    mimeType.includes("jpeg") ||
-    mimeType.includes("image")
-  ) {
-    return (
-      <Image
-        source={require("../../assets/images/jpg.png")}
-        className="w-6 h-6"
-      />
-    );
-  } else {
-    return (
-      <Image
-        source={require("../../assets/images/jpg.png")}
-        className="w-6 h-6"
-      />
-    );
-  }
-};
+
+import { SkeletonLoader, ErrorState, MainEmptyState, FilteredEmptyState } from '@/components/school-calendar/SchoolCalendarStates';
+import { CalendarCard } from '@/components/school-calendar/CalendarCard';
+import { DocumentViewerModal } from '@/components/school-calendar/DocumentViewerModal';
 
 const SchoolCalendar: React.FC = () => {
   const { user } = useAuth();
@@ -188,34 +147,7 @@ const SchoolCalendar: React.FC = () => {
     fetchCalendarData();
   }, [user]);
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch (error) {
-      return "Invalid date";
-    }
-  };
 
-  const formatYearLevel = (yearLevel: string | null) => {
-    if (!yearLevel) return "All Years";
-    return yearLevel
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (!bytes || bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
 
   const downloadAndOpenFile = async (
     document: AcademicCalendarDocument,
@@ -305,86 +237,27 @@ const SchoolCalendar: React.FC = () => {
     setViewerVisible(true);
   };
 
-  const SkeletonLoader = () => {
-    return (
-      <View className="flex-1 bg-gray-100" style={{ backgroundColor }}>
-        <View className="bg-[#af1616] pt-12 pb-4 px-5 flex-row items-center">
-          <View className="h-6 w-6 bg-[#af1616]-light rounded mr-3"></View>
-          <View className="h-6 bg-[#af1616]-light rounded w-40"></View>
-        </View>
-        <View className="p-5">
-          {[1, 2, 3].map((item) => (
-            <View key={item} className="bg-white p-4 rounded-lg shadow mb-4" style={{ backgroundColor: cardColor }}>
-              <View className="h-6 bg-gray-300 rounded w-3/4 mb-3" style={{ backgroundColor: loadColor }}></View>
-              <View className="h-4 bg-gray-300 rounded w-1/2 mb-2" style={{ backgroundColor: loadColor }}></View>
-              <View className="h-4 bg-gray-300 rounded w-2/3 mb-4" style={{ backgroundColor: loadColor }}></View>
-              <View className="h-12 bg-gray-200 rounded" style={{ backgroundColor: loadColor }}></View>
-            </View>
-          ))}
-        </View>
-      </View>
-    );
-  };
-  const ErrorState = () => (
-    <View className="flex-1 justify-center items-center p-5 bg-gray-100">
-      <Ionicons
-        name="alert-circle"
-        size={48}
-        color="#dc2626"
-        className="mb-4"
-      />
-      <Text className="text-gray-600 mb-2 text-center">
-        Failed to load calendar data
-      </Text>
-      <Text className="text-gray-500 mb-4 text-center text-sm">{error}</Text>
-      <TouchableOpacity
-        onPress={() => fetchCalendarData()}
-        className="bg-[#af1616] px-4 py-2 rounded flex-row items-center"
-      >
-        <Ionicons name="refresh" size={16} color="white" className="mr-2" />
-        <Text className="text-white">Try Again</Text>
-      </TouchableOpacity>
-    </View>
-  );
+
 
   if (loading) {
-    return <SkeletonLoader />;
+    return <SkeletonLoader backgroundColor={backgroundColor} cardColor={cardColor} loadColor={loadColor} />;
   }
 
   if (error) {
-    return <ErrorState />;
+    return <ErrorState error={error} onRetry={() => fetchCalendarData()} />;
   }
 
   if (!calendarData) {
     return (
-      <View className="flex-1 bg-gray-100" style={{ backgroundColor }}>
-        <View className=" pt-12 pb-4 px-5 flex-row items-center">
-          <TouchableOpacity onPress={() => router.back()} className="mr-4">
-            <ChevronLeft size={24} color="white" />
-          </TouchableOpacity>
-          <Text className="text-xl font-bold">School Calendar</Text>
-        </View>
-        <View className="flex-1 justify-center items-center p-8">
-          <View className="bg-white rounded-2xl p-8 items-center shadow-lg" style={{ backgroundColor: cardColor }}>
-            <View className="bg-gray-100 rounded-full p-6 mb-4" style={{ backgroundColor: loadColor }}>
-              <Ionicons name="calendar-outline" size={64} color="#9ca3af" />
-            </View>
-            <Text className="text-xl font-bold text-gray-800 mb-2 text-center" style={{ color: textColor }}>
-              No Calendar Data
-            </Text>
-            <Text className="text-gray-500 text-center mb-6" style={{ color: mutedColor }}>
-              There are no academic calendars available at the moment.
-            </Text>
-            <TouchableOpacity
-              onPress={() => fetchCalendarData()}
-              className="bg-[#af1616] px-8 py-3 rounded-xl flex-row items-center shadow-sm"
-            >
-              <Ionicons name="refresh" size={20} color="white" className="mr-2" />
-              <Text className="text-white font-semibold ml-2">Retry</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+      <MainEmptyState 
+        backgroundColor={backgroundColor} 
+        cardColor={cardColor} 
+        textColor={textColor} 
+        mutedColor={mutedColor} 
+        loadColor={loadColor} 
+        onRetry={() => fetchCalendarData()} 
+        onBack={() => router.back()} 
+      />
     );
   }
 
@@ -413,198 +286,46 @@ const SchoolCalendar: React.FC = () => {
       >
         <View className="p-5">
           {filteredCalendars.length === 0 ? (
-            <View className="bg-white p-8 rounded-2xl shadow-lg items-center" style={{ backgroundColor: cardColor }}>
-              <View className="bg-gray-100 rounded-full p-6 mb-4" style={{ backgroundColor: loadColor }}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={56}
-                  color="#9ca3af"
-                />
-              </View>
-              <Text className="text-lg font-bold text-gray-800 mb-2 text-center" style={{ color: textColor }}>
-                No Calendars Found
-              </Text>
-              <Text className="text-gray-500 text-center mb-6" style={{ color: mutedColor }}>
-                No academic calendars available for your year level at this time.
-              </Text>
-              <TouchableOpacity
-                onPress={onRefresh}
-                className="bg-[#af1616] px-6 py-3 rounded-xl flex-row items-center shadow-sm"
-              >
-                <Ionicons
-                  name="refresh"
-                  size={18}
-                  color="white"
-                />
-                <Text className="text-white font-semibold ml-2">Refresh</Text>
-              </TouchableOpacity>
-            </View>
+            <FilteredEmptyState 
+              cardColor={cardColor} 
+              textColor={textColor} 
+              mutedColor={mutedColor} 
+              loadColor={loadColor} 
+              onRefresh={onRefresh} 
+            />
           ) : (
             filteredCalendars.map((calendar) => (
-              <View
+              <CalendarCard 
                 key={calendar.id}
-                className="bg-white p-4 rounded-lg shadow mb-4"
-                style={{ backgroundColor: cardColor }}
-              >
-                <Text className="text-lg font-bold text-[#af1616] mb-2" style={{ color: textColor }}>
-                  {calendar.title}
-                </Text>
-
-                <Text className="text-sm text-gray-600 mb-2" style={{ color: textColor }}>
-                  {formatDate(calendar.start_date)} -{" "}
-                  {formatDate(calendar.end_date)}
-                </Text>
-
-                {calendar.description && (
-                  <Text className="text-sm text-gray-700 mb-4">
-                    {calendar.description}
-                  </Text>
-                )}
-
-                {calendar.documents && calendar.documents.length > 0 && (
-                  <View className="mt-3">
-                    <Text className="text-sm font-medium text-gray-700 mb-2" style={{ color: textColor }}>
-                      Attached Documents:
-                    </Text>
-                    {calendar.documents.map((document) => (
-                      <View
-                        key={document.id}
-                        className="flex-row items-center justify-between bg-gray-50 p-3 rounded-lg mb-2 border border-gray-200"
-                        style={{ backgroundColor: loadColor }}
-                      >
-                        <View className="flex-row items-center flex-1">
-                          <View className="mr-3">
-                            <FileIcon mimeType={document.mime_type} />
-                          </View>
-
-                          <View className="flex-1">
-                            <Text
-                              className="text-sm font-medium text-gray-800"
-                              style={{color: textColor }}
-                              numberOfLines={1}
-                            >
-                              {document.file_name}
-                            </Text>
-                            <Text className="text-xs text-gray-500">
-                              {formatFileSize(document.file_size)} •{" "}
-                              {document.mime_type}
-                            </Text>
-                          </View>
-                        </View>
-
-                        <View className="flex-row space-x-2">
-                          {document.mime_type.includes("pdf") && (
-                            <TouchableOpacity
-                              onPress={() =>
-                                viewDocumentInBrowser(document, calendar.id)
-                              }
-                              className="p-2"
-                            >
-                              <Eye size={20} color="#af1616" />
-                            </TouchableOpacity>
-                          )}
-
-                          <TouchableOpacity
-                            onPress={() =>
-                              downloadAndOpenFile(document, calendar.id)
-                            }
-                            disabled={downloading === document.id}
-                            className="p-2"
-                          >
-                            {downloading === document.id ? (
-                              <ActivityIndicator size="small" color="#af1616" />
-                            ) : (
-                              <Download size={20} color="#af1616" />
-                            )}
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </View>
+                calendar={calendar} 
+                cardColor={cardColor} 
+                loadColor={loadColor} 
+                textColor={textColor} 
+                downloading={downloading} 
+                onViewDocument={viewDocumentInBrowser} 
+                onDownloadDocument={downloadAndOpenFile} 
+              />
             ))
           )}
         </View>
       </ScrollView>
 
-      <Modal
-        visible={viewerVisible}
-        animationType="slide"
-        onRequestClose={() => setViewerVisible(false)}
-      >
-        <View className="flex-1 bg-black">
-          <View className="bg-[#af1616] pt-12 pb-4 px-5 flex-row items-center">
-            <TouchableOpacity
-              onPress={() => setViewerVisible(false)}
-              className="mr-4"
-            >
-              <Ionicons name="close" size={24} color="white" />
-            </TouchableOpacity>
-            <Text
-              className="text-white text-lg font-bold flex-1"
-              numberOfLines={1}
-            >
-              {selectedDocument?.file_name}
-            </Text>
-          </View>
-          <View className="flex-1 justify-center items-center">
-            {selectedDocument?.mime_type.includes("image") ? (
-              <View className="flex-1 justify-center items-center">
-                <ImageIcon size={64} color="#af1616" />
-                <Text className="text-white mt-4 text-center">
-                  Image preview not available. Download to view.
-                </Text>
-                <TouchableOpacity
-                  className="bg-[#af1616] px-6 py-3 rounded-lg mt-4"
-                  onPress={() => {
-                    setViewerVisible(false);
-                    if (selectedDocument) {
-                      const calendar = filteredCalendars.find((cal) =>
-                        cal.documents?.some(
-                          (doc) => doc.id === selectedDocument.id
-                        )
-                      );
-                      if (calendar) {
-                        downloadAndOpenFile(selectedDocument, calendar.id);
-                      }
-                    }
-                  }}
-                >
-                  <Text className="text-white">Download File</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View className="flex-1 justify-center items-center">
-                <FileIcon
-                  mimeType={selectedDocument?.mime_type || ""}
-                />
-                <Text className="text-white mt-4 text-center">
-                  Use the download button to view this file
-                </Text>
-                <TouchableOpacity
-                  className="bg-[#af1616] px-6 py-3 rounded-lg mt-4"
-                  onPress={() => {
-                    setViewerVisible(false);
-                    if (selectedDocument) {
-                      const calendar = filteredCalendars.find((cal) =>
-                        cal.documents?.some(
-                          (doc) => doc.id === selectedDocument.id
-                        )
-                      );
-                      if (calendar) {
-                        downloadAndOpenFile(selectedDocument, calendar.id);
-                      }
-                    }
-                  }}
-                >
-                  <Text className="text-white">Download File</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-      </Modal>
+      <DocumentViewerModal 
+        visible={viewerVisible} 
+        onClose={() => setViewerVisible(false)} 
+        document={selectedDocument} 
+        onDownload={() => {
+          setViewerVisible(false);
+          if (selectedDocument) {
+            const calendar = filteredCalendars.find((cal) =>
+              cal.documents?.some((doc) => doc.id === selectedDocument.id)
+            );
+            if (calendar) {
+              downloadAndOpenFile(selectedDocument, calendar.id);
+            }
+          }
+        }} 
+      />
 
       {!fileSystemAvailable && (
         <View className="bg-yellow-100 p-3 border-t border-yellow-400">

@@ -6,100 +6,18 @@ import { useRouter } from 'expo-router';
 import {
   AlertTriangle,
   ArrowUp,
-  Bell,
-  BookOpen,
-  Calendar,
-  Check,
   ChevronDown,
   ChevronLeft,
-  Clock,
-  Filter,
-  Heart,
-  Megaphone,
-  User
+  Filter
 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Modal, Platform, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Announcement } from '@/@types/screens/announcements';
-
-// Category icons mapping
-const categoryIcons = {
-  general: Megaphone,
-  research: Heart,
-  clinical: Heart,
-  pharmacology: BookOpen,
-  cardiology: Heart,
-  event: Calendar,
-  urgent: AlertTriangle
-};
-
-// Priority colors mapping - updated with maroon theme
-const priorityColors = {
-  low: 'bg-green-100',
-  medium: 'bg-amber-100',
-  high: 'bg-red-100'
-};
-
-// Priority text colors - updated with maroon theme
-const priorityTextColors = {
-  low: 'text-green-800',
-  medium: 'text-amber-800',
-  high: 'text-red-800'
-};
-
-// Priority border colors - updated with maroon theme
-const priorityBorderColors = {
-  low: 'border-green-500',
-  medium: 'border-amber-500',
-  high: 'border-red-700'
-};
-
-// Skeleton Loader Component
-const SkeletonLoader = ({ cardColor, loadColor }: { cardColor: string; loadColor: string }) => {
-  return (
-    <View className="p-4">
-      {[1, 2, 3, 4 ].map((item) => (
-        <View key={item} className="bg-white rounded-xl p-4 mb-4" style={{ backgroundColor: cardColor }}>
-          <View className="flex-row justify-between items-center mb-3">
-            <View className="h-6 w-24 bg-gray-200 rounded-full" style={{ backgroundColor: loadColor }}></View>
-            <View className="h-6 w-16 bg-gray-200 rounded-full" style={{ backgroundColor: loadColor }}></View>
-          </View>
-          <View className="h-6 w-3/4 bg-gray-200 rounded mb-2" style={{ backgroundColor: loadColor }}></View>
-          <View className="h-4 w-full bg-gray-200 rounded mb-1" style={{ backgroundColor: loadColor }}></View>
-          <View className="h-4 w-5/6 bg-gray-200 rounded mb-3" style={{ backgroundColor: loadColor }}></View>
-          <View className="flex-row justify-between items-center">
-            <View className="h-4 w-20 bg-gray-200 rounded" style={{ backgroundColor: loadColor }}></View>
-            <View className="h-4 w-24 bg-gray-200 rounded" style={{ backgroundColor: loadColor }}></View>
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-};
-
-// Lazy Loader Component
-const LazyLoader = ({ cardColor, loadColor }: { cardColor: string; loadColor: string }) => {
-  return (
-    <View className="p-4">
-      {[1, 2].map((item) => (
-        <View key={item} className="bg-white rounded-xl p-4 mb-4" style={{ backgroundColor: cardColor }}>
-          <View className="flex-row justify-between items-center mb-3">
-            <View className="h-6 w-24 bg-gray-200 rounded-full" style={{ backgroundColor: loadColor }}></View>
-            <View className="h-6 w-16 bg-gray-200 rounded-full" style={{ backgroundColor: loadColor }}></View>
-          </View>
-          <View className="h-6 w-3/4 bg-gray-200 rounded mb-2" style={{ backgroundColor: loadColor }}></View>
-          <View className="h-4 w-full bg-gray-200 rounded mb-1" style={{ backgroundColor: loadColor }}></View>
-          <View className="h-4 w-5/6 bg-gray-200 rounded mb-3" style={{ backgroundColor: loadColor }}></View>
-          <View className="flex-row justify-between items-center">
-            <View className="h-4 w-20 bg-gray-200 rounded" style={{ backgroundColor: loadColor }}></View>
-            <View className="h-4 w-24 bg-gray-200 rounded" style={{ backgroundColor: loadColor }}></View>
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-};
+import { AnnouncementItem } from '@/components/announcements/AnnouncementItem';
+import { SkeletonLoader, LazyLoader } from '@/components/announcements/AnnouncementLoaders';
+import { PriorityDropdown } from '@/components/announcements/PriorityDropdown';
+import { EmptyState } from '@/components/announcements/EmptyState';
 
 const AnnouncementsScreen: React.FC = () => {
   const { user, logout } = useAuth();
@@ -270,61 +188,9 @@ const AnnouncementsScreen: React.FC = () => {
     }
   };
 
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   // Get the label for the selected priority
   const getSelectedPriorityLabel = () => {
     return availablePriorities.find(p => p.value === selectedPriority)?.label || 'All Priorities';
-  };
-
-  // Priority dropdown component
-  const PriorityDropdown = () => {
-    return (
-      <Modal
-        visible={showPriorityDropdown}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowPriorityDropdown(false)}
-      >
-        <TouchableOpacity 
-          className="flex-1 bg-black/50"
-          activeOpacity={1}
-          onPress={() => setShowPriorityDropdown(false)}
-        >
-          <View className="absolute top-20 right-4 w-48 bg-white rounded-lg shadow-lg overflow-hidden">
-            {availablePriorities.map((priority) => (
-              <TouchableOpacity
-                key={priority.value}
-                className={`flex-row items-center px-4 py-3 ${
-                  selectedPriority === priority.value ? 'bg-maroon-100' : 'bg-white'
-                }`}
-                onPress={() => {
-                  setSelectedPriority(priority.value);
-                  setShowPriorityDropdown(false);
-                }}
-              >
-                {selectedPriority === priority.value ? (
-                  <Check size={16} color="#800000" />
-                ) : (
-                  <View className="w-4 h-4" />
-                )}
-                <Text className={`ml-2 ${selectedPriority === priority.value ? ' font-semibold' : 'text-gray-700'}`}>
-                  {priority.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-    );
   };
 
   if (loading) {
@@ -384,7 +250,13 @@ const AnnouncementsScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <PriorityDropdown />
+      <PriorityDropdown
+        visible={showPriorityDropdown}
+        onClose={() => setShowPriorityDropdown(false)}
+        options={availablePriorities}
+        selectedPriority={selectedPriority}
+        onSelect={setSelectedPriority}
+      />
 
       <ScrollView
         ref={(ref) => {
@@ -401,85 +273,25 @@ const AnnouncementsScreen: React.FC = () => {
         }}
       >
         {displayedAnnouncements.length === 0 ? (
-          <View className="flex-1 justify-center items-center py-20 px-5">
-            <View className="bg-white rounded-2xl shadow-md p-8 items-center max-w-sm" style={{ backgroundColor: cardColor }}>
-              <View className="w-20 h-20 bg-[#af1616]/10 rounded-full items-center justify-center mb-4">
-                <Bell size={40} color="#af1616" />
-              </View>
-              <Text className="text-xl font-bold text-gray-800 text-center mb-2" style={{ color: textColor }}>
-                No Announcements Found
-              </Text>
-              <Text className="text-gray-500 text-center text-sm leading-5" style={{ color: mutedColor }}>
-                {selectedPriority !== 'all' 
-                  ? `No ${selectedPriority} priority announcements available. Try adjusting your filter settings.`
-                  : 'Check back later for new announcements and updates from your school.'
-                }
-              </Text>
-              {selectedPriority !== 'all' && (
-                <TouchableOpacity 
-                  className="mt-6 flex-row items-center bg-[#af1616] rounded-lg px-5 py-3"
-                  onPress={() => setSelectedPriority('all')}
-                >
-                  <Filter size={16} color="#ffffff" />
-                  <Text className="text-white font-semibold ml-2">Clear Filter</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
+          <EmptyState
+            selectedPriority={selectedPriority}
+            onClearFilter={() => setSelectedPriority('all')}
+            cardColor={cardColor}
+            textColor={textColor}
+            mutedColor={mutedColor}
+          />
         ) : (
           <View className="p-4">
-            {displayedAnnouncements.map(announcement => {
-              const IconComponent = categoryIcons[announcement.category];
-              const isExpanded = expandedAnnouncements.includes(announcement.id);
-              const priorityColor = priorityColors[announcement.priority];
-              const priorityTextColor = priorityTextColors[announcement.priority];
-              const priorityBorderColor = priorityBorderColors[announcement.priority];
-              
-              return (
-                <View 
-                  key={announcement.id} 
-                  className={`bg-white rounded-sm shadow-sm p-4 mb-4 border-l-4 ${priorityBorderColor}`}
-                  style={{ backgroundColor: cardColor }}
-                >
-                  <View className="flex-row justify-between items-center mb-3">
-                    <View className="flex-row items-center">
-                    
-                    </View>
-                    
-                    <View className={`rounded-full px-3 py-1 ${priorityColor}`}>
-                      <Text className={`text-xs font-medium ${priorityTextColor}`}>
-                        {announcement.priority.charAt(0).toUpperCase() + announcement.priority.slice(1)}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  <TouchableOpacity onPress={() => toggleExpand(announcement.id)}>
-                    <Text className="text-lg font-semibold text-gray-900 mb-2" style={{ color: textColor }}>{announcement.title}</Text>
-                    
-                    {(isExpanded || announcement.description.length < 150) ? (
-                      <Text className="text-gray-600 mb-3" style={{ color: textColor }}>{announcement.description}</Text>
-                    ) : (
-                      <Text className="text-gray-600 mb-3" style={{ color: textColor }}>
-                        {announcement.description.substring(0, 150)}...
-                        <Text className="text-maroon-600" > Read more</Text>
-                      </Text>
-                    )}
-                    
-                    <View className="flex-row justify-between items-center mt-2">
-                      <View className="flex-row items-center">
-                        <User size={14} color="#6b7280" />
-                        <Text className="ml-1 text-gray-500 text-sm" style={{ color: textColor }}>{announcement.author}</Text>
-                      </View>
-                      
-                      <View className="flex-row items-center">
-                        <Clock size={14} color="#6b7280" />
-                        <Text className="ml-1 text-gray-500 text-sm" style={{ color: textColor }}>{formatDate(announcement.created_at)}</Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
+            {displayedAnnouncements.map(announcement => (
+              <AnnouncementItem
+                key={announcement.id}
+                announcement={announcement}
+                isExpanded={expandedAnnouncements.includes(announcement.id)}
+                onToggleExpand={toggleExpand}
+                cardColor={cardColor}
+                textColor={textColor}
+              />
+            ))}
             
             {loadingMore && <LazyLoader cardColor={cardColor} loadColor={loadColor} />}
             

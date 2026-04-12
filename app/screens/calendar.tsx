@@ -5,20 +5,18 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { API_BASE_URL } from '@/constants/Config';
 import axios from "axios";
 import { useRouter } from "expo-router";
-import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react-native";
+import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Dimensions, Modal, Platform, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Dimensions, Platform, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CalendarEvent, ApiEvent, ViewMode, NavigationDirection, WeekRange } from '@/@types/screens/calendar';
-
-
-// Define the maroon color theme
-const MAROON_THEME = {
-  primary: '#be2e2e',      // Dark maroon
-  light: '#afff',          // Light maroon (as requested)
-  accent: '#a52a2a',       // Another shade of maroon
-  background: '#fff5f5',   // Very light maroon for backgrounds
-};
+import { CalendarEvent, ApiEvent, ViewMode, NavigationDirection } from '@/@types/screens/calendar';
+import { MAROON_THEME, months, shortMonths, days } from '@/components/calendar/constants';
+import { getWeekRange, formatDateRange } from '@/components/calendar/utils';
+import { CalendarSkeleton } from '@/components/calendar/CalendarSkeleton';
+import { MonthView } from '@/components/calendar/MonthView';
+import { WeekView } from '@/components/calendar/WeekView';
+import { DayView } from '@/components/calendar/DayView';
+import { EventModal } from '@/components/calendar/EventModal';
 
 export default function Calendar() {
   // Theme Change 
@@ -58,18 +56,6 @@ export default function Calendar() {
   const { user } = useAuth();
   const router = useRouter();
   const screenWidth = Dimensions.get('window').width;
-
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
-
-  const shortMonths = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ];
-
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   // Fetch events from API
   const fetchEvents = async () => {
@@ -205,614 +191,9 @@ export default function Calendar() {
     setCurrentDate(new Date());
   };
 
-  const getWeekRange = (date: Date): WeekRange => {
-    const day = date.getDay();
-    const startOfWeek = new Date(date);
-    startOfWeek.setDate(date.getDate() - day);
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    
-    return {
-      start: startOfWeek,
-      end: endOfWeek,
-      dates: Array.from({ length: 7 }).map((_, i) => {
-        const dayDate = new Date(startOfWeek);
-        dayDate.setDate(startOfWeek.getDate() + i);
-        return dayDate;
-      })
-    };
-  };
-
-  const formatDateRange = (start: Date, end: Date): string => {
-    if (start.getMonth() === end.getMonth()) {
-      return `${months[start.getMonth()]} ${start.getDate()} - ${end.getDate()}`;
-    } else {
-      return `${months[start.getMonth()]} ${start.getDate()} - ${months[end.getMonth()]} ${end.getDate()}`;
-    }
-  };
-
-  // Skeleton loader components
-  const SkeletonLoader = () => {
-    return (
-      <View className="flex-1 p-4 mt-6" style={{backgroundColor}}>
-        {/* Header skeleton */}
-        <View className="h-12 rounded-md mb-4 animate-pulse" style={{backgroundColor: loadColor}}></View>
-        
-        {/* Navigation skeleton */}
-        <View className="flex-row justify-between items-center mb-4">
-          <View className="h-10 w-10 rounded-full animate-pulse" style={{backgroundColor: loadColor}}></View>
-          <View className="flex-row">
-            <View className="h-10 w-24 rounded-md mr-2 animate-pulse" style={{backgroundColor: loadColor}}></View>
-            <View className="h-10 w-20 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
-          </View>
-          <View className="h-10 w-10 rounded-full animate-pulse" style={{backgroundColor: loadColor}}></View>
-        </View>
-        
-        {/* Calendar grid skeleton */}
-        {viewMode === "month" && (
-          <View className="flex-1">
-            {/* Weekday headers skeleton */}
-            <View className="flex-row mb-2">
-              {days.map((_, i) => (
-                <View key={i} className="flex-1 items-center">
-                  <View className="h-6 w-10 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
-                </View>
-              ))}
-            </View>
-            
-            {/* Calendar days skeleton */}
-            {Array.from({ length: 6 }).map((_, rowIndex) => (
-              <View key={rowIndex} className="flex-row mb-1 mt-2">
-                {Array.from({ length: 4 }).map((_, colIndex) => (
-                  <View key={colIndex} className="flex-1 aspect-square p-1">
-                    <View className="flex-1 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
-                  </View>
-                ))}
-              </View>
-            ))}
-          </View>
-        )}
-        
-        {viewMode === "week" && (
-          <View className="flex-1">
-            {/* Week header skeleton */}
-            <View className="flex-row mb-2">
-              {Array.from({ length: 7 }).map((_, i) => (
-                <View key={i} className="flex-1 items-center">
-                  <View className="h-8 w-8 rounded-full mb-1 animate-pulse" style={{backgroundColor: loadColor}}></View>
-                  <View className="h-4 w-12 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
-                </View>
-              ))}
-            </View>
-            
-            {/* Time slots skeleton */}
-            {Array.from({ length: 24 }).map((_, hourIndex) => (
-              <View key={hourIndex} className="flex-row h-16 mb-2">
-                <View className="w-14 items-end pr-2">
-                  <View className="h-4 w-10 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
-                </View>
-                <View className="flex-1 flex-row">
-                  {Array.from({ length: 7 }).map((_, dayIndex) => (
-                    <View key={dayIndex} className="flex-1 mx-0.5" style={{borderColor: gridBorderColor, borderWidth: 1}}>
-                      <View className="h-12 rounded-sm animate-pulse" style={{backgroundColor: cardColor}}></View>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-        
-        {viewMode === "day" && (
-          <View className="flex-1">
-            {/* Day header skeleton */}
-            <View className="items-center py-4 mb-4">
-              <View className="h-6 w-48 rounded-md mb-2 animate-pulse" style={{backgroundColor: loadColor}}></View>
-              <View className="h-4 w-32 rounded-md animate-pulse" style={{backgroundColor: loadColor}}></View>
-            </View>
-            
-            {/* Events skeleton */}
-            {Array.from({ length: 3 }).map((_, i) => (
-              <View key={i} className="p-4 rounded-xl mb-4 animate-pulse" style={{backgroundColor: cardColor}}>
-                <View className="flex-row justify-between items-start mb-3">
-                  <View className="h-5 w-32 rounded-md" style={{backgroundColor: loadColor}}></View>
-                  <View className="h-6 w-16 rounded-md" style={{backgroundColor: loadColor}}></View>
-                </View>
-                <View className="flex-row items-center mb-2">
-                  <View className="w-3 h-3 rounded-full mr-2" style={{backgroundColor: loadColor}}></View>
-                  <View className="h-4 w-40 rounded-md" style={{backgroundColor: loadColor}}></View>
-                </View>
-                <View className="h-4 w-full rounded-md mt-2" style={{backgroundColor: loadColor}}></View>
-                <View className="h-4 w-3/4 rounded-md mt-1" style={{backgroundColor: loadColor}}></View>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-    );
-  };
-
-  const renderMonthView = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    // Create day cells
-    let daysArray = [];
-    
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < firstDay; i++) {
-      daysArray.push(
-        <View 
-          key={`empty-${i}`} 
-          className="h-24 flex-1" 
-          style={{
-            borderBottomColor: gridBorderColor,
-            borderRightColor: gridBorderColor,
-            borderBottomWidth: 1,
-            borderRightWidth: 1
-          }} 
-        />
-      );
-    }
-    
-    // Add cells for each day of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      const currentDay = new Date(year, month, day);
-      const isToday = currentDay.toDateString() === new Date().toDateString();
-      const dayEvents = filteredEvents.filter(event => 
-        event.start.getDate() === day && 
-        event.start.getMonth() === month && 
-        event.start.getFullYear() === year
-      ).sort((a, b) => a.start.getTime() - b.start.getTime());
-      
-      daysArray.push(
-        <View 
-          key={`day-${day}`} 
-          className="flex-1"
-          style={{
-            borderBottomColor: gridBorderColor,
-            borderRightColor: gridBorderColor,
-            borderBottomWidth: 1,
-            borderRightWidth: 1,
-            backgroundColor: isToday ? '#3B82F620' : 'transparent'
-          }}
-        >
-          <View className="h-24 p-1">
-            <TouchableOpacity 
-              onPress={() => {
-                setCurrentDate(new Date(year, month, day));
-                setViewMode("day");
-              }}
-              className="flex-row items-start justify-between"
-            >
-              <Text 
-                className="text-sm w-6 h-6 text-center rounded-full flex items-center justify-center font-bold"
-                style={{
-                  backgroundColor: isToday ? '#be2e2e' : 'transparent',
-                  color: isToday ? 'white' : textColor
-                }}
-              >
-                {day}
-              </Text>
-            </TouchableOpacity>
-            <View className="mt-1">
-              {dayEvents.map(event => (
-                <TouchableOpacity
-                  key={event.id}
-                  className="flex-row items-center mb-0.5"
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    setSelectedEvent(event);
-                    setShowEventModal(true);
-                  }}
-                >
-                  <View className="w-1.5 h-1.5 rounded-full mr-1" style={{backgroundColor: event.color}} />
-                  <Text className="text-[10px]" style={{color: mutedColor}} numberOfLines={1}>
-                    {event.title}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </View>
-      );
-    }
-    
-    // Calculate rows needed
-    const totalCells = daysArray.length;
-    const rowsNeeded = Math.ceil(totalCells / 7);
-    
-    // Fill remaining cells to complete the last row (if needed)
-    const remainingCells = rowsNeeded * 7 - totalCells;
-    for (let i = 0; i < remainingCells; i++) {
-      daysArray.push(
-        <View 
-          key={`remaining-${i}`} 
-          className="h-24 flex-1" 
-          style={{
-            borderBottomColor: gridBorderColor,
-            borderRightColor: gridBorderColor,
-            borderBottomWidth: 1,
-            borderRightWidth: 1
-          }} 
-        />
-      );
-    }
-    
-    // Create rows with exactly 7 cells each
-    const rows = [];
-    for (let i = 0; i < rowsNeeded; i++) {
-      const rowCells = daysArray.slice(i * 7, (i + 1) * 7);
-      rows.push(
-        <View key={`row-${i}`} className="flex-row">
-          {rowCells}
-        </View>
-      );
-    }
-    
-    return (
-      <View className="flex-1">
-        {/* Weekday headers */}
-        <View className="flex-row mb-1" style={{backgroundColor, borderBottomColor: gridBorderColor, borderBottomWidth: 1}}>
-          {days.map(day => (
-            <View key={day} className="flex-1 items-center py-2">
-              <Text className="font-semibold text-xs" style={{color: mutedColor}}>
-                {day}
-              </Text>
-            </View>
-          ))}
-        </View>
-        
-        {/* Calendar grid */}
-        <ScrollView 
-          className="flex-1"
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[MAROON_THEME.primary]}
-              tintColor={MAROON_THEME.primary}
-            />
-          }
-        >
-          {rows}
-        </ScrollView>
-      </View>
-    );
-  };
-
-  const renderWeekView = () => {
-    const { dates } = getWeekRange(currentDate);
-    
-    return (
-      <View className="flex-1">
-        <View className="flex-row border-b border-gray-200">
-          {dates.map((date, i) => {
-            const isToday = date.toDateString() === new Date().toDateString();
-            const dayEvents = filteredEvents.filter(event => 
-              event.start.toDateString() === date.toDateString()
-            );
-            
-            return (
-              <View key={`weekday-${i}`} className="flex-1 items-center py-2" style={{borderRightColor: gridBorderColor, borderRightWidth: i < 6 ? 1 : 0}}>
-                <Text className="text-xs" style={{color: mutedColor}}>{days[i].substring(0, 1)}</Text>
-                <View 
-                  className="w-8 h-8 rounded-full items-center justify-center mt-1"
-                  style={{backgroundColor: isToday ? '#3B82F6' : cardColor}}
-                >
-                  <Text style={{color: isToday ? 'white' : textColor}}>
-                    {date.getDate()}
-                  </Text>
-                </View>
-                {dayEvents.length > 0 && (
-                  <View className="mt-1">
-                    <Text className="text-xs" style={{color: '#3B82F6'}}>{dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}</Text>
-                  </View>
-                )}
-              </View>
-            );
-          })}
-        </View>
-        
-        <ScrollView 
-          className="flex-1"
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[MAROON_THEME.primary]}
-              tintColor={MAROON_THEME.primary}
-            />
-          }
-        >
-          {Array.from({ length: 24 }).map((_, hourIndex) => {
-            const hour = hourIndex;
-            const time = `${hour % 12 === 0 ? 12 : hour % 12} ${hour >= 12 ? 'PM' : 'AM'}`;
-            
-            // Highlight 7 AM to 7 PM time slots
-            const isWorkingHours = hour >= 7 && hour <= 19;
-            
-            return (
-              <View 
-                key={`hour-${hour}`} 
-                className="flex-row h-16"
-                style={{
-                  borderBottomColor: gridBorderColor,
-                  borderBottomWidth: 1,
-                  backgroundColor: isWorkingHours ? '#3B82F610' : 'transparent'
-                }}
-              >
-                <View className="w-14 items-end pr-2 pt-1">
-                  <Text 
-                    className="text-xs"
-                    style={{
-                      color: hour === 9 || hour === 12 || hour === 17 ? '#1E40AF' : mutedColor,
-                      fontWeight: hour === 9 || hour === 12 || hour === 17 ? 'bold' : 'normal'
-                    }}
-                  >
-                    {time}
-                  </Text>
-                </View>
-                <View className="flex-1 flex-row" style={{borderLeftColor: gridBorderColor, borderLeftWidth: 1}}>
-                  {dates.map((date, i) => {
-                    const dayEvents = filteredEvents.filter(event => {
-                      const eventStart = new Date(event.start);
-                      const eventEnd = new Date(event.end);
-                      const eventStartHour = eventStart.getHours();
-                      const eventEndHour = eventEnd.getHours();
-                      const eventEndMinutes = eventEnd.getMinutes();
-                      
-                      return (
-                        eventStart.toDateString() === date.toDateString() &&
-                        hour >= eventStartHour && 
-                        hour <= eventEndHour
-                      );
-                    }).sort((a, b) => a.start.getTime() - b.start.getTime());
-                    
-                    return (
-                      <View key={`cell-${hour}-${i}`} className="flex-1" style={{borderRightColor: gridBorderColor, borderRightWidth: i < 6 ? 1 : 0}}>
-                        {dayEvents.map(event => (
-                          <TouchableOpacity
-                            key={event.id}
-                            className="rounded p-1 m-0.5"
-                            style={{backgroundColor: event.color}}
-                            onPress={() => {
-                              setSelectedEvent(event);
-                              setShowEventModal(true);
-                            }}
-                          >
-                            <Text className="text-white text-xs font-medium" numberOfLines={1}>
-                              {event.title}
-                            </Text>
-                            <Text className="text-white text-[10px] opacity-90">
-                              {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
-            );
-          })}
-        </ScrollView>
-      </View>
-    );
-  };
-
-  const renderDayView = () => {
-    const dayEvents = filteredEvents.filter(event => 
-      event.start.toDateString() === currentDate.toDateString()
-    ).sort((a, b) => a.start.getTime() - b.start.getTime());
-    
-    return (
-      <View className="flex-1">
-        <View className="items-center py-4" style={{borderBottomColor: gridBorderColor, borderBottomWidth: 1}}>
-          <Text className="text-xl font-bold" style={{color: textColor}}>
-            {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-          </Text>
-          <Text className="mt-1" style={{color: mutedColor}}>
-            {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''} scheduled
-          </Text>
-        </View>
-        
-        {dayEvents.length > 0 ? (
-          <ScrollView 
-            className="flex-1"
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={[MAROON_THEME.primary]}
-                tintColor={MAROON_THEME.primary}
-              />
-            }
-          >
-            {Array.from({ length: 24 }).map((_, hourIndex) => {
-              const hour = hourIndex;
-              const time = `${hour % 12 === 0 ? 12 : hour % 12} ${hour >= 12 ? 'PM' : 'AM'}`;
-              
-              // Highlight 7 AM to 7 PM time slots
-              const isWorkingHours = hour >= 7 && hour <= 19;
-              
-              // Get events for this hour
-              const hourEvents = dayEvents.filter(event => {
-                const eventStartHour = event.start.getHours();
-                const eventEndHour = event.end.getHours();
-                const eventStartMinutes = event.start.getMinutes();
-                const eventEndMinutes = event.end.getMinutes();
-                
-                // Check if event spans this hour
-                const eventStartTime = eventStartHour + (eventStartMinutes / 60);
-                const eventEndTime = eventEndHour + (eventEndMinutes / 60);
-                
-                return hour >= eventStartHour && hour <= eventEndHour;
-              });
-              
-              return (
-                <View 
-                  key={`hour-${hour}`} 
-                  className="flex-row min-h-16"
-                  style={{
-                    borderBottomColor: gridBorderColor,
-                    borderBottomWidth: 1,
-                    backgroundColor: isWorkingHours ? '#3B82F610' : 'transparent'
-                  }}
-                >
-                  <View className="w-14 items-end pr-2 pt-3">
-                    <Text 
-                      className="text-xs"
-                      style={{
-                        color: hour === 7 || hour === 12 || hour === 19 ? '#1E40AF' : mutedColor,
-                        fontWeight: hour === 7 || hour === 12 || hour === 19 ? 'bold' : 'normal'
-                      }}
-                    >
-                      {time}
-                    </Text>
-                  </View>
-                  <View className="flex-1 p-1 relative" style={{borderLeftColor: gridBorderColor, borderLeftWidth: 1}}>
-                    {hourEvents.map(event => {
-                      // Calculate if this is the first hour of a multi-hour event
-                      const isFirstHour = event.start.getHours() === hour;
-                      const isLastHour = event.end.getHours() === hour;
-                      
-                      // Calculate the duration in hours (including partial hours)
-                      const durationMs = event.end.getTime() - event.start.getTime();
-                      const durationHours = durationMs / (1000 * 60 * 60);
-                      
-                      // Calculate the height based on duration (each hour = 64px)
-                      const height = durationHours * 64;
-                      
-                      // Calculate the vertical position based on start time
-                      const startMinutes = event.start.getMinutes();
-                      const endMinutes = event.end.getMinutes();
-                      const positionOffset = isFirstHour ? (startMinutes / 60) * 64 : 0;
-                      
-                      // Calculate the height more accurately
-                      let finalHeight = 64; // Default to one hour
-                      
-                      if (isFirstHour && isLastHour) {
-                        // Event starts and ends in the same hour
-                        finalHeight = ((endMinutes - startMinutes) / 60) * 64;
-                      } else if (isFirstHour) {
-                        // First hour of multi-hour event
-                        finalHeight = ((60 - startMinutes) / 60) * 64;
-                      } else if (isLastHour) {
-                        // Last hour of multi-hour event
-                        finalHeight = (endMinutes / 60) * 64;
-                      }
-                      
-                      return (
-                        <TouchableOpacity
-                          key={`${event.id}-${hour}`}
-                          className="absolute left-1 right-1 rounded p-2"
-                          style={{
-                            backgroundColor: event.color,
-                            height: finalHeight,
-                            top: isFirstHour ? positionOffset : 0,
-                            zIndex: 10
-                          }}
-                          onPress={() => {
-                            setSelectedEvent(event);
-                            setShowEventModal(true);
-                          }}
-                        >
-                          {isFirstHour && (
-                            <>
-                              <Text className="text-white text-sm font-medium" numberOfLines={1}>
-                                {event.title}
-                              </Text>
-                              <Text className="text-white text-xs opacity-90">
-                                {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - 
-                                {event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                              </Text>
-                            </>
-                          )}
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-        ) : (
-          <View className="flex-1 items-center justify-center p-8">
-            <CalendarIcon size={48} color={mutedColor} />
-            <Text className="text-lg mt-4 text-center" style={{color: mutedColor}}>No events scheduled for this day</Text>
-          </View>
-        )}
-      </View>
-    );
-  };
-
-  const renderEventModal = () => {
-    if (!selectedEvent) return null;
-    
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showEventModal}
-        onRequestClose={() => setShowEventModal(false)}
-      >
-        <View className="flex-1 justify-end bg-black/50">
-          <View className="rounded-t-3xl p-6 max-h-3/4" style={{backgroundColor}}>
-                
-            <View className="space-y-5">
-                
-                <View className="mb-5" style={{borderBottomColor: mutedColor, borderBottomWidth: 2}}>
-                  <Text className="py-3 font-bold text-lg" style={{color: '#be2e2e'}}>{selectedEvent.title}</Text>
-                </View>
-              <View className="flex-row mb-3  items-center ">
-                <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{backgroundColor: `${selectedEvent.color}20`}}>
-                  <CalendarIcon size={20} color={selectedEvent.color} />
-                </View>
-                
-                <View>
-                  <Text className="text-sm" style={{color: mutedColor}}>Date</Text>
-                  <Text style={{color: textColor}}>{selectedEvent.start.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</Text>
-                </View>
-              </View>
-              
-              <View className="flex-row mb-3 items-center">
-                <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{backgroundColor: `${selectedEvent.color}20`}}>
-                  <Text className="text-xs font-bold" style={{color: selectedEvent.color}}>⏰</Text>
-                </View>
-                <View>
-                  <Text className="text-sm" style={{color: mutedColor}}>Time</Text>
-                  <Text style={{color: textColor}}>
-                    {selectedEvent.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
-                    {selectedEvent.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </Text>
-                </View>
-              </View>
-              
-              <View>
-                <Text className="text-sm mb-2" style={{color: mutedColor}}>Description</Text>
-                <Text className="leading-5" style={{color: textColor}}>{selectedEvent.description}</Text>
-              </View>
-            </View>
-            
-            <TouchableOpacity 
-              className="mt-8 rounded-xl p-4 items-center"
-              style={{backgroundColor: selectedEvent.color}}
-              onPress={() => setShowEventModal(false)}
-            >
-              <Text className="text-white font-bold text-base">Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
   // Render loading state with skeleton loader
   if (loading) {
-    return <SkeletonLoader />;
+    return <CalendarSkeleton backgroundColor={backgroundColor} loadColor={loadColor} cardColor={cardColor} gridBorderColor={gridBorderColor} viewMode={viewMode} />;
   }
 
   // Render error state
@@ -960,20 +341,67 @@ export default function Calendar() {
       <View className="flex-row justify-center py-3" style={{backgroundColor, borderBottomColor: gridBorderColor, borderBottomWidth: 1}}>
         <Text className="text-lg font-semibold" style={{color: textColor}}>
           {viewMode === "month" && `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
-          {viewMode === "week" && `Week of ${formatDateRange(weekRange.start, weekRange.end)}`}
+          {viewMode === "week" && `Week of ${formatDateRange(weekRange.start, weekRange.end, months)}`}
           {viewMode === "day" && currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
         </Text>
       </View>
       
       {/* Calendar Content */}
       <View className="flex-1">
-        {viewMode === "month" && renderMonthView()}
-        {viewMode === "week" && renderWeekView()}
-        {viewMode === "day" && renderDayView()}
+        {viewMode === "month" && (
+          <MonthView
+            currentDate={currentDate}
+            filteredEvents={filteredEvents}
+            setCurrentDate={setCurrentDate}
+            setViewMode={setViewMode}
+            setSelectedEvent={setSelectedEvent}
+            setShowEventModal={setShowEventModal}
+            gridBorderColor={gridBorderColor}
+            backgroundColor={backgroundColor}
+            textColor={textColor}
+            mutedColor={mutedColor}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        )}
+        {viewMode === "week" && (
+          <WeekView
+            currentDate={currentDate}
+            filteredEvents={filteredEvents}
+            setSelectedEvent={setSelectedEvent}
+            setShowEventModal={setShowEventModal}
+            gridBorderColor={gridBorderColor}
+            cardColor={cardColor}
+            textColor={textColor}
+            mutedColor={mutedColor}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        )}
+        {viewMode === "day" && (
+          <DayView
+            currentDate={currentDate}
+            filteredEvents={filteredEvents}
+            setSelectedEvent={setSelectedEvent}
+            setShowEventModal={setShowEventModal}
+            gridBorderColor={gridBorderColor}
+            textColor={textColor}
+            mutedColor={mutedColor}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        )}
       </View>
       
       {/* Event Details Modal */}
-      {renderEventModal()}
+      <EventModal
+        selectedEvent={selectedEvent}
+        showEventModal={showEventModal}
+        setShowEventModal={setShowEventModal}
+        backgroundColor={backgroundColor}
+        mutedColor={mutedColor}
+        textColor={textColor}
+      />
     </View>
   );
 }

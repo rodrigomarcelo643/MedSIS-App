@@ -3,15 +3,17 @@ import { API_BASE_URL } from '@/constants/Config';
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
-import { ArrowLeft, Check, Eye, EyeOff, Key, Mail, X } from "lucide-react-native";
+import { ArrowLeft, Check, X } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
+import { PasswordInput } from "@/components/change-password/PasswordInput";
+import { PasswordRequirements } from "@/components/change-password/PasswordRequirements";
+import { EmailOtpRequest } from "@/components/change-password/EmailOtpRequest";
+import { OtpVerification } from "@/components/change-password/OtpVerification";
+import { FeedbackModal } from "@/components/change-password/FeedbackModal";
 import {
-  ActivityIndicator,
   Animated,
   KeyboardAvoidingView,
-  Modal,
   Platform,
-  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -462,207 +464,58 @@ const ChangePassword = () => {
 
         <View className="bg-white p-3 mt-10 rounded-xl shadow-sm" style={{ backgroundColor: cardColor }}>
           {/* Current Password Input */}
-          <View className="mb-6">
-            <View className="relative">
-              <Animated.Text style={[currentPasswordLabelStyle, { backgroundColor: cardColor }]}>
-                Current Password
-              </Animated.Text>
-
-              <View
-                className={`flex-row items-center border ${errors.current_password ? "border-red-500" : state.isCurrentPasswordFocused ? "border-[#af1616]" : "border-gray-300"} rounded-lg px-3 py-2 mt-1`}
-              >
-                <Key
-                  size={20}
-                  color={errors.current_password ? "#ef4444" : "#6b7280"}
-                  className="mr-2"
-                />
-                <TextInput
-                  className="flex-1 text-[#1f2937] py-2"
-                  style={{color: textColor }}
-                  value={passwords.current_password}
-                  onChangeText={(value) =>
-                    handlePasswordChange("current_password", value)
-                  }
-                  onFocus={() => handleFocus("current_password")}
-                  onBlur={() => handleBlur("current_password")}
-                  secureTextEntry={!state.showCurrentPassword}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity
-                  onPress={() =>
-                    setState((prev) => ({
-                      ...prev,
-                      showCurrentPassword: !prev.showCurrentPassword,
-                    }))
-                  }
-                >
-                  {state.showCurrentPassword ? (
-                    <EyeOff
-                      size={20}
-                      color={errors.current_password ? "#ef4444" : "#af1616"}
-                    />
-                  ) : (
-                    <Eye
-                      size={20}
-                      color={errors.current_password ? "#ef4444" : "#af1616"}
-                    />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-            {errors.current_password ? (
-              <Text className="text-red-500 text-xs mt-1">
-                {errors.current_password}
-              </Text>
-            ) : null}
-          </View>
+          <PasswordInput
+            label="Current Password"
+            value={passwords.current_password}
+            onChangeText={(val) => handlePasswordChange("current_password", val)}
+            onFocus={() => handleFocus("current_password")}
+            onBlur={() => handleBlur("current_password")}
+            error={errors.current_password}
+            showPassword={state.showCurrentPassword}
+            onToggleShowPassword={() => setState((prev) => ({ ...prev, showCurrentPassword: !prev.showCurrentPassword }))}
+            labelStyle={currentPasswordLabelStyle}
+            isFocused={state.isCurrentPasswordFocused as boolean}
+            cardColor={cardColor}
+            textColor={textColor}
+          />
 
           {/* New Password Input */}
-          <View className="mb-6">
-            <View className="relative">
-              <Animated.Text style={[newPasswordLabelStyle, { backgroundColor: cardColor }] }>
-                New Password
-              </Animated.Text>
-              <View
-                className={`flex-row items-center border ${errors.new_password ? "border-red-500" : passwordValidation.allValid ? "border-green-500" : state.isNewPasswordFocused ? "border-[#af1616]" : "border-gray-300"} rounded-lg px-3 py-2 mt-1`}
-              >
-                <Key
-                  size={20}
-                  color={
-                    passwordValidation.allValid
-                      ? "#10b981"
-                      : errors.new_password
-                        ? "#ef4444"
-                        : "#6b7280"
-                  }
-                  className="mr-2"
-                />
-                <TextInput
-                  className="flex-1 text-[#1f2937] py-2"
-                  style={{ color: textColor }}
-                  value={passwords.new_password}
-                  onChangeText={(value) =>
-                    handlePasswordChange("new_password", value)
-                  }
-                  onFocus={() => handleFocus("new_password")}
-                  onBlur={() => handleBlur("new_password")}
-                  secureTextEntry={!state.showNewPassword}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity
-                  onPress={() =>
-                    setState((prev) => ({
-                      ...prev,
-                      showNewPassword: !prev.showNewPassword,
-                    }))
-                  }
-                >
-                  {state.showNewPassword ? (
-                    <EyeOff
-                      size={20}
-                      color={
-                        passwordValidation.allValid
-                          ? "#10b981"
-                          : errors.new_password
-                            ? "#ef4444"
-                            : "#af1616"
-                      }
-                    />
-                  ) : (
-                    <Eye
-                      size={20}
-                      color={
-                        passwordValidation.allValid
-                          ? "#10b981"
-                          : errors.new_password
-                            ? "#ef4444"
-                            : "#af1616"
-                      }
-                    />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-            {errors.new_password ? (
-              <Text className="text-red-500 text-xs mt-1">
-                {errors.new_password}
-              </Text>
-            ) : null}
-          </View>
+          <PasswordInput
+            label="New Password"
+            value={passwords.new_password}
+            onChangeText={(val) => handlePasswordChange("new_password", val)}
+            onFocus={() => handleFocus("new_password")}
+            onBlur={() => handleBlur("new_password")}
+            error={errors.new_password}
+            showPassword={state.showNewPassword}
+            onToggleShowPassword={() => setState((prev) => ({ ...prev, showNewPassword: !prev.showNewPassword }))}
+            labelStyle={newPasswordLabelStyle}
+            isValid={passwordValidation.allValid}
+            isFocused={state.isNewPasswordFocused as boolean}
+            cardColor={cardColor}
+            textColor={textColor}
+          />
 
           {/* Confirm Password Input */}
           <View className="mb-3">
-            <View className="relative">
-              <Animated.Text style={[confirmPasswordLabelStyle, { backgroundColor: cardColor }]}>
-                Confirm Password
-              </Animated.Text>
-              <View
-                className={`flex-row items-center border ${errors.confirm_password ? "border-red-500" : passwords.new_password === passwords.confirm_password && passwords.confirm_password ? "border-green-500" : state.isConfirmPasswordFocused ? "border-[#af1616]" : "border-gray-300"} rounded-lg px-3 py-2 mt-1`}
-              >
-                <Key
-                  size={20}
-                  color={
-                    passwords.new_password === passwords.confirm_password &&
-                    passwords.confirm_password
-                      ? "#10b981"
-                      : errors.confirm_password
-                        ? "#ef4444"
-                        : "#6b7280"
-                  }
-                  className="mr-2"
-                />
-                <TextInput
-                  className="flex-1 text-[#1f2937] py-2"
-                  style={{color: textColor }}
-                  value={passwords.confirm_password}
-                  onChangeText={(value) =>
-                    handlePasswordChange("confirm_password", value)
-                  }
-                  onFocus={() => handleFocus("confirm_password")}
-                  onBlur={() => handleBlur("confirm_password")}
-                  secureTextEntry={!state.showConfirmPassword}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity
-                  onPress={() =>
-                    setState((prev) => ({
-                      ...prev,
-                      showConfirmPassword: !prev.showConfirmPassword,
-                    }))
-                  }
-                >
-                  {state.showConfirmPassword ? (
-                    <EyeOff
-                      size={20}
-                      color={
-                        passwords.new_password === passwords.confirm_password &&
-                        passwords.confirm_password
-                          ? "#10b981"
-                          : errors.confirm_password
-                            ? "#ef4444"
-                            : "#af1616"
-                      }
-                    />
-                  ) : (
-                    <Eye
-                      size={20}
-                      color={
-                        passwords.new_password === passwords.confirm_password &&
-                        passwords.confirm_password
-                          ? "#10b981"
-                          : errors.confirm_password
-                            ? "#ef4444"
-                            : "#af1616"
-                      }
-                    />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-
+            <PasswordInput
+              label="Confirm Password"
+              value={passwords.confirm_password}
+              onChangeText={(val) => handlePasswordChange("confirm_password", val)}
+              onFocus={() => handleFocus("confirm_password")}
+              onBlur={() => handleBlur("confirm_password")}
+              error={errors.confirm_password}
+              showPassword={state.showConfirmPassword}
+              onToggleShowPassword={() => setState((prev) => ({ ...prev, showConfirmPassword: !prev.showConfirmPassword }))}
+              labelStyle={confirmPasswordLabelStyle}
+              isValid={passwords.new_password === passwords.confirm_password && passwords.confirm_password.length > 0}
+              isFocused={state.isConfirmPasswordFocused as boolean}
+              cardColor={cardColor}
+              textColor={textColor}
+            />
             {/* Password Match Validation */}
             {passwords.confirm_password.length > 0 && (
-              <View className="mt-2 flex-row items-center">
+              <View className="flex-row items-center mt-[-16px] mb-2">
                 {passwords.new_password === passwords.confirm_password ? (
                   <Check size={14} color="#10b981" />
                 ) : (
@@ -677,230 +530,58 @@ const ChangePassword = () => {
                 </Text>
               </View>
             )}
-
-            {errors.confirm_password ? (
-              <Text className="text-red-500 text-xs mt-1">
-                {errors.confirm_password}
-              </Text>
-            ) : null}
           </View>
 
           {/* Password Validation */}
           {passwords.new_password.length > 0 && (
-            <View className="mt-0 mb-3 p-3 rounded-lg" style={{ backgroundColor: backgroundColor }}>
-              <Text className="text-sm font-medium mb-2" style={{ color: mutedColor }}>
-                Password requirements:
-              </Text>
-              <View className="ml-1">
-                <View className="flex-row items-center mb-1">
-                  {passwordValidation.hasMinLength ? (
-                    <Check size={14} color="#10b981" />
-                  ) : (
-                    <X size={14} color="#ef4444" />
-                  )}
-                  <Text
-                    className={`text-xs ml-2 ${passwordValidation.hasMinLength ? "text-green-600" : "text-red-600"}`}
-                  >
-                    At least 8 characters
-                  </Text>
-                </View>
-                <View className="flex-row items-center mb-1">
-                  {passwordValidation.hasSpecialChar ? (
-                    <Check size={14} color="#10b981" />
-                  ) : (
-                    <X size={14} color="#ef4444" />
-                  )}
-                  <Text
-                    className={`text-xs ml-2 ${passwordValidation.hasSpecialChar ? "text-green-600" : "text-red-600"}`}
-                  >
-                    At least one special character
-                  </Text>
-                </View>
-                <View className="flex-row items-center mb-1">
-                  {passwordValidation.hasNumber ? (
-                    <Check size={14} color="#10b981" />
-                  ) : (
-                    <X size={14} color="#ef4444" />
-                  )}
-                  <Text
-                    className={`text-xs ml-2 ${passwordValidation.hasNumber ? "text-green-600" : "text-red-600"}`}
-                  >
-                    At least one number
-                  </Text>
-                </View>
-                <View className="flex-row items-center mb-1">
-                  {passwordValidation.hasUpperCase ? (
-                    <Check size={14} color="#10b981" />
-                  ) : (
-                    <X size={14} color="#ef4444" />
-                  )}
-                  <Text
-                    className={`text-xs ml-2 ${passwordValidation.hasUpperCase ? "text-green-600" : "text-red-600"}`}
-                  >
-                    At least one uppercase letter
-                  </Text>
-                </View>
-                <View className="flex-row items-center mb-1">
-                  {passwordValidation.isNotCommon ? (
-                    <Check size={14} color="#10b981" />
-                  ) : (
-                    <X size={14} color="#ef4444" />
-                  )}
-                  <Text
-                    className={`text-xs ml-2 ${passwordValidation.isNotCommon ? "text-green-600" : "text-red-600"}`}
-                  >
-                    Not a common password
-                  </Text>
-                </View>
-                <View className="flex-row items-center">
-                  {passwordValidation.isDifferentFromCurrent ? (
-                    <Check size={14} color="#10b981" />
-                  ) : (
-                    <X size={14} color="#ef4444" />
-                  )}
-                  <Text
-                    className={`text-xs ml-2 ${passwordValidation.isDifferentFromCurrent ? "text-green-600" : "text-red-600"}`}
-                  >
-                    Different from current password
-                  </Text>
-                </View>
-              </View>
-            </View>
+            <PasswordRequirements
+              validation={passwordValidation}
+              backgroundColor={backgroundColor}
+              mutedColor={mutedColor}
+            />
           )}
 
           {/* Email Input with Get OTP Button */}
           {!state.otpSent && (
-            <View className="mb-2 mt-3">
-              <View className="flex-row items-center gap-2">
-                <View className="flex-1 flex-row items-center border rounded-lg px-3 py-1.5" style={{ borderColor: mutedColor + '80' }}>
-                  <Mail size={18} color="#6b7280" />
-                  <TextInput
-                    className="flex-1 ml-0 text-[12px]"
-                    style={{ color: textColor }}
-                    value={user?.email || ''}
-                    editable={false}
-                    placeholder="No email"
-                    placeholderTextColor={mutedColor}
-                  />
-                </View>
-                <TouchableOpacity
-                  className="bg-[#af1616] rounded-lg px-4 py-4"
-                  onPress={requestOTP}
-                  disabled={state.loading || !user?.email}
-                  style={{ opacity: state.loading || !user?.email ? 0.5 : 1 }}
-                >
-                  {state.loading ? (
-                    <ActivityIndicator color="white" size="small" />
-                  ) : (
-                    <Text className="text-white text-sm font-bold">Get OTP</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
+            <EmailOtpRequest
+              email={user?.email}
+              loading={state.loading}
+              onRequestOTP={requestOTP}
+              mutedColor={mutedColor}
+              textColor={textColor}
+            />
           )}
 
           {/* OTP Section */}
           {state.otpSent && (
-            <View>
-              <Text className="text-sm font-semibold mb-3" style={{ color: textColor }}>Enter OTP Code</Text>
-              <View className="flex-row justify-between mb-4">
-                {otp.map((digit, index) => (
-                  <TextInput
-                    key={index}
-                    ref={(ref) => { if (ref) otpInputs.current[index] = ref; }}
-                    className="w-12 h-14 border-2 rounded-xl text-center text-xl font-bold"
-                    style={{ borderColor: otpError ? '#ef4444' : digit ? '#af1616' : mutedColor + '40', color: textColor, backgroundColor: cardColor }}
-                    value={digit}
-                    onChangeText={(value) => {
-                      if (value.length > 1) {
-                        const digits = value.replace(/\D/g, '').slice(0, 6).split('');
-                        const newOtp = [...otp];
-                        digits.forEach((d, i) => {
-                          if (index + i < 6) newOtp[index + i] = d;
-                        });
-                        setOtp(newOtp);
-                        const nextIndex = Math.min(index + digits.length, 5);
-                        otpInputs.current[nextIndex]?.focus();
-                      } else {
-                        handleOtpChange(value, index);
-                      }
-                    }}
-                    onKeyPress={(e) => handleOtpKeyPress(e, index)}
-                    keyboardType="number-pad"
-                    maxLength={6}
-                    selectTextOnFocus
-                    onFocus={() => {
-                      otpInputs.current[index]?.setNativeProps({
-                        selection: { start: 0, end: otp[index].length }
-                      });
-                    }}
-                  />
-                ))}
-              </View>
-              {otpError ? <Text className="text-red-500 text-xs mb-3">{otpError}</Text> : null}
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-sm" style={{ color: mutedColor }}>Didn't receive code?</Text>
-                <TouchableOpacity onPress={resendOTP} disabled={timer > 0 || state.resendLoading}>
-                  <Text className="text-sm font-semibold" style={{ color: timer > 0 ? mutedColor : '#af1616' }}>
-                    {state.resendLoading ? 'Sending...' : timer > 0 ? `Resend in ${timer}s` : 'Resend OTP'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity
-                className={`h-14 bg-[#af1616] rounded-xl justify-center items-center flex-row shadow-lg ${state.loading ? "opacity-80" : ""}`}
-                onPress={verifyOTPAndChangePassword}
-                disabled={state.loading}
-                style={{ elevation: 3 }}
-              >
-                {state.loading ? (
-                  <ActivityIndicator color="white" size="small" />
-                ) : (
-                  <Text className="text-white text-base font-bold">Verify & Change Password</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+            <OtpVerification
+              otp={otp}
+              setOtp={setOtp}
+              otpError={otpError}
+              otpInputs={otpInputs}
+              timer={timer}
+              resendLoading={state.resendLoading}
+              onResend={resendOTP}
+              onVerify={verifyOTPAndChangePassword}
+              loading={state.loading}
+              textColor={textColor}
+              mutedColor={mutedColor}
+              cardColor={cardColor}
+              handleOtpChange={handleOtpChange}
+              handleOtpKeyPress={handleOtpKeyPress}
+            />
           )}
         </View>
       </ScrollView>
 
       {/* Success/Error Modal */}
-      <Modal
-        animationType="fade"
-        transparent={true}
+      <FeedbackModal
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View className="flex-1 justify-center items-center bg-black/70">
-          <View className="bg-white rounded-lg p-6 w-4/5 max-w-md">
-            <View
-              className={`rounded-full h-16 w-16 justify-center items-center mx-auto mb-4 ${modalData.type === "success" ? "bg-green-100" : "bg-red-100"}`}
-            >
-              <Text
-                className={`text-2xl ${modalData.type === "success" ? "text-green-600" : "text-red-600"}`}
-              >
-                {modalData.type === "success" ? "✓" : "✕"}
-              </Text>
-            </View>
-            <Text className="text-xl font-bold text-gray-800 text-center mb-2">
-              {modalData.title}
-            </Text>
-            <Text className="text-gray-600 text-center mb-6">
-              {modalData.message}
-            </Text>
-            <Pressable
-              className={`${modalData.type === "success" ? "bg-[#af1616]" : "bg-[#af1616]"} rounded-lg py-3 px-6`}
-              onPress={() => {
-                setModalVisible(false);
-                if (modalData.type === "success") {
-                  navigation.goBack();
-                }
-              }}
-            >
-              <Text className="text-white font-semibold text-center">OK</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+        type={modalData.type}
+        title={modalData.title}
+        message={modalData.message}
+        onClose={() => setModalVisible(false)}
+      />
 
       <Toast />
     </KeyboardAvoidingView>

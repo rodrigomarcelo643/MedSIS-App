@@ -8,61 +8,19 @@ import { useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import {
   BookOpen,
-  Check,
   ChevronDown,
   ChevronLeft,
-  Clock,
-  Download,
-  FileText,
-  Filter,
-  Search,
-  X
+  Filter
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Platform, RefreshControl, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LearningMaterial } from '@/@types/screens/learning-materials';
-
-// File type icons mapping
-const fileTypeIcons = {
-  'application/pdf': FileText,
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': FileText,
-  'image/png': FileText,
-  'image/jpeg': FileText,
-  'default': FileText
-};
-
-// Format file size
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-};
-
-// Skeleton Loader Component
-const SkeletonLoader = () => {
-  return (
-    <View className="p-4">
-      {[1, 2, 3].map((item) => (
-        <View key={item} className="bg-white rounded-xl p-4 mb-4">
-          <View className="flex-row justify-between items-center mb-3">
-            <View className="h-6 w-24 bg-gray-200 rounded-full"></View>
-            <View className="h-6 w-16 bg-gray-200 rounded-full"></View>
-          </View>
-          <View className="h-6 w-3/4 bg-gray-200 rounded mb-2"></View>
-          <View className="h-4 w-full bg-gray-200 rounded mb-1"></View>
-          <View className="h-4 w-5/6 bg-gray-200 rounded mb-3"></View>
-          <View className="flex-row justify-between items-center">
-            <View className="h-4 w-20 bg-gray-200 rounded"></View>
-            <View className="h-4 w-24 bg-gray-200 rounded"></View>
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-};
+import { MaterialSkeletonLoader } from '@/components/learning-materials/MaterialSkeletonLoader';
+import { SubjectDropdown } from '@/components/learning-materials/SubjectDropdown';
+import { MaterialSearchBar } from '@/components/learning-materials/MaterialSearchBar';
+import { MaterialEmptyState } from '@/components/learning-materials/MaterialEmptyState';
+import { MaterialCard } from '@/components/learning-materials/MaterialCard';
 
 const LearningMaterialsScreen: React.FC = () => {
   const { user, logout } = useAuth();
@@ -254,62 +212,14 @@ const LearningMaterialsScreen: React.FC = () => {
     }
   };
 
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+
 
   // Get the label for the selected subject
   const getSelectedSubjectLabel = () => {
     return availableSubjects.find(s => s.value === selectedSubject)?.label || 'All Subjects';
   };
 
-  // Subject dropdown component
-  const SubjectDropdown = () => {
-    return (
-      <Modal
-        visible={showSubjectDropdown}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowSubjectDropdown(false)}
-      >
-        <TouchableOpacity 
-          className="flex-1 bg-black/50"
-          activeOpacity={1}
-          onPress={() => setShowSubjectDropdown(false)}
-        >
-          <View className="absolute top-20 right-4 w-48 bg-white rounded-lg shadow-lg overflow-hidden">
-            {availableSubjects.map((subject) => (
-              <TouchableOpacity
-                key={subject.value}
-                className={`flex-row items-center px-4 py-3 ${
-                  selectedSubject === subject.value ? 'bg-[#af1616]-100' : 'bg-white'
-                }`}
-                onPress={() => {
-                  setSelectedSubject(subject.value);
-                  setShowSubjectDropdown(false);
-                }}
-              >
-                {selectedSubject === subject.value ? (
-                  <Check size={16} color="#800000" />
-                ) : (
-                  <View className="w-4 h-4" />
-                )}
-                <Text className={`ml-2 ${selectedSubject === subject.value ? 'text-[#af1616]-800 font-semibold' : 'text-gray-700'}`}>
-                  {subject.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-    );
-  };
+
 
   if (loading) {
     return (
@@ -320,7 +230,7 @@ const LearningMaterialsScreen: React.FC = () => {
           </TouchableOpacity>
           <Text className="text-xl font-bold text-[#af1616]-800">Learning Materials</Text>
         </View>
-        <SkeletonLoader />
+        <MaterialSkeletonLoader />
       </View>
     );
   }
@@ -368,27 +278,21 @@ const LearningMaterialsScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <SubjectDropdown />
+      <SubjectDropdown
+        showSubjectDropdown={showSubjectDropdown}
+        setShowSubjectDropdown={setShowSubjectDropdown}
+        selectedSubject={selectedSubject}
+        setSelectedSubject={setSelectedSubject}
+        availableSubjects={availableSubjects}
+      />
 
-      {/* Search Bar */}
-      <View className="px-4 py-3 bg-white border-b border-gray-200" style={{ backgroundColor }}>
-        <View className="flex-row items-center bg-gray-100 rounded-[18px] px-3 py-1" style={{ backgroundColor: cardColor }}>
-          <Search size={18} color="#6b7280" />
-          <TextInput
-            className="flex-1 ml-2 text-gray-700"
-            placeholder="Search materials..."
-            value={searchQuery}
-            placeholderTextColor={mutedColor}
-            onChangeText={setSearchQuery}
-
-          />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <X size={18} color="#6b7280" />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-      </View>
+      <MaterialSearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        backgroundColor={backgroundColor}
+        cardColor={cardColor}
+        mutedColor={mutedColor}
+      />
 
       <ScrollView
         refreshControl={
@@ -400,98 +304,27 @@ const LearningMaterialsScreen: React.FC = () => {
         }}
       >
         {filteredMaterials.length === 0 ? (
-          <View className="flex-1 justify-center items-center py-20 px-5">
-            <View className="bg-white rounded-2xl shadow-md p-8 items-center max-w-sm" style={{ backgroundColor: cardColor }}>
-              <View className="w-20 h-20 bg-[#af1616]/10 rounded-full items-center justify-center mb-4">
-                <BookOpen size={40} color="#af1616" />
-              </View>
-              <Text className="text-xl font-bold text-gray-800 text-center mb-2" style={{ color: textColor }}>
-                No Materials Found
-              </Text>
-              <Text className="text-gray-500 text-center text-sm leading-5" style={{ color: mutedColor }}>
-                {searchQuery || selectedSubject !== 'all' 
-                  ? 'Try adjusting your search terms or filter settings to find what you need.'
-                  : 'Learning materials for your year level will be available soon. Check back later!'
-                }
-              </Text>
-              {(searchQuery || selectedSubject !== 'all') && (
-                <TouchableOpacity 
-                  className="mt-6 flex-row items-center bg-[#af1616] rounded-lg px-5 py-3"
-                  onPress={() => {
-                    setSearchQuery('');
-                    setSelectedSubject('all');
-                  }}
-                >
-                  <X size={16} color="#ffffff" />
-                  <Text className="text-white font-semibold ml-2">Clear Filters</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
+          <MaterialEmptyState
+            searchQuery={searchQuery}
+            selectedSubject={selectedSubject}
+            setSearchQuery={setSearchQuery}
+            setSelectedSubject={setSelectedSubject}
+            cardColor={cardColor}
+            textColor={textColor}
+            mutedColor={mutedColor}
+          />
         ) : (
           <View className="p-4">
-            {filteredMaterials.map(material => {
-              const IconComponent = fileTypeIcons[material.file_type as keyof typeof fileTypeIcons] || fileTypeIcons.default;
-              
-              return (
-                <View 
-                  key={material.id} 
-                  className="bg-white rounded-sm shadow-sm p-4 mb-4 border-l-4 border-[#af1616]"
-                  style={{ backgroundColor: cardColor }}
-                >
-                  <View className="flex-row justify-between items-center mb-3">
-                    <View className="flex-row items-center">
-                      <View className="flex-row items-center bg-[#af1616]-100 rounded-full px-3 py-1">
-                        <Image source={require("../../assets/images/pdf.png")} className="w-5 h-5" />
-                        <Text className="ml-2 text-[#af1616]-800 text-sm font-medium" style={{ color:textColor }}>
-                          {material.subject}
-                        </Text>
-                      </View>
-                    </View>
-                    
-                    <View className="bg-gray-100 rounded-full px-3 py-1">
-                      <Text className="text-xs font-medium text-gray-600" >
-                        {formatFileSize(material.file_size)}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  <Text className="text-lg font-semibold text-gray-900 mb-2" style={{ color: textColor}}>{material.title}</Text>
-                  
-                  {material.description && (
-                    <Text className="text-gray-600 mb-3" style={{ color:textColor }} >{material.description}</Text>
-                  )}
-                  
-                  <View className="flex-row justify-between items-center mt-4">
-                    <View className="flex-row items-center">
-                      <Clock size={14} color="#6b7280" />
-                      <Text className="ml-1 text-gray-500 text-sm">{formatDate(material.created_at)}</Text>
-                    </View>
-                    
-                    <TouchableOpacity 
-                      className={`flex-row items-center px-3 rounded-lg ${
-                        downloading === material.id ? 'bg-[#af1616]' : 'bg-[#af1616]'
-                      }`}
-                      onPress={() => handleDownload(material)}
-                      disabled={downloading === material.id}
-                    >
-                      {downloading === material.id ? (
-                        <>
-                        <View className="p-1">
-                          <ActivityIndicator size="small" color="#ffffff"  />
-                        </View>
-                        </>
-                      ) : (
-                        <>
-                          <Download size={14} color="#ffffff" />
-                          <Text className="text-white  px-2 py-2  text-sm font-medium">Download</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
+            {filteredMaterials.map(material => (
+              <MaterialCard
+                key={material.id}
+                material={material}
+                downloading={downloading}
+                handleDownload={handleDownload}
+                cardColor={cardColor}
+                textColor={textColor}
+              />
+            ))}
           </View>
         )}
       </ScrollView>

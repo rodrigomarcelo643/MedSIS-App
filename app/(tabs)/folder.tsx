@@ -293,6 +293,7 @@ export default function FolderScreen() {
 
       return { isBlurry, blurScore, sharpScore };
     } catch (err) {
+      console.error('Folder blur check error:', err);
       return { isBlurry: false, blurScore: 0, sharpScore: 100 };
     }
   };

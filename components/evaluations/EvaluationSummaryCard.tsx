@@ -10,35 +10,18 @@ interface Props {
   percentage: number;
 }
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-
 const CircularProgress = ({ percentage, textColor }: { percentage: number; textColor: string; }) => {
   const size = 120;
   const strokeWidth = 10;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const animatedValue = new Animated.Value(0);
-
-  useEffect(() => {
-    animatedValue.setValue(0);
-    Animated.timing(animatedValue, {
-      toValue: 1,
-      duration: 1000,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-  }, [percentage]);
-
-  const strokeDashoffset = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [circumference, circumference - (percentage / 100) * circumference],
-  });
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
         <Circle stroke="#e5e7eb" fill="none" cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} />
-        <AnimatedCircle
+        <Circle
           stroke={percentage < 75 ? "#f97316" : "#16a34a"}
           fill="none"
           cx={size / 2}
