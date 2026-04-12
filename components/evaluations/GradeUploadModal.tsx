@@ -65,30 +65,26 @@ const GradeUploadModal: React.FC<Props> = ({
   // Full screen preview state
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  const checkImageBlur = async (uri: string) => {
+  const checkImageBlur = async (uri: string, fileName: string, mimeType: string) => {
     try {
       const formData = new FormData();
-      // @ts-ignore
-      formData.append('image', {
+      formData.append('file', {
         uri: uri,
-        name: 'blur_check.jpg',
-        type: 'image/jpeg',
-      });
+        name: fileName || `blur_check_${Date.now()}.jpg`,
+        type: mimeType || 'image/jpeg',
+      } as any);
 
       const response = await axios.post(
         `${ML_API_BASE_URL}/api/app/blur-check`,
         formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 15000,
-        }
+        { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 }
       );
 
       const data = response.data;
       const rawScore = typeof data?.blur_score === 'number' ? data.blur_score : 0;
       const isBlurry = data?.is_blurry === true;
 
-      const sharpScore = Math.round(100 - (rawScore * 100));
+      const sharpScore = Math.min(100, Math.round((rawScore / 1000) * 100));
       const blurScore = 100 - sharpScore;
 
       return { isBlurry, blurScore, sharpScore };
@@ -127,7 +123,10 @@ const GradeUploadModal: React.FC<Props> = ({
         
         // Quality check before setting
         setCheckingBlur(true);
-        const { isBlurry, blurScore, sharpScore } = await checkImageBlur(asset.uri);
+        const assetFileName = asset.fileName ?? `grade_image_${Date.now()}.` + (asset.uri.split('.').pop() ?? 'jpg');
+        const assetMimeType = asset.mimeType ?? 'image/jpeg';
+        
+        const { isBlurry, blurScore, sharpScore } = await checkImageBlur(asset.uri, assetFileName, assetMimeType);
         setCheckingBlur(false);
 
         setBlurPercentage(blurScore);
@@ -139,8 +138,8 @@ const GradeUploadModal: React.FC<Props> = ({
         }
 
         setPickedUri(asset.uri);
-        setMimeType(asset.mimeType ?? 'image/jpeg');
-        setFileName(asset.fileName ?? 'grade_image.' + (asset.uri.split('.').pop() ?? 'jpg'));
+        setMimeType(assetMimeType);
+        setFileName(assetFileName);
         setUploadDone(false);
       }
   };
@@ -175,7 +174,7 @@ const GradeUploadModal: React.FC<Props> = ({
           text2: 'Your grade record has been updated.',
         });
       } else {
-        Alert.alert('Upload Failed', response.data.message);
+        Alert.alert('Upload Failed', response.data.message || 'An error occurred');
       }
     } catch (error: any) {
       console.error('Upload Error:', error);
@@ -251,45 +250,70 @@ const GradeUploadModal: React.FC<Props> = ({
                 <Text style={{ fontSize: 11, fontWeight: '800', color: mutedColor, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
                   Already Uploaded ({existingImages.length})
                 </Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                
+                <View style={{ gap: 8 }}>
                   {existingImages.map((img) => (
-                    <View key={img.id} style={{ width: 110 }}>
-                      <View style={{ width: 110, height: 110, borderRadius: 2, overflow: 'hidden', borderWidth: 1, borderColor: '#f3f4f6' }}>
+                    <View
+                      key={img.id}
+                      style={{ 
+                        backgroundColor: cardColor, 
+                        flexDirection: 'row', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between', 
+                        paddingVertical: 8,
+                        paddingHorizontal: 12, 
+                        borderRadius: 2, 
+                        borderWidth: 1, 
+                        borderColor: '#e5e7eb' 
+                      }}
+                    >
+                      {/* Left: Indicator, Image Thumbnail, and Details */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                        <View style={{ width: 4, height: 32, backgroundColor: '#10b981', borderTopLeftRadius: 2, borderBottomLeftRadius: 2, marginRight: 12 }} />
+                        
                         {img.image_data ? (
-                          <Image source={{ uri: img.image_data }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                          <Image source={{ uri: img.image_data }} style={{ width: 40, height: 40, borderRadius: 2, marginRight: 12, borderWidth: 1, borderColor: '#f3f4f6' }} resizeMode="cover" />
                         ) : (
-                          <View style={{ flex: 1, backgroundColor: '#f9fafb', alignItems: 'center', justifyContent: 'center' }}>
-                            <ImageIcon size={28} color="#d1d5db" />
+                          <View style={{ width: 40, height: 40, backgroundColor: '#f9fafb', borderRadius: 2, alignItems: 'center', justifyContent: 'center', marginRight: 12, borderWidth: 1, borderColor: '#f3f4f6' }}>
+                            <ImageIcon size={20} color="#9ca3af" />
                           </View>
                         )}
                         
-                        {/* Actions Overlay */}
-                        <View style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.15)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                          <TouchableOpacity 
-                            onPress={() => setPreviewImage(img.image_data)}
-                            style={{ backgroundColor: '#fff', padding: 8, borderRadius: 2 }}
-                          >
-                            <Eye size={16} color="#4b5563" />
-                          </TouchableOpacity>
-                          <TouchableOpacity 
-                            onPress={() => setConfirmDeleteId(img.id)}
-                            disabled={deletingId === img.id}
-                            style={{ backgroundColor: '#be2e2e', padding: 8, borderRadius: 2 }}
-                          >
-                            {deletingId === img.id ? (
-                              <ActivityIndicator size="small" color="#fff" />
-                            ) : (
-                              <Trash2 size={16} color="#fff" />
-                            )}
-                          </TouchableOpacity>
+                        <View style={{ flex: 1, marginRight: 12 }}>
+                           <Text style={{ fontSize: 13, fontWeight: '600', color: textColor }} numberOfLines={1}>
+                             {img.file_name}
+                           </Text>
+                           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                             <View style={{ backgroundColor: '#dcfce7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 2 }}>
+                               <Text style={{ fontSize: 10, fontWeight: '700', color: '#166534' }}>Verified Record</Text>
+                             </View>
+                           </View>
                         </View>
                       </View>
-                      <Text style={{ fontSize: 10, color: mutedColor, marginTop: 4, textAlign: 'center' }} numberOfLines={1}>
-                        {img.file_name}
-                      </Text>
+
+                      {/* Right: Actions */}
+                      <View style={{ flexDirection: 'row', gap: 6 }}>
+                        <TouchableOpacity
+                          style={{ backgroundColor: '#eff6ff', borderColor: '#bfdbfe', borderWidth: 1, padding: 8, borderRadius: 2 }}
+                          onPress={() => setPreviewImage(img.image_data)}
+                        >
+                          <Eye size={16} color="#2563eb" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca', borderWidth: 1, padding: 8, borderRadius: 2 }}
+                          onPress={() => setConfirmDeleteId(img.id)}
+                          disabled={deletingId === img.id}
+                        >
+                          {deletingId === img.id ? (
+                            <ActivityIndicator size="small" color="#dc2626" />
+                          ) : (
+                            <Trash2 size={16} color="#dc2626" />
+                          )}
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   ))}
-                </ScrollView>
+                </View>
               </View>
             )}
 
@@ -313,36 +337,50 @@ const GradeUploadModal: React.FC<Props> = ({
                   onPress={pickImage}
                   style={{
                     borderWidth: 2, borderColor: pickedUri ? '#be2e2e' : '#e5e7eb', borderStyle: 'dashed',
-                    borderRadius: 2, height: 180, alignItems: 'center', justifyContent: 'center',
-                    marginBottom: 20, backgroundColor: pickedUri ? 'transparent' : '#f9fafb'
+                    borderRadius: 8, height: 180, alignItems: 'center', justifyContent: 'center',
+                    marginBottom: 12, backgroundColor: pickedUri ? 'transparent' : '#f9fafb'
                   }}
                 >
                   {pickedUri ? (
-                    <Image source={{ uri: pickedUri }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                    <Image source={{ uri: pickedUri }} style={{ width: '100%', height: '100%', borderRadius: 6 }} resizeMode="contain" />
                   ) : (
                     <View style={{ alignItems: 'center' }}>
-                      <Upload size={40} color="#d1d5db" />
-                      <Text style={{ color: mutedColor, marginTop: 12, fontWeight: '600' }}>Tap to select file</Text>
+                      <Image source={require("../../assets/images/no_file.png")} style={{ width: 80, height: 80 }} />
+                      <Text style={{ color: mutedColor, marginTop: 8, fontSize: 14 }}>
+                        No files selected yet
+                      </Text>
                       <Text style={{ color: '#d1d5db', fontSize: 11, marginTop: 2 }}>JPG, JPEG, PNG up to 5MB</Text>
                     </View>
                   )}
                 </TouchableOpacity>
 
-                <View style={{ flexDirection: 'row', gap: 10 }}>
-                  {pickedUri && (
+                {pickedUri ? (
+                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
                     <TouchableOpacity onPress={() => setPickedUri(null)} style={{ flex: 1, padding: 14, borderRadius: 2, borderWidth: 1, borderColor: '#e5e7eb', alignItems: 'center' }}>
                       <Text style={{ fontWeight: '700' }}>Clear</Text>
                     </TouchableOpacity>
-                  )}
-                  <TouchableOpacity
-                    onPress={pickedUri ? handleUpload : pickImage}
-                    disabled={uploading}
-                    style={{ flex: 2, backgroundColor: uploading ? '#d1d5db' : '#be2e2e', padding: 14, borderRadius: 2, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
-                  >
-                    {uploading && <ActivityIndicator color="#fff" size="small" />}
-                    <Text style={{ color: '#fff', fontWeight: '800' }}>{uploading ? 'Processing' : pickedUri ? 'Submit Record' : 'Browse Files'}</Text>
-                  </TouchableOpacity>
-                </View>
+                    <TouchableOpacity
+                      onPress={handleUpload}
+                      disabled={uploading}
+                      style={{ flex: 2, backgroundColor: uploading ? '#d1d5db' : '#be2e2e', padding: 14, borderRadius: 2, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+                    >
+                      {uploading && <ActivityIndicator color="#fff" size="small" />}
+                      <Text style={{ color: '#fff', fontWeight: '800' }}>{uploading ? 'Processing' : 'Submit Record'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={{ alignItems: 'flex-end', marginTop: 8 }}>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#be2e2e', borderRadius: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 3, paddingVertical: 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minWidth: 128 }}
+                      onPress={pickImage}
+                      disabled={uploading}
+                    >
+                      <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>
+                        Browse Files
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </>
             )}
           </View>
