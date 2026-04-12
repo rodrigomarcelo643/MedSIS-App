@@ -157,15 +157,21 @@ export default function TabLayout() {
   };
 
   // Fetch notification count
+  const isFetchingNotification = useRef(false);
+  const isFetchingMessage = useRef(false);
+
   useEffect(() => {
     if (!user?.id) return;
 
     const fetchNotificationCount = async () => {
+      if (isFetchingNotification.current) return;
+      isFetchingNotification.current = true;
+      
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/get_student_notifications.php?user_id=${user.id}`,
           {
-            timeout: 10000,
+            timeout: 8000, // Slightly shorter timeout
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -174,39 +180,37 @@ export default function TabLayout() {
         );
 
         const data = response.data;
-        
         if (data.success) {
-          // Count only unread notifications (status !== 'read')
           const unreadCount = data.notifications.filter(
             (notification: any) => notification.status !== 'read'
           ).length;
-          
           setNotificationCount(unreadCount);
           setPrevNotificationCount(unreadCount);
-          
-          // After first successful fetch, mark as not first fetch anymore
-          if (isFirstFetch) {
-            setIsFirstFetch(false);
-          }
+          if (isFirstFetch) setIsFirstFetch(false);
         }
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
+      } catch (error: any) {
+        // Detailed error logging
+        const status = error.response?.status;
+        const msg = error.message;
+        console.warn(`[Notification Fetch] ${msg} ${status ? `(Status: ${status})` : ''} - Check if ${API_BASE_URL} is reachable.`);
+      } finally {
+        isFetchingNotification.current = false;
       }
     };
 
     const fetchMessageCount = async () => {
+      if (isFetchingMessage.current) return;
+      isFetchingMessage.current = true;
+      
       try {
         const unreadMessages = await messageService.getUnreadCount(user.id);
-        
         setMessageCount(unreadMessages);
         setPrevMessageCount(unreadMessages);
-        
-        // After first successful fetch, mark as not first fetch anymore
-        if (isFirstMessageFetch) {
-          setIsFirstMessageFetch(false);
-        }
-      } catch (error) {
-        console.error("Error fetching messages:", error);
+        if (isFirstMessageFetch) setIsFirstMessageFetch(false);
+      } catch (error: any) {
+        console.warn(`[Message Count Fetch] ${error.message}`);
+      } finally {
+        isFetchingMessage.current = false;
       }
     };
 
