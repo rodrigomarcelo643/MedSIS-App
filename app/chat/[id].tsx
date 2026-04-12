@@ -17,6 +17,7 @@ import { launchImageLibraryAsync, MediaTypeOptions } from 'expo-image-picker';
 import { getDocumentAsync } from 'expo-document-picker';
 import { Message } from '@/@types/screens/messages'
 import { messageService } from '@/services/messageService';
+import { messageStorage } from '@/lib/messageStorage';
 import axios from 'axios';
 
 // Import modular components
@@ -79,8 +80,26 @@ export default function ChatScreen() {
   useEffect(() => {
     isMountedRef.current = true;
     setLoading(true);
-    loadMessages(1, false);
-    markAsRead();
+    
+    // Load from cache first
+    const loadFromCache = async () => {
+      if (user?.id && actualUserId) {
+        try {
+          const cached = await messageStorage.getMessages(user.id, actualUserId);
+          if (cached && cached.length > 0 && isMountedRef.current) {
+            setMessages(cached);
+            setLoading(false); // Hide loading if we have cache
+          }
+        } catch (e) {
+          console.error('Error loading chat from cache:', e);
+        }
+      }
+    };
+    
+    loadFromCache().then(() => {
+      loadMessages(1, false);
+      markAsRead();
+    });
     
     const kbShow = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
     const kbHide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
@@ -134,7 +153,16 @@ export default function ChatScreen() {
       const response = await axios.get(`${API_BASE_URL}/api/messages/get_messages.php?sender_id=${encodeURIComponent(user.id)}&receiver_id=${encodeURIComponent(actualUserId)}&page=${pageNum}&limit=20`);
       if (response.data.success) {
         const newMessages = (response.data.messages || []).sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        setMessages(prev => append ? [...prev, ...newMessages.filter((m: any) => !prev.find(p => p.id === m.id))] : newMessages);
+        setMessages(prev => {
+          const combined = append ? [...prev, ...newMessages.filter((m: any) => !prev.find(p => p.id === m.id))] : newMessages;
+          
+          // Only cache the first page to keep it clean and fast
+          if (pageNum === 1 && user?.id && actualUserId) {
+            messageStorage.saveMessages(user.id, actualUserId, combined.slice(0, 50));
+          }
+          
+          return combined;
+        });
         setHasMore(response.data.hasMore || false);
         setPage(pageNum);
       }
@@ -153,7 +181,14 @@ export default function ChatScreen() {
           const ids = new Set(existing.map(m => m.id));
           const updated = existing.map(m => incoming.find((i: any) => i.id === m.id) || m);
           const brandNew = incoming.filter((i: any) => !ids.has(i.id));
-          return [...temp, ...brandNew, ...updated].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          const combined = [...temp, ...brandNew, ...updated].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          
+          // Cache the latest messages
+          if (user?.id && actualUserId) {
+            messageStorage.saveMessages(user.id, actualUserId, combined.slice(0, 50));
+          }
+          
+          return combined;
         });
       }
     } catch (e) {}

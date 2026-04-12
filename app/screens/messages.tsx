@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { API_BASE_URL } from '@/constants/Config';
 import { ArrowLeft, Users } from 'lucide-react-native';
 import { messageService } from '@/services/messageService';
+import { messageStorage } from '@/lib/messageStorage';
 import { User } from '@/@types/screens/messages';
 
 import { ActiveSkeleton, ConversationSkeleton } from '@/components/messages/MessageLoaders';
@@ -83,6 +84,28 @@ export default function MessagesScreen() {
     
     return () => clearInterval(interval);
   }, [showSearchResults]);
+
+  // Load from cache on mount
+  useEffect(() => {
+    const loadFromCache = async () => {
+      if (user?.id) {
+        try {
+          const cachedConversations = await messageStorage.getConversations(user.id);
+          if (cachedConversations && cachedConversations.length > 0) {
+            dispatch(setConversations(cachedConversations));
+          }
+          
+          const cachedActive = await messageStorage.getActiveUsers(user.id);
+          if (cachedActive && cachedActive.length > 0) {
+            dispatch(setActiveUsers(cachedActive));
+          }
+        } catch (error) {
+          console.error('Error loading from cache:', error);
+        }
+      }
+    };
+    loadFromCache();
+  }, [user?.id]);
   
   // Hide loading modal when screen comes back into focus
   useEffect(() => {
@@ -415,7 +438,7 @@ export default function MessagesScreen() {
                 All Users
               </Text>
             </View>
-            {activeLoading ? (
+            {activeLoading && activeUsers.length === 0 ? (
               <ActiveSkeleton mutedColor={mutedColor} />
             ) : activeUsers.length > 0 ? (
               <ScrollView
@@ -445,7 +468,7 @@ export default function MessagesScreen() {
           </View>
 
           {/* Conversations List */}
-          {loading ? (
+          {loading && users.length === 0 ? (
             <ConversationSkeleton cardColor={cardColor} mutedColor={mutedColor} />
           ) : users.length > 0 ? (
             <FlatList

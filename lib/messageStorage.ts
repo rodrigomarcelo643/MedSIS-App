@@ -5,6 +5,7 @@ const STORAGE_KEYS = {
   CONVERSATIONS: 'cached_conversations',
   MESSAGES: 'cached_messages_',
   ACTIVE_USERS: 'cached_active_users',
+  CHAT_INFO: 'cached_chat_info_',
 };
 
 export const messageStorage = {
@@ -78,6 +79,29 @@ export const messageStorage = {
       return data ? JSON.parse(data) : null;
     } catch (error) {
       console.error('Error getting active users:', error);
+      return null;
+    }
+  },
+
+  // Cache chat info (media, files, links)
+  saveChatInfo: async (userId: string, chatId: string, data: any): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(
+        `${STORAGE_KEYS.CHAT_INFO}${userId}_${chatId}`,
+        JSON.stringify(data)
+      );
+    } catch (error) {
+      console.error('Error saving chat info:', error);
+    }
+  },
+
+  // Get cached chat info
+  getChatInfo: async (userId: string, chatId: string): Promise<any | null> => {
+    try {
+      const data = await AsyncStorage.getItem(`${STORAGE_KEYS.CHAT_INFO}${userId}_${chatId}`);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error getting chat info:', error);
       return null;
     }
   },

@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Search, X } from 'lucide-react-native';
 import { Message } from "@/@types/screens/messages";
 import { messageService } from '@/services/messageService';
+import { messageStorage } from '@/lib/messageStorage';
 import { API_BASE_URL } from '@/constants/Config';
 import { MediaItem, LinkItem } from '@/@types/chat';
 import axios from 'axios';
@@ -61,9 +62,28 @@ export default function ChatInfoScreen() {
   const [statusLoading, setStatusLoading] = useState(true);
   
   useEffect(() => {
+    loadFromCache();
     loadInitialData();
     checkUserOnlineStatus();
   }, []);
+
+  const loadFromCache = async () => {
+    if (user?.id && actualUserId) {
+      try {
+        const cached = await messageStorage.getChatInfo(user.id, actualUserId);
+        if (cached) {
+          if (cached.allMessages) setAllMessages(cached.allMessages);
+          if (cached.linkItems) setLinkItems(cached.linkItems);
+          if (cached.mediaItems) setMediaItems(cached.mediaItems);
+          if (cached.fileItems) setFileItems(cached.fileItems);
+          if (cached.allMediaMessages) setAllMediaMessages(cached.allMediaMessages);
+          setInitialLoading(false);
+        }
+      } catch (e) {
+        console.error('Error loading chat info from cache:', e);
+      }
+    }
+  };
 
   const checkUserOnlineStatus = async () => {
     setStatusLoading(true);
@@ -101,6 +121,17 @@ export default function ChatInfoScreen() {
         setMediaItems(media.slice(0, 15).map((m: any) => ({ id: m.id, type: m.type, url: m.fileUrl || '', name: m.fileName || m.text, fileName: m.fileName, timestamp: new Date(m.timestamp) })));
         setFileItems(files.map((m: any) => ({ id: m.id, type: m.type, url: m.fileUrl || '', name: m.fileName || m.text, fileName: m.fileName, timestamp: new Date(m.timestamp) })));
         setHasMoreMedia(media.length > 15);
+
+        // Save to cache
+        if (user?.id && actualUserId) {
+          messageStorage.saveChatInfo(user.id, actualUserId, {
+            allMessages: res.data.messages,
+            linkItems: links,
+            mediaItems: media.slice(0, 15).map((m: any) => ({ id: m.id, type: m.type, url: m.fileUrl || '', name: m.fileName || m.text, fileName: m.fileName, timestamp: new Date(m.timestamp) })),
+            fileItems: files.map((m: any) => ({ id: m.id, type: m.type, url: m.fileUrl || '', name: m.fileName || m.text, fileName: m.fileName, timestamp: new Date(m.timestamp) })),
+            allMediaMessages: media
+          });
+        }
       }
     } catch (e) {} finally { setInitialLoading(false); }
   };
