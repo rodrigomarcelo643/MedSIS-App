@@ -17,6 +17,7 @@ import { HomeQuickLink } from '@/@types/tabs';
 import { WelcomeHeader } from "@/components/home/WelcomeHeader";
 import { QuickLinkCard } from "@/components/home/QuickLinkCard";
 import { HomeSkeleton } from "@/components/home/HomeSkeleton";
+import { useSelector } from "@/redux/store";
 
 export default function Home() {
   const { width } = useWindowDimensions();
@@ -39,11 +40,51 @@ export default function Home() {
     require("../../assets/images/folder3.png"),
   ];
 
+  const { items: announcements } = useSelector(state => state.announcements);
+  const { conversations } = useSelector(state => state.messages);
+  const { events } = useSelector(state => state.calendar);
+
   const quickLinks: HomeQuickLink[] = [
-    { id: 1, title: "Announcements", description: "Stay informed with the latest updates and essential details you won't want to miss.", color: "#8C2323", count: 5, bgImage: folderImages[0], onPress: () => router.push("/screens/announcements"), icon: <Megaphone size={28} color="white" /> },
-    { id: 2, title: "Learning Materials", description: "Access and download course materials and resources ", color: "#8C2323", count: 24, bgImage: folderImages[1], onPress: () => router.push("/screens/learning-materials"), icon: <BookOpen size={28} color="white" /> },
-    { id: 3, title: "Events Calendar", description: "Don't miss out-mark your calendar with key dates for assembles, sports and celebrations", color: "#8C2323", count: 3, bgImage: folderImages[2], onPress: () => router.push("/screens/calendar"), icon: <CalendarDays size={28} color="white" /> },
-    { id: 4, title: "School Calendar", description: "View and download the latest updated school calendar", color: "#8C2323", count: 24, bgImage: folderImages[3], onPress: () => router.push("/screens/school-calendar"), icon: <CalendarDays size={28} color="white" /> },
+    { 
+      id: 1, 
+      title: "Announcements", 
+      description: "Stay informed with the latest updates and essential details you won't want to miss.", 
+      color: "#8C2323", 
+      count: announcements.length, 
+      bgImage: folderImages[0], 
+      onPress: () => router.push("/screens/announcements"), 
+      icon: <Megaphone size={28} color="white" /> 
+    },
+    { 
+      id: 2, 
+      title: "Learning Materials", 
+      description: "Access and download course materials and resources ", 
+      color: "#8C2323", 
+      count: 24, // Hardcoded for now
+      bgImage: folderImages[1], 
+      onPress: () => router.push("/screens/learning-materials"), 
+      icon: <BookOpen size={28} color="white" /> 
+    },
+    { 
+      id: 3, 
+      title: "Events Calendar", 
+      description: "Don't miss out-mark your calendar with key dates for assembles, sports and celebrations", 
+      color: "#8C2323", 
+      count: events.length, 
+      bgImage: folderImages[2], 
+      onPress: () => router.push("/screens/calendar"), 
+      icon: <CalendarDays size={28} color="white" /> 
+    },
+    { 
+      id: 4, 
+      title: "School Calendar", 
+      description: "View and download the latest updated school calendar", 
+      color: "#8C2323", 
+      count: 24, // Hardcoded for now
+      bgImage: folderImages[3], 
+      onPress: () => router.push("/screens/school-calendar"), 
+      icon: <CalendarDays size={28} color="white" /> 
+    },
   ];
 
   useEffect(() => {

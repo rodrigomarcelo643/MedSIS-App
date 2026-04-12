@@ -8,12 +8,12 @@ import { registerForPushNotificationsAsync, savePushTokenToServer } from '@/serv
 // Context To pass variables 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  login: async () => {},
-  logout: async () => {},
+  login: async () => { },
+  logout: async () => { },
   loading: true,
-  clearUser: () => {},
-  updateUserPolicyStatus: async () => {},
-  updateUser: async () => {},
+  clearUser: () => { },
+  updateUserPolicyStatus: async () => { },
+  updateUser: async () => { },
   refreshUser: async () => undefined,
   changePassword: async () => false,
 });
@@ -56,22 +56,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
           //console.log("User loaded from storage:", parsedUser.id);
-          // Activate session when user is loaded from storage
-          await activateSession(parsedUser.id);
-          
-          // Register push notifications on app start
-          try {
-            const pushToken = await registerForPushNotificationsAsync();
+
+          // Set loading to false immediately after setting the user
+          // This allows the app to render the main content without waiting for background tasks
+          setLoading(false);
+
+          // Perform background tasks without awaiting them (non-blocking)
+          activateSession(parsedUser.id).catch(err => console.error('Background session activation failed:', err));
+
+          // Register push notifications in background
+          registerForPushNotificationsAsync().then(async (pushToken) => {
             if (pushToken) {
               await savePushTokenToServer(parsedUser.id, pushToken);
             }
-          } catch (error) {
+          }).catch(error => {
             console.error('Error registering push notifications on app start:', error);
-          }
+          });
+        } else {
+          setLoading(false);
         }
       } catch (err) {
         console.error("Error loading user:", err);
-      } finally {
         setLoading(false);
       }
     };
@@ -95,7 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const userWithDefaults: User = {
       ...userData,
       avatar: userData.avatar || userData.avatar_url || "https://msis.eduisync.io/swu-head.png",
-      avatar_url: userData.avatar_url || userData.avatar || undefined, 
+      avatar_url: userData.avatar_url || userData.avatar || undefined,
       avatar_data: userData.avatar_data || undefined,
       contact_number: userData.contact_number || "",
       joinDate: userData.joinDate || "",
@@ -103,19 +108,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       year_level_name: userData.year_level_name || (Number(userData.year_level_id) === 4 ? "Graduating" : `Year ${userData.year_level_id}`),
     };
 
-    console.log("Storing user in context:", { 
+    console.log("Storing user in context:", {
       id: userWithDefaults.id,
       student_id: userWithDefaults.student_id,
       has_avatar_data: !!userWithDefaults.avatar_data,
       has_avatar_url: !!userWithDefaults.avatar_url
     });
-    
+
     setUser(userWithDefaults);
     await AsyncStorage.setItem("user", JSON.stringify(userWithDefaults));
-    
+
     // Activate session on login
     await activateSession(userWithDefaults.id);
-    
+
     // Register for push notifications
     try {
       const pushToken = await registerForPushNotificationsAsync();
@@ -125,18 +130,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('Error registering push notifications:', error);
     }
-    
+
     //console.log("User stored successfully in AsyncStorage");
   };
 
   const logout = async () => {
     //console.log("Logging out user");
-    
+
     // Remove session before clearing user data
     if (user?.id) {
       await removeSession(user.id);
     }
-    
+
     setUser(null);
     await AsyncStorage.removeItem("user");
     console.log("User removed from storage");
@@ -151,12 +156,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Update user's policy acceptance status
   const updateUserPolicyStatus = async (accepted: boolean) => {
     if (!user) return;
-    
+
     const updatedUser = {
       ...user,
       policy_accepted: accepted ? 1 : 0,
     };
-    
+
     setUser(updatedUser);
     await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
     //console.log("Policy status updated:", accepted);
@@ -165,12 +170,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Update any user properties
   const updateUser = async (updates: Partial<User>) => {
     if (!user) return;
-    
+
     const updatedUser = {
       ...user,
       ...updates,
     };
-    
+
     setUser(updatedUser);
     await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
     //console.log("User updated with:", Object.keys(updates));
@@ -179,15 +184,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Refresh user data from API (useful for getting latest avatar_data)
   const refreshUser = async () => {
     if (!user) return;
-    
+
     try {
       const API_URL = `${API_BASE_URL}/api`;
       const response = await axios.post(`${API_URL}/get_user_data.php`, {
         user_id: user.id
       });
-      
+
       const data = response.data;
-      
+
       if (data.success && data.user) {
         await login(data.user); // Update with latest data including avatar_data
         //console.log("User data refreshed from API");
@@ -203,7 +208,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Change user password
   const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     if (!user) return false;
-    
+
     try {
       const API_URL = `${API_BASE_URL}/api`;
       const response = await axios.post(`${API_URL}/change_password.php`, {
@@ -213,7 +218,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       const data = response.data;
-      
+
       if (data.success) {
         Toast.show({
           type: 'success',
@@ -244,11 +249,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      login, 
-      logout, 
-      loading, 
+    <AuthContext.Provider value={{
+      user,
+      login,
+      logout,
+      loading,
       clearUser,
       updateUserPolicyStatus,
       updateUser,
@@ -262,11 +267,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  
+
   // Identfy error if the Auth is within the Auth Provider 
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
+
   return context;
 };

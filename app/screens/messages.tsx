@@ -23,6 +23,14 @@ import { ActiveUserItem } from '@/components/messages/ActiveUserItem';
 import { ConversationItem } from '@/components/messages/ConversationItem';
 import { SearchResultItem } from '@/components/messages/SearchResultItem';
 import { ChatLoadingModal } from '@/components/messages/ChatLoadingModal';
+import { useDispatch, useSelector } from "@/redux/store";
+import { 
+  setConversations, 
+  setActiveUsers, 
+  setMessagesLoading, 
+  setActiveLoading, 
+  setMessagesError 
+} from "@/redux/actions";
 
 export default function MessagesScreen() {
   const router = useRouter();
@@ -46,13 +54,12 @@ export default function MessagesScreen() {
     return Platform.OS === 'android' && insets.bottom === 0;
   }, [insets.bottom]);
   
+  const dispatch = useDispatch();
+  const { conversations: users, activeUsers, loading, activeLoading } = useSelector(state => state.messages);
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [users, setUsers] = useState<User[]>([]);
-  const [activeUsers, setActiveUsers] = useState<User[]>([]);
   const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [activeLoading, setActiveLoading] = useState(true);
   const [activeLoadingMore, setActiveLoadingMore] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -95,33 +102,21 @@ export default function MessagesScreen() {
     try {
       if (!user?.id) return;
       if (!silent) {
-        if (!append) setLoading(true);
+        if (!append) dispatch(setMessagesLoading(true));
         else setLoadingMore(true);
       }
       
       // Get New Users and Has More on Message Service 
       const { users: newUsers, hasMore } = await messageService.getConversations(user.id, page, 10);
       
-      // Debug conversation users online status
-      const onlineConvUsers = newUsers.filter(u => u.isOnline);
-      const offlineConvUsers = newUsers.filter(u => !u.isOnline);
-     
-      /** 
-      console.log('💬 CONVERSATION USERS:');
-      console.log('  🟢 ONLINE (' + onlineConvUsers.length + '):', onlineConvUsers.map(u => `${u.name} (${u.user_type})`));
-      console.log('  🔴 OFFLINE (' + offlineConvUsers.length + '):', offlineConvUsers.map(u => `${u.name} (${u.user_type})`));
-      **/
       // Sort users: latest message time first (most recent conversations at top)
       const sortedUsers = newUsers.sort((a, b) => {
-        // Use raw timestamp for accurate sorting
         const timeA = a.lastMessageTimestamp ? new Date(a.lastMessageTimestamp).getTime() : 0;
         const timeB = b.lastMessageTimestamp ? new Date(b.lastMessageTimestamp).getTime() : 0;
         return timeB - timeA;
       });
       
       if (append) {
-        // Remove duplicates and re-sort everything
-        // This Variables make sure that the users are not duplicated
         const combined = [...users, ...sortedUsers];
         const uniqueUsers = combined.filter((user, index, self) => 
           index === self.findIndex(u => u.unique_key === user.unique_key)
@@ -131,18 +126,19 @@ export default function MessagesScreen() {
           const timeB = b.lastMessageTimestamp ? new Date(b.lastMessageTimestamp).getTime() : 0;
           return timeB - timeA;
         });
-        setUsers(finalSorted);
+        dispatch(setConversations(finalSorted));
       } else {
-        setUsers(sortedUsers);
+        dispatch(setConversations(sortedUsers));
       }
       
       setHasMoreConversations(hasMore);
       setConversationPage(page);
     } catch (error) {
       console.error('❌ Error loading conversations:', error);
+      dispatch(setMessagesError('Error loading conversations'));
     } finally {
       if (!silent) {
-        setLoading(false);
+        dispatch(setMessagesLoading(false));
         setLoadingMore(false);
       }
     }
@@ -153,25 +149,14 @@ export default function MessagesScreen() {
   */
   const loadActiveUsers = async (page = 1, append = false, silent = false) => {
     try {
-
       if (!user?.id) return;
       if (!silent) {
-        if (!append) setActiveLoading(true);
+        if (!append) dispatch(setActiveLoading(true));
         else setActiveLoadingMore(true);
       }
       
       const { users: allUsers, hasMore } = await messageService.getActiveUsers(user.id, page, 10);
       
-      // Debug online status
-      const onlineUsers = allUsers.filter(u => u.isOnline);
-      const offlineUsers = allUsers.filter(u => !u.isOnline);
-
-      /** 
-      // Logs Identifying Users List of (Online / Offline )
-      console.log('🟢 ONLINE USERS (' + onlineUsers.length + '):', onlineUsers.map(u => `${u.name} (${u.user_type})`));
-      console.log('🔴 OFFLINE USERS (' + offlineUsers.length + '):', offlineUsers.map(u => `${u.name} (${u.user_type})`));
-      console.log('📊 Total users loaded:', allUsers.length);
-      **/
       // Remove duplicates based on unique_key
       const uniqueUsers = allUsers.filter((user, index, self) => 
         index === self.findIndex(u => u.unique_key === user.unique_key)
@@ -179,23 +164,23 @@ export default function MessagesScreen() {
       
       // Set Active Users 
       if (append) {
-        setActiveUsers(prev => {
-          const combined = [...prev, ...uniqueUsers];
-          return combined.filter((user, index, self) => 
-            index === self.findIndex(u => u.unique_key === user.unique_key)
-          );
-        });
+        const combined = [...activeUsers, ...uniqueUsers];
+        const finalUnique = combined.filter((user, index, self) => 
+          index === self.findIndex(u => u.unique_key === user.unique_key)
+        );
+        dispatch(setActiveUsers(finalUnique));
       } else {
-        setActiveUsers(uniqueUsers);
+        dispatch(setActiveUsers(uniqueUsers));
       }
       
       setHasMoreActive(hasMore);
       setActivePage(page);
     } catch (error) {
       console.error('❌ Error loading active users:', error);
+      dispatch(setMessagesError('Error loading active users'));
     } finally {
       if (!silent) {
-        setActiveLoading(false);
+        dispatch(setActiveLoading(false));
         setActiveLoadingMore(false);
       }
     }

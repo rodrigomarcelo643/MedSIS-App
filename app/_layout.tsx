@@ -21,6 +21,7 @@ import "react-native-reanimated";
 import "../global.css";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider as CustomThemeProvider } from "@/contexts/ThemeContext";
+import { StoreProvider } from "@/redux/store";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -136,7 +137,7 @@ export default function RootLayout() {
   const [showCustomSplash, setShowCustomSplash] = useState(true);
   const isMountedRef = useRef(true);
   const splashAnimationCompleted = useRef(false);
-  const minimumSplashTimeRef = useRef(3500);
+  const minimumSplashTimeRef = useRef(1500);
   const startTimeRef = useRef(Date.now());
 
   // Track app readiness
@@ -197,21 +198,23 @@ export default function RootLayout() {
 
   return (
     <CustomThemeProvider>
-      <AuthProvider>
-        {/* Main app content */}
-        <View style={[styles.mainContent, showCustomSplash && styles.hidden]}>
-          <MainLayout />
-        </View>
-
-        {/* Custom splash overlay */}
-        {showCustomSplash && (
-          <View style={styles.splashOverlay}>
-            <CustomSplashScreen
-              onAnimationComplete={handleSplashAnimationComplete}
-            />
+      <StoreProvider>
+        <AuthProvider>
+          {/* Main app content */}
+          <View style={[styles.mainContent, showCustomSplash && styles.hidden]}>
+            <MainLayout />
           </View>
-        )}
-      </AuthProvider>
+
+          {/* Custom splash overlay */}
+          {showCustomSplash && (
+            <View style={styles.splashOverlay}>
+              <CustomSplashScreen
+                onAnimationComplete={handleSplashAnimationComplete}
+              />
+            </View>
+          )}
+        </AuthProvider>
+      </StoreProvider>
     </CustomThemeProvider>
   );
 }

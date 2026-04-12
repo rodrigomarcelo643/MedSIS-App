@@ -25,6 +25,14 @@ import YearLevelSection, { UploadState } from '@/components/evaluations/YearLeve
 import EvaluationSkeleton from '@/components/evaluations/EvaluationSkeleton';
 import EvaluationSummaryCard from '@/components/evaluations/EvaluationSummaryCard';
 import EvaluationDetailModal from '@/components/evaluations/EvaluationDetailModal';
+import { useDispatch, useSelector } from "@/redux/store";
+import { 
+  setEvaluationData, 
+  setEvaluationPermissions, 
+  setGradeImages, 
+  setEvaluationsLoading, 
+  setEvaluationsError 
+} from "@/redux/actions";
 
 // year_level slug → year_levels.id mapping (matches DB seed data)
 const YEAR_LEVEL_ID_MAP: Record<string, number> = {
@@ -64,16 +72,12 @@ const Evaluations: React.FC = () => {
   const backgroundColor = useThemeColor({}, "background");
 
   // ── Data State ─────────────────────────────────────────────────────────────
-  const [evaluationData, setEvaluationData] = useState<EvaluationResponse | null>(null);
-  const [loading,    setLoading]    = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const dispatch = useDispatch();
+  const { data: evaluationData, permissions, gradeImages, loading, error } = useSelector(state => state.evaluations);
 
-  // ── Modal State ────────────────────────────────────────────────────────────
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
   const [detailVisible,      setDetailVisible]      = useState(false);
-
-  const [permissions,        setPermissions]        = useState<GradeUploadPermission | null>(null);
-  const [gradeImages,        setGradeImages]        = useState<GradeImage[]>([]);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [activeUploadTarget, setActiveUploadTarget] = useState<{ id: number, name: string } | null>(null);
 
@@ -81,22 +85,25 @@ const Evaluations: React.FC = () => {
   const fetchEvaluationData = useCallback(async () => {
     if (!user?.id) return;
     try {
+      dispatch(setEvaluationsLoading(true));
       const response = await axios.get(
         `${API_BASE_URL}/api/evaluations/get_evaluation.php?user_id=${user.id}`,
         { timeout: 10000 }
       );
       if (response.data.error) {
         Alert.alert("Error", response.data.error);
+        dispatch(setEvaluationsError(response.data.error));
         return;
       }
-      setEvaluationData(response.data);
+      dispatch(setEvaluationData(response.data));
     } catch (error) {
       console.error("Error fetching evaluation data:", error);
+      dispatch(setEvaluationsError("Error fetching evaluation data"));
     } finally {
-      setLoading(false);
+      dispatch(setEvaluationsLoading(false));
       setRefreshing(false);
     }
-  }, [user?.id]);
+  }, [user?.id, dispatch]);
 
   const fetchUploadPermissions = useCallback(async () => {
     try {
@@ -104,12 +111,12 @@ const Evaluations: React.FC = () => {
         `${API_BASE_URL}/api/grade_uploads/check_upload_permission.php`
       );
       if (response.data.success) {
-        setPermissions(response.data.permissions);
+        dispatch(setEvaluationPermissions(response.data.permissions));
       }
     } catch (err) {
       console.error("Error fetching permissions:", err);
     }
-  }, []);
+  }, [dispatch]);
 
   const fetchGradeImages = useCallback(async () => {
     if (!user?.id) return;
@@ -118,12 +125,12 @@ const Evaluations: React.FC = () => {
         `${API_BASE_URL}/api/grade_uploads/get_grade_images.php?user_id=${user.id}`
       );
       if (res.data.success) {
-        setGradeImages(res.data.images);
+        dispatch(setGradeImages(res.data.images));
       }
     } catch (err) {
       console.error("Error fetching grade images:", err);
     }
-  }, [user?.id]);
+  }, [user?.id, dispatch]);
 
   useEffect(() => {
     if (user) {

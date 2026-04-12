@@ -18,6 +18,8 @@ import { AnnouncementItem } from '@/components/announcements/AnnouncementItem';
 import { SkeletonLoader, LazyLoader } from '@/components/announcements/AnnouncementLoaders';
 import { PriorityDropdown } from '@/components/announcements/PriorityDropdown';
 import { EmptyState } from '@/components/announcements/EmptyState';
+import { useDispatch, useSelector } from "@/redux/store";
+import { setAnnouncements, setAnnouncementsLoading, setAnnouncementsError } from "@/redux/actions";
 
 const AnnouncementsScreen: React.FC = () => {
   const { user, logout } = useAuth();
@@ -43,12 +45,12 @@ const AnnouncementsScreen: React.FC = () => {
   }, [insets.bottom]);
 
   const router = useRouter();
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const dispatch = useDispatch();
+  const { items: announcements, loading, error } = useSelector(state => state.announcements);
+  
   const [filteredAnnouncements, setFilteredAnnouncements] = useState<Announcement[]>([]);
   const [displayedAnnouncements, setDisplayedAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [expandedAnnouncements, setExpandedAnnouncements] = useState<number[]>([]);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
@@ -68,13 +70,14 @@ const AnnouncementsScreen: React.FC = () => {
   // Fetch announcements from API using GET request
   const fetchAnnouncements = async () => {
     if (!user) {
-      setError('User not authenticated');
-      setLoading(false);
+      dispatch(setAnnouncementsError('User not authenticated'));
+      setRefreshing(false);
       return;
     }
 
     try {
-      setError(null);
+      dispatch(setAnnouncementsLoading(true));
+      dispatch(setAnnouncementsError(null));
       
       // Use GET request with query parameters
       const response = await axios.get(`${API_BASE_URL}/api/get_student_announcements.php`, {
@@ -87,16 +90,16 @@ const AnnouncementsScreen: React.FC = () => {
       console.log('API Response:', response.data);
 
       if (response.data && response.data.success) {
-        setAnnouncements(response.data.announcements || []);
+        dispatch(setAnnouncements(response.data.announcements || []));
       } else {
-        setError(response.data?.message || 'Failed to fetch announcements');
+        dispatch(setAnnouncementsError(response.data?.message || 'Failed to fetch announcements'));
       }
     } catch (err: any) {
       console.error('Error fetching announcements:', err);
       
       // More specific error handling
       if (err.response?.status === 400) {
-        setError('Invalid request. Please check if the API endpoint is correct.');
+        dispatch(setAnnouncementsError('Invalid request. Please check if the API endpoint is correct.'));
       } else if (err.response?.status === 401) {
         // Unauthorized, force logout
         Alert.alert(
@@ -105,12 +108,12 @@ const AnnouncementsScreen: React.FC = () => {
           [{ text: 'OK', onPress: () => logout() }]
         );
       } else if (err.code === 'NETWORK_ERROR') {
-        setError('Network error. Please check your connection and try again.');
+        dispatch(setAnnouncementsError('Network error. Please check your connection and try again.'));
       } else {
-        setError(err.message || 'An unexpected error occurred. Please try again.');
+        dispatch(setAnnouncementsError(err.message || 'An unexpected error occurred. Please try again.'));
       }
     } finally {
-      setLoading(false);
+      dispatch(setAnnouncementsLoading(false));
       setRefreshing(false);
       setPage(1); // Reset to first page
     }

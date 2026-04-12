@@ -17,6 +17,8 @@ import { MonthView } from '@/components/calendar/MonthView';
 import { WeekView } from '@/components/calendar/WeekView';
 import { DayView } from '@/components/calendar/DayView';
 import { EventModal } from '@/components/calendar/EventModal';
+import { useDispatch, useSelector } from "@/redux/store";
+import { setCalendarEvents, setCalendarLoading, setCalendarError } from "@/redux/actions";
 
 export default function Calendar() {
   // Theme Change 
@@ -41,6 +43,9 @@ export default function Calendar() {
     return Platform.OS === 'android' && insets.bottom === 0;
   }, [insets.bottom]);
 
+  const dispatch = useDispatch();
+  const { events, loading, error } = useSelector(state => state.calendar);
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -48,9 +53,6 @@ export default function Calendar() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [showViewDropdown, setShowViewDropdown] = useState<boolean>(false);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   
   const { user } = useAuth();
@@ -62,8 +64,8 @@ export default function Calendar() {
     if (!user?.id) return;
     
     try {
-      setLoading(true);
-      setError(null);
+      dispatch(setCalendarLoading(true));
+      dispatch(setCalendarError(null));
       
       const response = await axios.get(
         `${API_BASE_URL}/api/get_calendar_events.php?user_id=${user.id}`
@@ -72,9 +74,7 @@ export default function Calendar() {
       // Parse the response data correctly
       let eventsData = [];
       if (typeof response.data === 'string') {
-        // If the response is a string, try to parse it as JSON
         try {
-          // Remove the "Connected successfully!" prefix if present
           const jsonStr = response.data.replace('Connected successfully!', '');
           eventsData = JSON.parse(jsonStr);
         } catch (parseError) {
@@ -85,9 +85,8 @@ export default function Calendar() {
         eventsData = response.data;
       }
       
-      // Transform API response to match our expected event format
+      // Transform API response
       const transformedEvents: CalendarEvent[] = eventsData.map((event: ApiEvent) => {
-        // Create proper date objects with Philippine timezone consideration
         const eventDate = new Date(event.date);
         const startTime = event.start_time.split(':');
         const endTime = event.end_time.split(':');
@@ -111,12 +110,12 @@ export default function Calendar() {
         };
       });
       
-      setEvents(transformedEvents);
+      dispatch(setCalendarEvents(transformedEvents));
     } catch (err) {
       console.error("Error fetching calendar events:", err);
-      setError("Failed to load calendar events");
+      dispatch(setCalendarError("Failed to load calendar events"));
     } finally {
-      setLoading(false);
+      dispatch(setCalendarLoading(false));
       setRefreshing(false);
     }
   };

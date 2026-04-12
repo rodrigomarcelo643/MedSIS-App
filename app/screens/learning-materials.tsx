@@ -21,6 +21,12 @@ import { SubjectDropdown } from '@/components/learning-materials/SubjectDropdown
 import { MaterialSearchBar } from '@/components/learning-materials/MaterialSearchBar';
 import { MaterialEmptyState } from '@/components/learning-materials/MaterialEmptyState';
 import { MaterialCard } from '@/components/learning-materials/MaterialCard';
+import { useDispatch, useSelector } from "@/redux/store";
+import { 
+  setLearningMaterials, 
+  setLearningMaterialsLoading, 
+  setLearningMaterialsError 
+} from "@/redux/actions";
 
 const LearningMaterialsScreen: React.FC = () => {
   const { user, logout } = useAuth();
@@ -44,11 +50,11 @@ const LearningMaterialsScreen: React.FC = () => {
     return Platform.OS === 'android' && insets.bottom === 0;
   }, [insets.bottom]);
 
-  const [materials, setMaterials] = useState<LearningMaterial[]>([]);
+  const dispatch = useDispatch();
+  const { materials, loading, error } = useSelector(state => state.learningMaterials);
+
   const [filteredMaterials, setFilteredMaterials] = useState<LearningMaterial[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
   const [showSubjectDropdown, setShowSubjectDropdown] = useState(false);
@@ -65,13 +71,13 @@ const LearningMaterialsScreen: React.FC = () => {
   // Fetch learning materials from API
   const fetchLearningMaterials = async () => {
     if (!user) {
-      setError('User not authenticated');
-      setLoading(false);
+      dispatch(setLearningMaterialsError('User not authenticated'));
       return;
     }
 
     try {
-      setError(null);
+      dispatch(setLearningMaterialsLoading(true));
+      dispatch(setLearningMaterialsError(null));
       
       const response = await axios.get(`${API_BASE_URL}/api/get_student_learningmaterials.php`, {
         params: {
@@ -83,15 +89,15 @@ const LearningMaterialsScreen: React.FC = () => {
       console.log('API Response:', response.data);
 
       if (response.data && response.data.success) {
-        setMaterials(response.data.documents || []);
+        dispatch(setLearningMaterials(response.data.documents || []));
       } else {
-        setError(response.data?.message || 'Failed to fetch learning materials');
+        dispatch(setLearningMaterialsError(response.data?.message || 'Failed to fetch learning materials'));
       }
     } catch (err: any) {
       console.error('Error fetching learning materials:', err);
       
       if (err.response?.status === 400) {
-        setError('Invalid request. Please check if the API endpoint is correct.');
+        dispatch(setLearningMaterialsError('Invalid request. Please check if the API endpoint is correct.'));
       } else if (err.response?.status === 401) {
         Alert.alert(
           'Session Expired',
@@ -99,12 +105,12 @@ const LearningMaterialsScreen: React.FC = () => {
           [{ text: 'OK', onPress: () => logout() }]
         );
       } else if (err.code === 'NETWORK_ERROR') {
-        setError('Network error. Please check your connection and try again.');
+        dispatch(setLearningMaterialsError('Network error. Please check your connection and try again.'));
       } else {
-        setError(err.message || 'An unexpected error occurred. Please try again.');
+        dispatch(setLearningMaterialsError(err.message || 'An unexpected error occurred. Please try again.'));
       }
     } finally {
-      setLoading(false);
+      dispatch(setLearningMaterialsLoading(false));
       setRefreshing(false);
     }
   };
