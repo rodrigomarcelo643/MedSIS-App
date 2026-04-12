@@ -29,6 +29,15 @@ export async function registerForPushNotificationsAsync(): Promise<string | unde
     });
   }
 
+  // Guard for Expo SDK 53+ on Android: Remote notifications are not supported in Expo Go
+  if (Platform.OS === 'android' && Constants.appOwnership === 'expo') {
+    console.warn(
+      'Push notifications (remote) are not supported in Expo Go on Android (SDK 53+). ' +
+      'To use this feature, please create a development build.'
+    );
+    return;
+  }
+
   if (Device.isDevice) {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
@@ -44,8 +53,15 @@ export async function registerForPushNotificationsAsync(): Promise<string | unde
     }
     
     try {
+      const projectId = Constants.expoConfig?.extra?.eas?.projectId || 
+                        Constants.easConfig?.projectId;
+      
+      if (!projectId) {
+        console.warn('No EAS Project ID found in app.json. Fetching token might fail.');
+      }
+
       token = (await Notifications.getExpoPushTokenAsync({
-        projectId: Constants.expoConfig?.extra?.eas?.projectId,
+        projectId: projectId,
       })).data;
     } catch (error) {
       console.error('Error getting push token:', error);
