@@ -319,5 +319,3 @@ The codebase has recently undergone a major refactoring to break down monolithic
 - ✅ Comprehensive test suite with 100% coverage
 - ✅ NativeWind styling for consistent UI/UX
 - ✅ TypeScript implementation for type safety
-
-# MSIS - Medical Student Information System 📱
