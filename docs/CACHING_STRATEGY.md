@@ -1,6 +1,6 @@
-# Caching Strategy - MedSIS App
+# Caching Strategy - ARDMS App
 
-MedSIS App employs a robust multi-layered caching system designed to provide a "zero-latency" feel, especially in the messaging and chat modules. This strategy ensures that users can view their last-known state immediately upon opening the app, regardless of network conditions.
+ARDMS App employs a robust multi-layered caching system designed to provide a "zero-latency" feel, especially in the messaging and chat modules. This strategy ensures that users can view their last-known state immediately upon opening the app, regardless of network conditions.
 
 ## 🏹 Primary Objectives
 
