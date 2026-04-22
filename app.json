@@ -18,7 +18,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF",
       "dark": {
-        "image": "./assets/swu_header.png",
+        "image": "./assets/swu_header.jpg",
         "resizeMode": "contain",
         "backgroundColor": "#121212"
       }
@@ -26,11 +26,11 @@
     "ios": {
       "supportsTablet": true,
       "splash": {
-        "image": "./assets/swu_header.png",
+        "image": "./assets/swu_header.jpg",
         "resizeMode": "contain",
         "backgroundColor": "#FFFFFF",
         "dark": {
-          "image": "./assets/swu_header.png",
+          "image": "./assets/swu_header.jpg",
           "resizeMode": "contain",
           "backgroundColor": "#121212"
         }
@@ -44,15 +44,15 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/swu_header.png",
+        "foregroundImage": "./assets/swu_header.jpg",
         "backgroundColor": "#121212"
       },
       "splash": {
-        "image": "./assets/swu_header.png",
+        "image": "./assets/swu_header.jpg",
         "resizeMode": "contain",
         "backgroundColor": "#FFFFFF",
         "dark": {
-          "image": "./assets/swu_header.png",
+          "image": "./assets/swu_header.jpg",
           "resizeMode": "contain",
           "backgroundColor": "#121212"
         }
@@ -70,7 +70,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/swu_header.png",
+          "icon": "./assets/swu_header.jpg",
           "color": "#ffffff",
           "sounds": ["./assets/sounds/notification_sound.mp3"]
         }

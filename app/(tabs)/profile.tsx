@@ -112,7 +112,7 @@ export default function ProfileScreen() {
         ? { uri: userData.avatar } 
         : { uri: `${API_URL}/../${userData.avatar}` };
     }
-    return require('../../assets/swu_header.png');
+    return require('../../assets/swu_header.jpg');
   };
 
   // Request permissions

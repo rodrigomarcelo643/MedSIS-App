@@ -59,7 +59,7 @@ function MainLayout() {
 
       {/* Optional: App logo */}
       {/* <Image 
-        source={require("../assets/swu_header.png")}
+        source={require("../assets/swu_header.jpg")}
         className="w-20 h-20 mt-10 opacity-90"
       /> */}
 
