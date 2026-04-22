@@ -56,7 +56,7 @@ export default function NotFoundScreen() {
             Page Not Found
           </Text>
           <Text className="text-base text-center leading-6" style={{ color: mutedColor }}>
-            Oops! It seems you've wandered into an uncharted area of MedSIS. The page you're looking for doesn't exist or has been moved.
+            Oops! It seems you've wandered into an uncharted area of ARDMS. The page you're looking for doesn't exist or has been moved.
           </Text>
         </View>
 
@@ -86,7 +86,7 @@ export default function NotFoundScreen() {
         {/* Footer Branding */}
         <View className="absolute bottom-10 items-center">
           <Text className="text-xs uppercase tracking-widest font-bold" style={{ color: mutedColor + '80' }}>
-            MedSIS • SWU Medicine
+            ARDMS • SWU Medicine
           </Text>
         </View>
       </View>
