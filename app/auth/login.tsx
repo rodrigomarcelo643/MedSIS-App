@@ -98,7 +98,7 @@ const LoginScreen = () => {
             setLoginState(prev => ({ ...prev, requiresPolicyAcceptance: true, loading: false, showLoginLoading: false }));
             router.push({ pathname: "/auth/policy-acceptance", params: { student_id: loginData.student_id, user_data: JSON.stringify(result.user) } });
           } else {
-            const userData = { ...result.user, avatar: result.user.avatar || "https://msis.eduisync.io/swu-head.png", joinDate: result.user.joinDate || "Member since 2023", policy_accepted: 1 };
+            const userData = { ...result.user, avatar: result.user.avatar || "https://ardms.eduisync.io/swu-head.png", joinDate: result.user.joinDate || "Member since 2023", policy_accepted: 1 };
             await login(userData);
             Toast.show({ type: "success", text1: "Login Successful 🎉", text2: `Welcome ${result.user.first_name}` });
             setLoginState(prev => ({ ...prev, loading: false, showLoginLoading: false }));
