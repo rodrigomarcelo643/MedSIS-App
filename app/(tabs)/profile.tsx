@@ -4,7 +4,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import ProfileSkeleton from '@/components/ProfileSkeleton';
 import axios from "axios";
-import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync, ImagePickerAsset } from 'expo-image-picker';
+import { launchCameraAsync, launchImageLibraryAsync, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync, ImagePickerAsset } from 'expo-image-picker';
 import { useRouter } from "expo-router";
 import {
   BookOpen,
@@ -112,7 +112,7 @@ export default function ProfileScreen() {
         ? { uri: userData.avatar } 
         : { uri: `${API_URL}/../${userData.avatar}` };
     }
-    return require('../../assets/swu-header.png');
+    return require('../../assets/swu_header.png');
   };
 
   // Request permissions
@@ -135,21 +135,30 @@ export default function ProfileScreen() {
 
     if (showLoading) setIsLoading(true);
     try {
-      const response = await axios.post(
-        `${API_URL}/get_user_data.php`,
-        { user_id: uid, live_fetch: forceLiveFetch || !hasInitiallyFetched },
-        { timeout: 10000, headers: { "Content-Type": "application/json" } }
-      );
+      const response = await fetch(`${API_URL}/get_user_data.php`, {
+        method: 'POST',
+        body: JSON.stringify({ user_id: uid, live_fetch: forceLiveFetch || !hasInitiallyFetched }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
 
-      if (response.data.success && response.data.user) {
-        setUserData(response.data.user);
-        await login(response.data.user);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.user) {
+        setUserData(data.user);
+        await login(data.user);
         if (!hasInitiallyFetched) setHasInitiallyFetched(true);
         
-        if (response.data.user.nationality) {
-          setNationalityType(response.data.user.nationality === "Filipino" ? "Filipino" : "Foreigner");
+        if (data.user.nationality) {
+          setNationalityType(data.user.nationality === "Filipino" ? "Filipino" : "Foreigner");
         }
-      } else if (response.data.message?.includes("deactivated")) {
+      } else if (data.message?.includes("deactivated")) {
         await clearUser();
         router.replace("/auth/login");
       }
@@ -235,7 +244,7 @@ export default function ProfileScreen() {
 
   const pickImage = async (useCamera = false) => {
     try {
-      const options = { mediaTypes: MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1] as [number, number], quality: 0.8 };
+      const options: any = { mediaTypes: 'images', allowsEditing: true, aspect: [1, 1], quality: 0.8 };
       const result = useCamera ? await launchCameraAsync(options) : await launchImageLibraryAsync(options);
       if (!result.canceled) {
         setSelectedImage(result.assets[0]);
@@ -291,19 +300,32 @@ export default function ProfileScreen() {
         formData.append('avatar', { uri: selectedImage.uri, name: filename, type } as any);
       }
 
-      const response = await axios.post(`${API_URL}/update_profile_student.php`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        timeout: 15000,
+      console.log("Updating profile at:", `${API_URL}/update_profile_student.php`);
+      console.log("Payload keys:", Object.keys(changes), "Has Image:", !!selectedImage);
+
+      const response = await fetch(`${API_URL}/update_profile_student.php`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+        },
       });
 
-      if (response.data.success) {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Profile Update Response:", data);
+
+      if (data.success) {
         if (Object.keys(changes).length > 0) await updateUser(changes);
         await fetchUserData(false, true);
         setSelectedImage(null);
         setIsEditing(false);
         setUpdateModal({ visible: true, success: true, message: "Profile updated successfully" });
       } else {
-        setUpdateModal({ visible: true, success: false, message: response.data.message || "Failed to update profile" });
+        setUpdateModal({ visible: true, success: false, message: data.message || "Failed to update profile" });
       }
     } catch (error) {
       setUpdateModal({ visible: true, success: false, message: "An error occurred while updating your profile" });
