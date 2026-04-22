@@ -10,14 +10,14 @@
 
 ## Our Pledge
 
-In the interest of fostering an open, welcoming, and inclusive environment, we as contributors, maintainers, and the MSIS Development Team pledge to make participation in our project and community a harassment-free experience for everyone, regardless of:
+In the interest of fostering an open, welcoming, and inclusive environment, we as contributors, maintainers, and the ARDMS Development Team pledge to make participation in our project and community a harassment-free experience for everyone, regardless of:
 
 - 🌍 Age, body size, disability, ethnicity, gender identity and expression
 - 🎓 Level of experience, education, socio-economic status
 - 🌐 Nationality, personal appearance, race, religion
 - 🏳️‍🌈 Sexual identity and orientation
 
-We are committed to providing a safe, respectful, and professional environment for all participants in the MedSIS App community.
+We are committed to providing a safe, respectful, and professional environment for all participants in the ARDMS App community.
 
 ## Our Standards
 
@@ -148,7 +148,7 @@ This Code of Conduct also applies when an individual is representing the project
 
 ### Reporting Violations
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the MSIS Development Team:
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the ARDMS Development Team:
 
 **Primary Contact:**
 - 📧 Email: conduct@msis.eduisync.io
@@ -284,7 +284,7 @@ This Code of Conduct is adapted from:
 
 ## Amendments
 
-The MSIS Development Team reserves the right to update this Code of Conduct at any time. Contributors will be notified of significant changes via:
+The ARDMS Development Team reserves the right to update this Code of Conduct at any time. Contributors will be notified of significant changes via:
 - 📧 Email notification
 - 📝 GitHub announcement
 - 🌐 Website update
@@ -308,9 +308,9 @@ If you have questions about this Code of Conduct or need clarification on any po
 
 ## Acknowledgment
 
-By participating in the MedSIS App project, you acknowledge that you have read, understood, and agree to abide by this Code of Conduct.
+By participating in the ARDMS App project, you acknowledge that you have read, understood, and agree to abide by this Code of Conduct.
 
-**Thank you for helping make MedSIS App a welcoming, inclusive, and professional community!** 🙏
+**Thank you for helping make ARDMS App a welcoming, inclusive, and professional community!** 🙏
 
 ---
 
@@ -328,7 +328,7 @@ By participating in the MedSIS App project, you acknowledge that you have read, 
 
 ---
 
-**MSIS Development Team**  
+**ARDMS Development Team**  
 **Version 1.0.0 - December 5, 2025**  
 **Copyright © 2025 MSIS. All Rights Reserved.**
 
