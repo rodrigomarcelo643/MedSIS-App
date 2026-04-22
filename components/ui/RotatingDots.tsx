@@ -38,7 +38,7 @@ const RotatingDots = () => {
       createDotAnimation(dot2Anim, 300),
       createDotAnimation(dot3Anim, 600),
     ];
-    
+
     animationRefs.current.forEach(anim => anim.start());
 
     // Cleanup function
