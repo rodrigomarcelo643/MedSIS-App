@@ -1,6 +1,6 @@
-# MedSIS-App: System Context & Rules for AI Agents
+# ARDMS-App: System Context & Rules for AI Agents
 
-You are assisting with the MedSIS-App (Medical Student Information System) frontend built in React Native (Expo). 
+You are assisting with the ARDMS-App (Medical Student Information System) frontend built in React Native (Expo). 
 
 ## 1. Architectural Rules
 - **No Monolithic Screens**: All screens inside `app/` (Expo Router) must act ONLY as compositional wrappers. All complex UI and state logic must be extracted into the `components/` directory (categorized by feature like `auth/`, `evaluations/`, `folder/`, etc.).
