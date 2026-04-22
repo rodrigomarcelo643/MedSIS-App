@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "MedSIS",
-    "slug": "MSIS",
+    "name": "ARDMS",
+    "slug": "ARDMS",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/swu-header.png",
-    "scheme": "medsisapp",
+    "icon": "./assets/swu_header.png",
+    "scheme": "ARDMSapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "projectId": "e4d72644-5c96-430c-babd-6066a17d7337",
@@ -14,11 +14,11 @@
       "barStyle": "light-content"
     },
     "splash": {
-      "image": "./assets/swu-header.png",
+      "image": "./assets/swu_header.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF",
       "dark": {
-        "image": "./assets/swu-header.png",
+        "image": "./assets/swu_header.png",
         "resizeMode": "contain",
         "backgroundColor": "#121212"
       }
@@ -26,11 +26,11 @@
     "ios": {
       "supportsTablet": true,
       "splash": {
-        "image": "./assets/swu-header.png",
+        "image": "./assets/swu_header.png",
         "resizeMode": "contain",
         "backgroundColor": "#FFFFFF",
         "dark": {
-          "image": "./assets/swu-header.png",
+          "image": "./assets/swu_header.png",
           "resizeMode": "contain",
           "backgroundColor": "#121212"
         }
@@ -44,15 +44,15 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/swu-header.png",
+        "foregroundImage": "./assets/swu_header.png",
         "backgroundColor": "#121212"
       },
       "splash": {
-        "image": "./assets/swu-header.png",
+        "image": "./assets/swu_header.png",
         "resizeMode": "contain",
         "backgroundColor": "#FFFFFF",
         "dark": {
-          "image": "./assets/swu-header.png",
+          "image": "./assets/swu_header.png",
           "resizeMode": "contain",
           "backgroundColor": "#121212"
         }
@@ -70,7 +70,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/swu-header.png",
+          "icon": "./assets/swu_header.png",
           "color": "#ffffff",
           "sounds": ["./assets/sounds/notification_sound.mp3"]
         }
