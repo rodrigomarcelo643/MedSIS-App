@@ -1,7 +1,7 @@
 # Agent Instructions: Testing Constraints
 
 ## Custom Test Runner Compliance
-The MedSIS-App strictly adheres to a custom static validation script (`tests/test-runner.js`). All generated code will fail CI/local validation if you violate these rules:
+The ARDMS-App strictly adheres to a custom static validation script (`tests/test-runner.js`). All generated code will fail CI/local validation if you violate these rules:
 
 1. **Null Safety**:
     - Absolutely no blindly trusting object properties. Use optional chaining (`data?.studentId`).
