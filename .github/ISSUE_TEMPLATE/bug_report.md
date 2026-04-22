@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve MedSIS-App
+about: Create a report to help us improve ARDMS-App
 title: '[BUG] '
 labels: bug
 assignees: ''
