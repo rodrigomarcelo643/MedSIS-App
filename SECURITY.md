@@ -9,14 +9,14 @@
   <img src="https://img.shields.io/badge/Compliance-RA%2010173-purple?style=for-the-badge" alt="RA 10173" />
 </div>
 
-MedSIS App implements comprehensive security measures to protect student data in compliance with the **Data Privacy Act of 2012 (Republic Act No. 10173)**. This document outlines our security architecture, authentication mechanisms, and data protection strategies.
+ARDMS App implements comprehensive security measures to protect student data in compliance with the **Data Privacy Act of 2012 (Republic Act No. 10173)**. This document outlines our security architecture, authentication mechanisms, and data protection strategies.
 
 ## 🛡️ Security Architecture
 
 ### Authentication & Authorization
 
 ```
-MedSIS-App/
+ARDMS-App/
 ├── app/auth/                           # Authentication Layer
 │   ├── login.tsx                       # Primary authentication with student ID
 │   ├── otp-verification.tsx            # Two-factor authentication (2FA)
@@ -62,7 +62,7 @@ MedSIS-App/
 ### Personal Information Security
 
 ```
-MedSIS-App/
+ARDMS-App/
 ├── services/
 │   ├── messageService.ts               # Encrypted messaging
 │   └── notificationService.ts          # Secure push notifications
@@ -201,11 +201,11 @@ tests/
 
 ### Responsible Disclosure
 
-If you discover a security vulnerability in MedSIS App, please report it responsibly:
+If you discover a security vulnerability in ARDMS App, please report it responsibly:
 
 **Contact Information**
 - Email: security@eduisync.io
-- Subject: [SECURITY] MedSIS App Vulnerability Report
+- Subject: [SECURITY] ARDMS App Vulnerability Report
 
 **What to Include**
 1. Detailed description of the vulnerability
@@ -221,7 +221,7 @@ If you discover a security vulnerability in MedSIS App, please report it respons
 
 ### Bug Bounty Program
 
-We appreciate security researchers who help us maintain the security of MedSIS App. Eligible vulnerabilities may qualify for recognition and rewards.
+We appreciate security researchers who help us maintain the security of ARDMS App. Eligible vulnerabilities may qualify for recognition and rewards.
 
 ## 📋 Compliance & Standards
 
@@ -314,7 +314,7 @@ export const PASSWORD_MIN_LENGTH = 8;
 
 ## 📞 Security Contact
 
-**MedSIS Security Team**
+**ARDMS Security Team**
 - Website: https://msis.eduisync.io
 - Email: security@eduisync.io
 - Emergency Hotline: Available 24/7
