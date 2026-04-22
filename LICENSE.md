@@ -1,8 +1,8 @@
 # Proprietary License Agreement
 
-**MedSIS App - Medical Student Information System**  
+**ARDMS App*  
 **Version 1.0.0**  
-**Copyright © 2025 MSIS. All Rights Reserved.**
+**Copyright © 2025 ARDMS. All Rights Reserved.**
 
 ---
 
@@ -123,8 +123,8 @@ If you do not agree to these terms, do not download, install, or use the Softwar
 
 ---
 
-**MSIS Development Team**  
-**Medical Student Information System (MedSIS)**  
+**ARDMS Development Team**  
+**Academic Records and Document Management System (ARDMS)**  
 **Version 1.0.0 - December 5, 2025**
 
 **Copyright © 2025 MSIS. All Rights Reserved.**
