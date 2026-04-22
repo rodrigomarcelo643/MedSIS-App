@@ -78,7 +78,7 @@ function analyzeFileContent(content, category, filePath) {
 
 // Real test runner analyzing actual files
 function runAllTests() {
-  console.log('🧪 Running MedSIS App Test Suite on Real Files...\n');
+  console.log('🧪 Running ARDMS App Test Suite on Real Files...\n');
   
   // Get results from real file analysis
   const realFileResults = analyzeRealFiles();
@@ -159,7 +159,7 @@ function generateTestReport() {
 const { checkTypeErrors } = require('./utils/typescript-checker.js');
 
 function runWithTypeChecking() {
-  console.log('🧪 Running MedSIS App Test Suite with Type Validation..\n');
+  console.log('🧪 Running ARDMS App Test Suite with Type Validation..\n');
   
   // Run type checking first
   const typeCheckResult = checkTypeErrors();
