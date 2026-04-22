@@ -53,7 +53,7 @@ const PolicyAcceptance = () => {
       if (res.data.success) {
         let finalUser: any = null;
         if (res.data.user) {
-          finalUser = { ...res.data.user, avatar: res.data.user.avatar || "https://msis.eduisync.io/swu-head.png", policy_accepted: 1 };
+          finalUser = { ...res.data.user, avatar: res.data.user.avatar || "https://ardms.eduisync.io/swu-head.png", policy_accepted: 1 };
           if (user_data && typeof user_data === 'string') {
             try { const parsed = JSON.parse(user_data); if (parsed.password) finalUser.password = parsed.password; } catch (e) {}
           }
@@ -63,7 +63,7 @@ const PolicyAcceptance = () => {
         } else if (user) { await updateUserPolicyStatus(true); }
 
         if (finalUser) await login(finalUser);
-        Toast.show({ type: "success", text1: "Welcome to MedSIS!" });
+        Toast.show({ type: "success", text1: "Welcome to ARDMS!" });
         setTimeout(() => router.replace("/(tabs)/home"), 1000);
       } else Toast.show({ type: "error", text1: "Error", text2: res.data.message });
     } catch (e: any) { Toast.show({ type: "error", text1: "Error", text2: e.message });
@@ -78,11 +78,11 @@ const PolicyAcceptance = () => {
       <ScrollView ref={scrollViewRef} onScroll={handleScroll} scrollEventThrottle={16} className="flex-1 px-4 bg-gray-50" contentContainerStyle={{ paddingBottom: 40 }}>
         <View className="mb-6 mt-6">
           <PolicyCard title="Terms and Conditions" icon={<FileText size={20} color="#3b82f6" />} iconBgColor="bg-blue-100">
-            <Text className="text-sm text-gray-600 leading-5">The Medical Student Information System (MSIS) is designed to manage student academic records and documents in accordance with Republic Act No. 10173 (Data Privacy Act of 2012).</Text>
+            <Text className="text-sm text-gray-600 leading-5">The ARDMS Academic Record and Document Management System is designed to manage student academic records and documents in accordance with Republic Act No. 10173 (Data Privacy Act of 2012).</Text>
           </PolicyCard>
 
           <PolicyCard title="System Purpose" icon={<Database size={20} color="#9333ea" />} iconBgColor="bg-purple-100">
-            <Text className="text-sm text-gray-600 leading-5">MSIS serves as the official repository for student academic documents, grades, and administrative records throughout your medical education journey.</Text>
+            <Text className="text-sm text-gray-600 leading-5">ARDMS serves as the official repository for student academic documents, grades, and administrative records throughout your medical education journey.</Text>
           </PolicyCard>
 
           <PolicyCard title="Data Security" icon={<Shield size={20} color="#15803d" />} iconBgColor="bg-green-100">
@@ -105,7 +105,7 @@ const PolicyAcceptance = () => {
           </PolicyCard>
 
           <View className="bg-gradient-to-r from-[#af1616]/5 to-[#15803d]/5 rounded-xl p-4 mb-4 border-l-4 border-[#af1616]">
-            <Text className="text-xs text-gray-700 leading-5 italic">By using MSIS, I acknowledge and agree to the terms outlined above. I consent to the collection and processing of my academic data.</Text>
+            <Text className="text-xs text-gray-700 leading-5 italic">By using ARDMS, I acknowledge and agree to the terms outlined above. I consent to the collection and processing of my academic data.</Text>
           </View>
 
           <PolicyAcceptanceSection
