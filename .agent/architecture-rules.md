@@ -1,4 +1,4 @@
-# Agent Instructions: MedSIS Architecture & Routing
+# Agent Instructions: ARDMS Architecture & Routing
 
 ## Core Directives for Expo Router
 1. **Never build monolithic screens.** The files located in `app/(tabs)/` or `app/auth/` must remain under 150 lines of code. They are strict compositional wrappers.
