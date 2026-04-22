@@ -334,7 +334,7 @@ export default function TabLayout() {
           <>
           <TouchableOpacity onPress={() => router.push("/(tabs)/home")} className="flex-row items-center">
             <Image
-              source={require("../../assets/images/swu-head.png")}
+              source={require("../../assets/images/swu_head.png")}
               className="w-9 h-9 mr-2"
             />
             <Text className="text-xl mt-2 font-extrabold tracking-wide">
@@ -347,7 +347,7 @@ export default function TabLayout() {
                   textShadowRadius: 2,
                 }}
               >
-                Med
+                ARD
               </Text>
               <Text
                 style={{
@@ -358,7 +358,7 @@ export default function TabLayout() {
                   textShadowRadius: 2,
                 }}
               >
-                SIS
+                MS
               </Text>
             </Text>
             </TouchableOpacity>
@@ -376,7 +376,7 @@ export default function TabLayout() {
             <Skeleton width={24} height={24} borderRadius={12} />
           ) : (
             <>
-              <Image  className="w-8 h-8" source={require("../../assets/images/chat-icon-main.png")} />
+              <Image  className="w-8 h-8" source={require("../../assets/images/chat_icon_main.png")} />
               {renderMessageBadge()}
             </>
           )}
@@ -403,8 +403,8 @@ export default function TabLayout() {
                 <Image
                   source={
                     user.nationality.toLowerCase() === "filipino"
-                      ? require("../../assets/images/ph-flag.png")
-                      : require("../../assets/images/foreign-flag.png")
+                      ? require("../../assets/images/ph_flag.png")
+                      : require("../../assets/images/foreign_flag.png")
                   }
                   className="w-4 h-3 mr-1"
                 />
