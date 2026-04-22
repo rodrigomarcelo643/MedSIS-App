@@ -1,4 +1,4 @@
-package com.medsistests
+package com.ARDMStests
 
 import android.app.Application
 import android.content.res.Configuration
