@@ -29,7 +29,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         <TouchableOpacity onPress={onShowViewPhoto} activeOpacity={0.8}>
           <View className="w-28 h-28 rounded-full border-4 border-white shadow-lg bg-white items-center justify-center overflow-hidden">
             <Image
-              source={avatarSource || require('../../assets/swu-header.png')}
+              source={avatarSource || require('../../assets/swu_header.png')}
               className="w-full h-full"
               resizeMode="cover"
             />
