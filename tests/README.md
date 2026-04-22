@@ -1,6 +1,6 @@
-# MedSIS App Test Suite 🧪
+# ARDMS App Test Suite 🧪
 
-Comprehensive test coverage for all MedSIS App features and functionality.
+Comprehensive test coverage for all ARDMS App features and functionality.
 
 ## Test Structure
 
