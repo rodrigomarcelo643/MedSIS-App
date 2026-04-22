@@ -89,7 +89,7 @@ export const PolicyAcceptanceSection: React.FC<PolicyAcceptanceSectionProps> = (
                 <ActivityIndicator color="white" />
               ) : (
                 <Text className="text-white text-center font-medium">
-                  Continue to MedSIS
+                  Continue to ARDMS
                 </Text>
               )}
             </TouchableOpacity>
