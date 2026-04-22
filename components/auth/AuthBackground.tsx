@@ -26,7 +26,7 @@ export const AuthBackground = () => (
     {/* Watermark Logo */}
     <View className="absolute ml-4 inset-0">
       <Image
-        source={require("../../assets/images/medicine-logo.png")}
+        source={require("../../assets/images/medicine_logo.png")}
         className="w-[98%] h-[98%] opacity-94"
         resizeMode="contain"
         accessibilityLabel="Medicine logo watermark"
