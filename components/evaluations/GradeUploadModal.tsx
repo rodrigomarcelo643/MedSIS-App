@@ -1,23 +1,22 @@
+import { GradeImage } from '@/@types/tabs';
+import { BlurErrorModal, ProgressModal } from '@/components/folder/FolderModals';
+import { API_BASE_URL, ML_API_BASE_URL } from '@/constants/Config';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import axios from 'axios';
+import * as ImagePicker from 'expo-image-picker';
+import { AlertTriangle, CheckCircle, Eye, ImageIcon, Trash2, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   Image,
   Modal,
   Text,
   TouchableOpacity,
-  View,
-  ScrollView,
-  Dimensions,
+  View
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import axios from 'axios';
 import Toast from 'react-native-toast-message';
-import { Upload, X, ImageIcon, CheckCircle, Trash2, Eye, AlertTriangle } from 'lucide-react-native';
-import { API_BASE_URL, ML_API_BASE_URL } from '@/constants/Config';
-import { useThemeColor } from '@/hooks/useThemeColor';
-import { GradeImage } from '@/@types/tabs';
-import { ProgressModal, BlurErrorModal } from '@/components/folder/FolderModals';
 
 interface Props {
   visible: boolean;
@@ -40,14 +39,14 @@ const GradeUploadModal: React.FC<Props> = ({
   yearLevelName,
   existingImages,
 }) => {
-  const cardColor  = useThemeColor({}, 'card');
-  const textColor  = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'card');
+  const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'muted');
 
-  const [pickedUri,  setPickedUri]  = useState<string | null>(null);
-  const [mimeType,   setMimeType]   = useState<string>('image/jpeg');
-  const [fileName,   setFileName]   = useState<string>('grade_image.jpg');
-  const [uploading,  setUploading]  = useState(false);
+  const [pickedUri, setPickedUri] = useState<string | null>(null);
+  const [mimeType, setMimeType] = useState<string>('image/jpeg');
+  const [fileName, setFileName] = useState<string>('grade_image.jpg');
+  const [uploading, setUploading] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
 
   // Blur check modal state
@@ -58,7 +57,7 @@ const GradeUploadModal: React.FC<Props> = ({
 
   // Status for deletion
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  
+
   // Custom Confirmation Modal State
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
@@ -74,13 +73,18 @@ const GradeUploadModal: React.FC<Props> = ({
         type: mimeType || 'image/jpeg',
       } as any);
 
-      const response = await axios.post(
-        `${ML_API_BASE_URL}/api/app/blur-check`,
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 }
-      );
+      console.log("Calling ML Blur Check (Fetch):", `${ML_API_BASE_URL}/api/app/blur-check`);
 
-      const data = response.data;
+      const response = await fetch(`${ML_API_BASE_URL}/api/app/blur-check`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
       const rawScore = typeof data?.blur_score === 'number' ? data.blur_score : 0;
       const isBlurry = data?.is_blurry === true;
 
@@ -113,35 +117,35 @@ const GradeUploadModal: React.FC<Props> = ({
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: 'images',
       allowsEditing: false,
       quality: 0.85,
     });
 
-      if (!result.canceled && result.assets.length > 0) {
-        const asset = result.assets[0];
-        
-        // Quality check before setting
-        setCheckingBlur(true);
-        const assetFileName = asset.fileName ?? `grade_image_${Date.now()}.` + (asset.uri.split('.').pop() ?? 'jpg');
-        const assetMimeType = asset.mimeType ?? 'image/jpeg';
-        
-        const { isBlurry, blurScore, sharpScore } = await checkImageBlur(asset.uri, assetFileName, assetMimeType);
-        setCheckingBlur(false);
+    if (!result.canceled && result.assets.length > 0) {
+      const asset = result.assets[0];
 
-        setBlurPercentage(blurScore);
-        setSharpPercentage(sharpScore);
+      // Quality check before setting
+      setCheckingBlur(true);
+      const assetFileName = asset.fileName ?? `grade_image_${Date.now()}.` + (asset.uri.split('.').pop() ?? 'jpg');
+      const assetMimeType = asset.mimeType ?? 'image/jpeg';
 
-        if (isBlurry || blurScore > 40) {
-          setShowBlurErrorModal(true);
-          return; // Stop here if blurry
-        }
+      const { isBlurry, blurScore, sharpScore } = await checkImageBlur(asset.uri, assetFileName, assetMimeType);
+      setCheckingBlur(false);
 
-        setPickedUri(asset.uri);
-        setMimeType(assetMimeType);
-        setFileName(assetFileName);
-        setUploadDone(false);
+      setBlurPercentage(blurScore);
+      setSharpPercentage(sharpScore);
+
+      if (isBlurry || blurScore > 40) {
+        setShowBlurErrorModal(true);
+        return; // Stop here if blurry
       }
+
+      setPickedUri(asset.uri);
+      setMimeType(assetMimeType);
+      setFileName(assetFileName);
+      setUploadDone(false);
+    }
   };
 
   const handleUpload = async () => {
@@ -150,22 +154,33 @@ const GradeUploadModal: React.FC<Props> = ({
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('user_id',       userId);
+      formData.append('user_id', userId);
       formData.append('year_level_id', String(yearLevelId));
       // @ts-ignore
       formData.append('file', {
-        uri:  pickedUri,
+        uri: pickedUri,
         name: fileName,
         type: mimeType,
       });
 
-      const response = await axios.post(
-        `${API_BASE_URL}/api/grade_uploads/upload_grade_image.php`,
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 }
-      );
+      console.log("Uploading Grade Image to:", `${API_BASE_URL}/api/grade_uploads/upload_grade_image.php`);
 
-      if (response.data.success) {
+      const response = await fetch(`${API_BASE_URL}/api/grade_uploads/upload_grade_image.php`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Grade Upload Response:", data);
+
+      if (data.success) {
         setUploadDone(true);
         onUploaded();
         Toast.show({
@@ -174,11 +189,12 @@ const GradeUploadModal: React.FC<Props> = ({
           text2: 'Your grade record has been updated.',
         });
       } else {
-        Alert.alert('Upload Failed', response.data.message || 'An error occurred');
+        Alert.alert('Upload Failed', data.message || 'An error occurred');
       }
     } catch (error: any) {
-      console.error('Upload Error:', error);
-      Alert.alert('Network Error', 'Check your connection and try again.');
+      console.error('Grade Upload Error Details:', error.response?.data || error.message);
+      const errorMsg = error.response?.data?.message || error.message || "Network Error";
+      Alert.alert('Upload Error', errorMsg);
     } finally {
       setUploading(false);
     }
@@ -190,13 +206,13 @@ const GradeUploadModal: React.FC<Props> = ({
 
     setConfirmDeleteId(null);
     setDeletingId(imageId);
-    
+
     try {
       // Using JSON payload + explicit headers to fix "connection error" issues
       const res = await axios.post(
         `${API_BASE_URL}/api/grade_uploads/delete_grade_image.php`,
         {
-          user_id:  userId,
+          user_id: userId,
           image_id: imageId,
         },
         { headers: { 'Content-Type': 'application/json' } }
@@ -250,27 +266,27 @@ const GradeUploadModal: React.FC<Props> = ({
                 <Text style={{ fontSize: 11, fontWeight: '800', color: mutedColor, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
                   Already Uploaded ({existingImages.length})
                 </Text>
-                
+
                 <View style={{ gap: 8 }}>
                   {existingImages.map((img) => (
                     <View
                       key={img.id}
-                      style={{ 
-                        backgroundColor: cardColor, 
-                        flexDirection: 'row', 
-                        alignItems: 'center', 
-                        justifyContent: 'space-between', 
+                      style={{
+                        backgroundColor: cardColor,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                         paddingVertical: 8,
-                        paddingHorizontal: 12, 
-                        borderRadius: 2, 
-                        borderWidth: 1, 
-                        borderColor: '#e5e7eb' 
+                        paddingHorizontal: 12,
+                        borderRadius: 2,
+                        borderWidth: 1,
+                        borderColor: '#e5e7eb'
                       }}
                     >
                       {/* Left: Indicator, Image Thumbnail, and Details */}
                       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                         <View style={{ width: 4, height: 32, backgroundColor: '#10b981', borderTopLeftRadius: 2, borderBottomLeftRadius: 2, marginRight: 12 }} />
-                        
+
                         {img.image_data ? (
                           <Image source={{ uri: img.image_data }} style={{ width: 40, height: 40, borderRadius: 2, marginRight: 12, borderWidth: 1, borderColor: '#f3f4f6' }} resizeMode="cover" />
                         ) : (
@@ -278,16 +294,16 @@ const GradeUploadModal: React.FC<Props> = ({
                             <ImageIcon size={20} color="#9ca3af" />
                           </View>
                         )}
-                        
+
                         <View style={{ flex: 1, marginRight: 12 }}>
-                           <Text style={{ fontSize: 13, fontWeight: '600', color: textColor }} numberOfLines={1}>
-                             {img.file_name}
-                           </Text>
-                           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                             <View style={{ backgroundColor: '#dcfce7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 2 }}>
-                               <Text style={{ fontSize: 10, fontWeight: '700', color: '#166534' }}>Verified Record</Text>
-                             </View>
-                           </View>
+                          <Text style={{ fontSize: 13, fontWeight: '600', color: textColor }} numberOfLines={1}>
+                            {img.file_name}
+                          </Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                            <View style={{ backgroundColor: '#dcfce7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 2 }}>
+                              <Text style={{ fontSize: 10, fontWeight: '700', color: '#166534' }}>Verified Record</Text>
+                            </View>
+                          </View>
                         </View>
                       </View>
 
@@ -390,29 +406,29 @@ const GradeUploadModal: React.FC<Props> = ({
       {/* ── Custom Deletion Confirmation Modal ── */}
       <Modal visible={confirmDeleteId !== null} transparent animationType="fade">
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: 30 }}>
-            <View style={{ backgroundColor: cardColor, borderRadius: 2, padding: 24, alignItems: 'center' }}>
-                <View style={{ backgroundColor: '#fef2f2', padding: 16, borderRadius: 50, marginBottom: 16 }}>
-                    <AlertTriangle size={36} color="#dc2626" />
-                </View>
-                <Text style={{ fontSize: 18, fontWeight: '800', color: textColor, marginBottom: 8 }}>Remove Image?</Text>
-                <Text style={{ fontSize: 14, color: mutedColor, textAlign: 'center', marginBottom: 24 }}>
-                    This will permanently delete this grade record from your file. This action cannot be undone.
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                    <TouchableOpacity 
-                        onPress={() => setConfirmDeleteId(null)}
-                        style={{ flex: 1, paddingVertical: 14, borderRadius: 2, borderWidth: 1, borderColor: '#e5e7eb', alignItems: 'center' }}
-                    >
-                        <Text style={{ fontWeight: '700' }}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        onPress={executeDelete}
-                        style={{ flex: 1, paddingVertical: 14, borderRadius: 2, backgroundColor: '#dc2626', alignItems: 'center' }}
-                    >
-                        <Text style={{ color: '#fff', fontWeight: '800' }}>Confirm</Text>
-                    </TouchableOpacity>
-                </View>
+          <View style={{ backgroundColor: cardColor, borderRadius: 2, padding: 24, alignItems: 'center' }}>
+            <View style={{ backgroundColor: '#fef2f2', padding: 16, borderRadius: 50, marginBottom: 16 }}>
+              <AlertTriangle size={36} color="#dc2626" />
             </View>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: textColor, marginBottom: 8 }}>Remove Image?</Text>
+            <Text style={{ fontSize: 14, color: mutedColor, textAlign: 'center', marginBottom: 24 }}>
+              This will permanently delete this grade record from your file. This action cannot be undone.
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+              <TouchableOpacity
+                onPress={() => setConfirmDeleteId(null)}
+                style={{ flex: 1, paddingVertical: 14, borderRadius: 2, borderWidth: 1, borderColor: '#e5e7eb', alignItems: 'center' }}
+              >
+                <Text style={{ fontWeight: '700' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={executeDelete}
+                style={{ flex: 1, paddingVertical: 14, borderRadius: 2, backgroundColor: '#dc2626', alignItems: 'center' }}
+              >
+                <Text style={{ color: '#fff', fontWeight: '800' }}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </Modal>
 
@@ -427,10 +443,10 @@ const GradeUploadModal: React.FC<Props> = ({
       </Modal>
 
       {/* ── Blur Check Modals ── */}
-      <ProgressModal 
-        visible={checkingBlur} 
-        title="Analyzing Image" 
-        subtitle="Verifying image quality for medical records..." 
+      <ProgressModal
+        visible={checkingBlur}
+        title="Analyzing Image"
+        subtitle="Verifying image quality for medical records..."
       />
 
       <BlurErrorModal
