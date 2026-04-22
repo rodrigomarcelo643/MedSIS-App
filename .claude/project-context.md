@@ -1,4 +1,4 @@
-# Claude Assistant Context for MedSIS-App
+# Claude Assistant Context for ARDMS-App
 
 When generating code or proposing architectural changes for this directory, strictly adhere to the following project parameters:
 
@@ -8,7 +8,7 @@ When generating code or proposing architectural changes for this directory, stri
 - NativeWind (Tailwind CSS for React Native)
 - Expo Router (File-based navigation)
 
-### The "MedSIS" Way
+### The "ARDMS" Way
 1. **Component Modularity**: Never dump 500 lines of code into a single file. Break down features into independent modules under the `/components/<FeatureName>/` folder. 
 2. **Sharp UI Standard**: UI components must look uniform. Apply `rounded-sm` (2px border radius) to everything to maintain a professional, medical-grade structural feel. Avoid default mobile rounded corners.
 3. **No Magic Strings**: Pull API URLs from `constants/Config.ts`.
