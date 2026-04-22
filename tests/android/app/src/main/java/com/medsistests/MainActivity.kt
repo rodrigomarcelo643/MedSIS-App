@@ -1,4 +1,4 @@
-package com.medsistests
+package com.ARDMStests
 
 import android.os.Build
 import android.os.Bundle
