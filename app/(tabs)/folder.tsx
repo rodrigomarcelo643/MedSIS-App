@@ -1,5 +1,5 @@
-import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL, ML_API_BASE_URL } from '@/constants/Config';
+import { useAuth } from "@/contexts/AuthContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import axios from "axios";
 import * as DocumentPicker from "expo-document-picker";
@@ -7,36 +7,37 @@ import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import * as Sharing from "expo-sharing";
 import {
-  Download,
   AlertTriangle,
+  Download,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 
+import { FileInfo, FilterType, Requirement, UploadedFile } from '@/@types/tabs';
 import {
+  Alert,
   Animated,
   Image,
+  Modal,
   RefreshControl,
   ScrollView,
   Text,
-  View,
   TouchableOpacity,
-  Modal
+  View
 } from "react-native";
 import Toast from "react-native-toast-message";
-import { UploadedFile, Requirement, FileInfo, FilterType } from '@/@types/tabs';
 
 // Import modular components
-import { RequirementItem } from "@/components/folder/RequirementItem";
 import { FolderHeader } from "@/components/folder/FolderHeader";
-import { RequirementSkeleton } from "@/components/folder/RequirementSkeleton";
-import { 
-  FileTypeModal, 
-  ConfirmModal, 
-  ProgressModal, 
-  ImageViewModal, 
+import {
   BlurErrorModal,
+  ConfirmModal,
+  FileTypeModal,
+  ImageViewModal,
+  ProgressModal,
   QualityModalContent
 } from "@/components/folder/FolderModals";
+import { RequirementItem } from "@/components/folder/RequirementItem";
+import { RequirementSkeleton } from "@/components/folder/RequirementSkeleton";
 
 export default function FolderScreen() {
   const { user } = useAuth();
@@ -47,7 +48,7 @@ export default function FolderScreen() {
   const cardColor = useThemeColor({}, 'card');
   const mutedColor = useThemeColor({}, 'muted');
   const loadColor = useThemeColor({}, 'loaderCard');
-  
+
   // State for requirements
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -68,12 +69,12 @@ export default function FolderScreen() {
   const [showDownloadConfirmModal, setShowDownloadConfirmModal] = useState<boolean>(false);
   const [showFileDownloadModal, setShowFileDownloadModal] = useState<boolean>(false);
   const [fileToDownload, setFileToDownload] = useState<{ file: any; reqId: string } | null>(null);
-  
+
   // Delete confirmation modal state
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [fileToDelete, setFileToDelete] = useState<UploadedFile | null>(null);
   const [requirementToDelete, setRequirementToDelete] = useState<string | null>(null);
-  
+
   // Feedback modal state
   const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
   const [selectedFeedback, setSelectedFeedback] = useState<string>("");
@@ -86,7 +87,7 @@ export default function FolderScreen() {
   const [sharpPercentage, setSharpPercentage] = useState<number>(0);
   const [pendingImageUpload, setPendingImageUpload] = useState<{ reqId: string | null; fileInfo: FileInfo } | null>(null);
   const [qualityCountdown, setQualityCountdown] = useState<number>(3);
-  
+
   // Image viewing state
   const [imageScale] = useState(new Animated.Value(1));
   const [imageRotation] = useState(new Animated.Value(0));
@@ -226,7 +227,7 @@ export default function FolderScreen() {
   const pickDocument = async () => {
     try {
       setShowFileTypeModal(false);
-      
+
       const result = await DocumentPicker.getDocumentAsync({
         type: [
           "application/pdf",
@@ -241,23 +242,23 @@ export default function FolderScreen() {
       if (result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         let mimeType = asset.mimeType;
-        
+
         if (!mimeType && asset.name) {
           const ext = asset.name.split('.').pop()?.toLowerCase();
           if (ext === 'pdf') mimeType = 'application/pdf';
           else if (ext === 'doc') mimeType = 'application/msword';
           else if (ext === 'docx') mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
         }
-        
+
         const fileInfo: FileInfo = {
           name: asset.name,
           size: asset.size || 0,
           uri: asset.uri,
-          type: mimeType?.includes('pdf') ? 'pdf' : 
-                mimeType?.includes('word') ? 'word' : 'document',
+          type: mimeType?.includes('pdf') ? 'pdf' :
+            mimeType?.includes('word') ? 'word' : 'document',
           mimeType: mimeType || 'application/octet-stream',
         };
-        
+
         await handleFileUpload(selectedRequirement, fileInfo);
       }
     } catch (err) {
@@ -279,13 +280,19 @@ export default function FolderScreen() {
         type: fileInfo.mimeType || 'image/jpeg',
       } as any);
 
-      const response = await axios.post(
-        `${ML_API_BASE_URL}/api/app/blur-check`,
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 }
-      );
+      console.log("Calling ML Blur Check (Simple Fetch):", `${ML_API_BASE_URL}/api/app/blur-check`);
 
-      const data = response.data;
+      const response = await fetch(`${ML_API_BASE_URL}/api/app/blur-check`, {
+        method: 'POST',
+        body: formData,
+        // No custom headers to avoid OPTIONS preflight
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
       const rawScore: number = typeof data?.blur_score === 'number' ? data.blur_score : 0;
       const isBlurry: boolean = data?.is_blurry === true;
       const sharpScore = Math.min(100, Math.round((rawScore / 1000) * 100));
@@ -302,15 +309,15 @@ export default function FolderScreen() {
   const pickImage = async () => {
     try {
       setShowFileTypeModal(false);
-      
+
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
         Toast.show({ type: "error", text1: "Permission Required", text2: "Need camera roll permissions." });
         return;
       }
-      
+
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: 'images',
         allowsEditing: false,
         quality: 1,
       });
@@ -357,10 +364,10 @@ export default function FolderScreen() {
       formData.append("requirement_id", reqId);
 
       const timestamp = Date.now();
-      const safeName = fileInfo.name 
+      const safeName = fileInfo.name
         ? fileInfo.name.replace(/[^a-zA-Z0-9_\-\s()]/g, "_")
         : `file_${timestamp}`;
-      
+
       let fileExtension = 'file';
       if (fileInfo.mimeType) {
         if (fileInfo.mimeType.includes('pdf')) fileExtension = 'pdf';
@@ -372,7 +379,7 @@ export default function FolderScreen() {
       } else if (fileInfo.name) {
         fileExtension = fileInfo.name.split('.').pop() || 'file';
       }
-      
+
       const fileName = `${safeName}_${timestamp}.${fileExtension}`;
 
       formData.append("file", {
@@ -381,30 +388,41 @@ export default function FolderScreen() {
         type: fileInfo.mimeType || 'application/octet-stream',
       } as any);
 
-      const response = await axios.post(
-        `${API_BASE_URL}/api/upload_requirement.php`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          timeout: 30000,
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total) {
-              const progress = Math.min(Math.round((progressEvent.loaded * 100) / progressEvent.total), 99);
-              setUploadProgress(progress);
-            }
-          },
-        }
-      );
+      console.log("Uploading to:", `${API_BASE_URL}/api/upload_requirement.php`);
+      
+      const response = await fetch(`${API_BASE_URL}/api/upload_requirement.php`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
 
-      if (response.data.success) {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      console.log("Upload Response:", data);
+
+      if (data.success) {
         setUploadProgress(100);
         await refreshRequirements();
         Toast.show({ type: "success", text1: "Success", text2: "File uploaded successfully" });
       } else {
-        Toast.show({ type: "error", text1: "Error", text2: response.data.message || "Failed to upload file" });
+        Toast.show({ type: "error", text1: "Error", text2: data.message || "Failed to upload file" });
       }
-    } catch (err) {
-      Toast.show({ type: "error", text1: "Error", text2: "Failed to upload file. Please try again." });
+    } catch (err: any) {
+      console.error("Upload error details:", err.response?.data || err.message);
+      const errorMsg = err.response?.data?.message || err.message || "Unknown Error";
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: errorMsg.length > 50 ? errorMsg.substring(0, 50) + "..." : errorMsg
+      });
+      // Also show Alert for full error on failure
+      Alert.alert("Upload Error", errorMsg);
     } finally {
       setTimeout(() => {
         setUploading(false);
@@ -449,11 +467,11 @@ export default function FolderScreen() {
   const handleDownloadAll = async () => {
     try {
       setPrintingFiles(true);
-      
-      const allFiles = requirements.flatMap(req => 
+
+      const allFiles = requirements.flatMap(req =>
         req.uploadedFiles.map(file => ({ ...file, requirementId: req.id, requirementName: req.name }))
       );
-      
+
       if (allFiles.length === 0) {
         Toast.show({ type: "info", text1: "No Files", text2: "No files available to download" });
         return;
@@ -506,7 +524,7 @@ export default function FolderScreen() {
       });
 
       const downloadedFileUris = (await Promise.all(downloadPromises)).filter(Boolean);
-      
+
       for (const uri of downloadedFileUris) {
         if (uri) await Sharing.shareAsync(uri);
       }
@@ -619,7 +637,7 @@ export default function FolderScreen() {
         {/* Requirements List */}
         {filteredRequirements.length === 0 ? (
           <View style={{ backgroundColor: cardColor }} className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8 items-center justify-center">
-            <Image source={require("../../assets/images/no_file.png")} className="w-20 h-20"/>
+            <Image source={require("../../assets/images/no_file.png")} className="w-20 h-20" />
             <Text className="text-gray-500 text-center">No requirements found</Text>
           </View>
         ) : (
