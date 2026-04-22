@@ -14,7 +14,7 @@ export const ForgotPasswordHeader: React.FC<ForgotPasswordHeaderProps> = ({
   <View className="items-center mb-8 z-10">
     <Animated.View style={logoStyle}>
       <Image
-        source={require("../../../assets/images/swu-head.png")}
+        source={require("../../../assets/images/swu_head.png")}
         className="w-20 h-20 mb-1"
         accessibilityLabel="App logo"
       />
