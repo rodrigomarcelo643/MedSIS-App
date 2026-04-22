@@ -1,7 +1,7 @@
 # State Management & Services
 
 ## Global State Architecture
-Because MedSIS is heavily dependent on the current student's status, standard state management is relegated to React Contexts instead of heavy third-parties like Redux.
+Because ARDMS is heavily dependent on the current student's status, standard state management is relegated to React Contexts instead of heavy third-parties like Redux.
 
 ### 1. AuthContext (`contexts/AuthContext.tsx`)
 - **Responsibility**: Manages the authentication lifecycle.
