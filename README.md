@@ -1,4 +1,4 @@
-# ARDMS — Academic Records and Document Management System
+# MSIS - Medical Student Information System
 
 <!-- Version Badges -->
 <div align="center" style="margin-bottom: 30px;">
@@ -15,10 +15,10 @@
 </div>
 
 
-**ARDMS** (Academic Records and Document Management System) is a comprehensive mobile application designed for students to upload academic requirements, view evaluation results history, and manage their educational journey. This first version release focuses on streamlined document submission, evaluation tracking, and essential academic tools with AI assistance and real-time communication features.
+**MSIS** ( Medical Student Information System ) is a comprehensive mobile application designed for students to upload academic requirements, view evaluation results history, and manage their educational journey. This first version release focuses on streamlined document submission, evaluation tracking, and essential academic tools with AI assistance and real-time communication features.
 
 ### 🧠 ML-Powered Image Quality Validation
-ARDMS features an intelligent validation pipeline that utilizes a dedicated Machine Learning microservice to guarantee the legibility of academic records.
+MSIS features an intelligent validation pipeline that utilizes a dedicated Machine Learning microservice to guarantee the legibility of academic records.
 
 When a student selects a document (like a general academic requirement or an evaluation grade image), the file is seamlessly routed to the validation endpoint. This microservice computes the image's Laplacian variance to calculate a clarity confidence score. If the system rejects the quality due to blurriness, the upload is blocked and instant UI feedback is provided. If the system accepts the quality, the transaction generates a secure token and commits the document or grade image to storage.
 
@@ -50,7 +50,7 @@ graph TD
 
 ### Streamlined Academic Records and Document Management
 
-**ARDMS App v1.0.0** delivers a comprehensive mobile solution designed for students to efficiently manage their academic records and documents. This release focuses on core functionalities including secure document upload, real-time evaluation results tracking with e-signatures, AI-powered academic assistance, and seamless communication with faculty.
+**MSIS App v1.0.0** delivers a comprehensive mobile solution designed for students to efficiently manage their academic records and documents. This release focuses on core functionalities including secure document upload, real-time evaluation results tracking with e-signatures, AI-powered academic assistance, and seamless communication with faculty.
 
 **Key Highlights:**
 
@@ -66,7 +66,7 @@ graph TD
 ## Project Structure
 
 ```
-ARDMS-App/  # Academic Records and Document Management System
+MSIS-App/  # Academic Records and Document Management System
 ├── app/                          # Main application screens (file-based routing)
 │   ├── (tabs)/                   # Tab-based navigation screens ( Bottom Tabs)
 │   │   ├── _layout.tsx          # Tab layout configuration
