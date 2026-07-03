@@ -1,15 +1,15 @@
-# ARDMS-App: System Context & Rules for AI Agents
+# MedSIS-App: System Context & Rules for AI Agents
 
-You are assisting with the ARDMS-App (Medical Student Information System) frontend built in React Native (Expo). 
+You are assisting with the MedSIS-App (Medical Student Information System) frontend built in React Native (Expo). 
 
 ## 1. Architectural Rules
-- **No Monolithic Screens**: All screens inside `app/` (Expo Router) must act ONLY as compositional wrappers. All complex UI and state logic must be extracted into the `components/` directory (categorized by feature like `auth/`, `evaluations/`, `folder/`, etc.).
-- **State Management**: Do NOT introduce Redux or Zustand. The application relies on React Context (`AuthContext` and `ThemeContext`) for global states, and custom `services/` (e.g., `messageService.ts`) for polling and background tasks.
+- **No Monolithic Screens**: All screens inside `app/` (Expo Router) must act ONLY as compositional wrappers. All complex UI and state logic must be extracted into the `components/` directory (categorized by feature like `auth/`, `evaluations/`, `folder/`, or shared layouts like `TabsHeader.tsx`).
+- **State Management**: The application utilizes a custom Redux-like store architecture built on top of React Context APIs (`createContext`, `useReducer`, `useContext`) located under the `redux/` directory. Use the custom hooks `useSelector` and `useDispatch` from `@/redux/store`. Avoid introducing library packages like raw `redux` or `zustand`.
 - **Backend Communication**: We use Axios to communicate with a PHP 8.3 RESTful API. Endpoints are strictly configured via `constants/Config.ts`. Always respect the JWT Bearer authorization strategy.
 
 ## 2. Design System (CRITICAL)
 - **NativeWind ONLY**: All styling must be executed using NativeWind utility classes. Avoid `StyleSheet.create` unless absolutely necessary for complex React Native animations.
-- **Sharp Design Language**: All interactive elements (Cards, Buttons, Inputs, Modals) must have a strict **2px border radius** (using Tailwind's `rounded-sm` class). Do not use pill-shaped (`rounded-full`) or highly rounded designs.
+- **Sharp Design Language**: All interactive elements (Cards, Buttons, Inputs, Modals) must have a strict **2px border radius** (using Tailwind's `rounded-sm` class). Do not use pill-shaped (`rounded-full`) or highly rounded designs unless explicitly designed for standard assets (e.g. avatars, specific icons).
 - **Dark Mode**: Always use semantic color tokens from `constants/Colors.ts` via the `useThemeColor` hook or nativewind's `bg-background`, `text-text` to ensure automatic dark mode support.
 - **Icons**: Only use `lucide-react-native`.
 
