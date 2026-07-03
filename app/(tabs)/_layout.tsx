@@ -1,19 +1,21 @@
 import { HapticTab } from "@/components/HapticTab";
+import TabsHeader from "@/components/TabsHeader";
+import Skeleton from "@/components/ui/Skeleton";
 import TabBarBackground from "@/components/ui/TabBarBackground";
-import { API_BASE_URL } from '@/constants/Config';
+import { API_BASE_URL } from "@/constants/Config";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useNavigationMode } from "@/hooks/useNavigationMode";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { messageService } from "@/services/messageService";
-import axios from 'axios';
-import { Audio } from 'expo-av';
+import axios from "axios";
+import { Audio } from "expo-av";
 import { Tabs, useRouter, useSegments } from "expo-router";
 import {
-  Bell as BellIcon,
   ClipboardList,
   Folder as FolderIcon,
   Home as HomeIcon,
-  User as UserIcon
+  User as UserIcon,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -22,79 +24,34 @@ import {
   Image,
   Platform,
   StatusBar,
-  Text,
   TouchableOpacity,
   useWindowDimensions,
-  View
+  View,
 } from "react-native";
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Reanimated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-
-const Skeleton = ({ width, height, borderRadius = 4, style = {} }: { width: number; height: number; borderRadius?: number; style?: object }) => {
-  
-  // Theme Change
-  const backgroundColor = useThemeColor({}, 'background');
-  const textColor = useThemeColor({}, 'text');
-  const cardColor = useThemeColor({}, 'card');
-  const mutedColor = useThemeColor({}, 'muted');
-  return (
-    <View
-      className="overflow-hidden"
-      style={[
-        {
-          width,
-          height,
-          borderRadius,
-          backgroundColor,
-        },
-        style,
-      ]}
-    >
-      <Animated.View
-        className="w-full h-full"
-        style={{
-          backgroundColor: cardColor,
-        }}
-      />
-    </View>
-  );
-};
-
-// Helper function to detect three-button navigation
-const useNavigationMode = () => {
-  const insets = useSafeAreaInsets();
-  
-  // Detection for both iOS and Android: three-button nav/home indicator has > 0 bottom inset
-  const hasThreeButtonNav = React.useMemo(() => {
-    return insets.bottom > 0;
-  }, [insets.bottom]);
-
-  return { hasThreeButtonNav, insets };
-};
 
 export default function TabLayout() {
   const router = useRouter();
-  const segments = useSegments(); 
+  const segments = useSegments();
   const { theme } = useTheme();
   const { hasThreeButtonNav, insets } = useNavigationMode();
 
   // Theme Change
-  const backgroundColor = useThemeColor({}, 'background');
-  const textColor = useThemeColor({}, 'text');
-  const cardColor = useThemeColor({}, 'card');
-  const mutedColor = useThemeColor({}, 'muted');
-  
+  const backgroundColor = useThemeColor({}, "background");
+  const textColor = useThemeColor({}, "text");
+  const cardColor = useThemeColor({}, "card");
+  const mutedColor = useThemeColor({}, "muted");
+
   const tintColor = "#be2e2e";
   const { width } = useWindowDimensions();
   const [isLoading, setIsLoading] = useState(true);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const { user } = useAuth(); 
+  const { user } = useAuth();
   const [notificationCount, setNotificationCount] = useState(0);
   const [messageCount, setMessageCount] = useState(0);
   const [isFirstFetch, setIsFirstFetch] = useState(true);
@@ -109,9 +66,16 @@ export default function TabLayout() {
 
   // Track header visibility
   const [showHeader, setShowHeader] = useState(true);
-  
+
   // Debug logging
-  console.log('hasThreeButtonNav:', hasThreeButtonNav, 'insets.bottom:', insets.bottom, 'Platform.OS:', Platform.OS);
+  console.log(
+    "hasThreeButtonNav:",
+    hasThreeButtonNav,
+    "insets.bottom:",
+    insets.bottom,
+    "Platform.OS:",
+    Platform.OS,
+  );
 
   // Calculate tab bar padding and styling based on navigation mode (same for iOS and Android)
   const tabBarPadding = hasThreeButtonNav ? 40 : 35;
@@ -122,7 +86,7 @@ export default function TabLayout() {
     const loadSound = async () => {
       try {
         const { sound } = await Audio.Sound.createAsync(
-          require('@/assets/sounds/notification_sound.mp3')
+          require("@/assets/sounds/notification_sound.mp3"),
         );
         soundRef.current = sound;
       } catch (error) {
@@ -166,7 +130,7 @@ export default function TabLayout() {
     const fetchNotificationCount = async () => {
       if (isFetchingNotification.current) return;
       isFetchingNotification.current = true;
-      
+
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/get_student_notifications.php?user_id=${user.id}`,
@@ -176,13 +140,13 @@ export default function TabLayout() {
               "Content-Type": "application/json",
               Accept: "application/json",
             },
-          }
+          },
         );
 
         const data = response.data;
         if (data.success) {
           const unreadCount = data.notifications.filter(
-            (notification: any) => notification.status !== 'read'
+            (notification: any) => notification.status !== "read",
           ).length;
           setNotificationCount(unreadCount);
           setPrevNotificationCount(unreadCount);
@@ -192,7 +156,9 @@ export default function TabLayout() {
         // Detailed error logging
         const status = error.response?.status;
         const msg = error.message;
-        console.warn(`[Notification Fetch] ${msg} ${status ? `(Status: ${status})` : ''} - Check if ${API_BASE_URL} is reachable.`);
+        console.warn(
+          `[Notification Fetch] ${msg} ${status ? `(Status: ${status})` : ""} - Check if ${API_BASE_URL} is reachable.`,
+        );
       } finally {
         isFetchingNotification.current = false;
       }
@@ -201,7 +167,7 @@ export default function TabLayout() {
     const fetchMessageCount = async () => {
       if (isFetchingMessage.current) return;
       isFetchingMessage.current = true;
-      
+
       try {
         const unreadMessages = await messageService.getUnreadCount(user.id);
         setMessageCount(unreadMessages);
@@ -216,13 +182,13 @@ export default function TabLayout() {
 
     fetchNotificationCount();
     fetchMessageCount();
-    
+
     // Set up interval to periodically check for new notifications and messages
     const intervalId = setInterval(() => {
       fetchNotificationCount();
       fetchMessageCount();
     }, 5000); // Reduced frequency to 5 seconds
-    
+
     return () => clearInterval(intervalId);
   }, [user?.id]);
 
@@ -232,12 +198,19 @@ export default function TabLayout() {
     if (!isFirstFetch && !isFirstMessageFetch) {
       const notificationIncreased = notificationCount > prevNotificationCount;
       const messageIncreased = messageCount > prevMessageCount;
-      
+
       if (notificationIncreased || messageIncreased) {
         playNotificationSound();
       }
     }
-  }, [notificationCount, messageCount, isFirstFetch, isFirstMessageFetch, prevNotificationCount, prevMessageCount]);
+  }, [
+    notificationCount,
+    messageCount,
+    isFirstFetch,
+    isFirstMessageFetch,
+    prevNotificationCount,
+    prevMessageCount,
+  ]);
 
   useEffect(() => {
     const currentRoute = segments[segments.length - 1]; // get last active tab
@@ -266,160 +239,6 @@ export default function TabLayout() {
     router.push("/ai-assistant");
   };
 
-  const renderYearStatusBadge = () => {
-    if (!user) return null;
-
-    const yearLevel = user.year_level_id ? String(user.year_level_id) : "";
-    const status = user.status || "";
-    const displayText = `${yearLevel} ${status}`.trim();
-
-    const isGraduating =
-      (yearLevel === "4" || yearLevel === "4th") &&
-      status.toLowerCase().includes("graduating");
-
-    if (isGraduating) {
-      return (
-        <View className="flex-row items-center mt-1 px-2 py-1 rounded-[20px] bg-blue-100">
-          <Text className="text-xs font-medium text-blue-800">Graduating</Text>
-        </View>
-      );
-    }
-
-    return (
-      <View
-        className={`flex-row items-center mt-1 px-2 py-1 rounded-[20px] ${
-          status.toLowerCase() === "regular" ? "bg-green-100" : "bg-red-100"
-        }`}
-      >
-        <Text className="text-xs font-medium mr-1">Year</Text>
-        <Text className="text-xs font-medium">{displayText || "N/A"}</Text>
-      </View>
-    );
-  };
-
-  const renderNotificationBadge = () => {
-    if (notificationCount <= 0) return null;
-    
-    const displayCount = notificationCount > 99 ? "99+" : notificationCount;
-    
-    return (
-      <View className="absolute -right-2 -top-1 min-w-[18px] h-[18px] rounded-full bg-red-500 justify-center items-center">
-        <Text className="text-xs text-white font-bold px-1">
-          {displayCount}
-        </Text>
-      </View>
-    );
-  };
-
-  const renderMessageBadge = () => {
-    if (messageCount <= 0) return null;
-    
-    const displayCount = messageCount > 99 ? "99+" : messageCount;
-    
-    return (
-      <View className="absolute -right-2 -top-1 min-w-[18px] h-[18px] rounded-full bg-red-500 justify-center items-center">
-        <Text className="text-xs text-white font-bold px-1">
-          {displayCount}
-        </Text>
-      </View>
-    );
-  };
-
-  const renderHeader = () => (
-    <View style={{ backgroundColor, borderBottomWidth: 1, borderBottomColor: theme === 'dark' ? '#374151' : '#e5e7eb' }} className="flex-row items-center px-4 py-4">
-      <View className="flex-row items-center">
-        {isLoading ? (
-          <Skeleton width={36} height={36} borderRadius={18} />
-        ) : (
-          <>
-          <TouchableOpacity onPress={() => router.push("/(tabs)/home")} className="flex-row items-center">
-            <Image
-              source={require("../../assets/images/swu_head.png")}
-              className="w-9 h-9 mr-2"
-            />
-            <Text className="text-xl mt-2 font-extrabold tracking-wide">
-              <Text
-                style={{
-                  color: "#af1616",
-                  fontWeight: "900",
-                  textShadowColor: "rgba(0,0,0,0.3)",
-                  textShadowOffset: { width: 1, height: 1 },
-                  textShadowRadius: 2,
-                }}
-              >
-                ARD
-              </Text>
-              <Text
-                style={{
-                  color: "#16a34a",
-                  fontWeight: "900",
-                  textShadowColor: "rgba(0,0,0,0.25)",
-                  textShadowOffset: { width: 1, height: 1 },
-                  textShadowRadius: 2,
-                }}
-              >
-                MS
-              </Text>
-            </Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
-
-      <View className="flex-1" />
-      <View className="flex-row items-center">
-        <TouchableOpacity
-          onPress={() => router.push("/screens/messages")}
-          className="mr-3 relative"
-        >
-          {isLoading ? (
-            <Skeleton width={24} height={24} borderRadius={12} />
-          ) : (
-            <>
-              <Image  className="w-8 h-8" source={require("../../assets/images/chat_icon_main.png")} />
-              {renderMessageBadge()}
-            </>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => router.push("/notifications")}
-          className="mr-3 relative"
-        >
-          {isLoading ? (
-            <Skeleton width={24} height={24} borderRadius={12} />
-          ) : (
-            <>
-              <BellIcon size={24} color={textColor} />
-              {renderNotificationBadge()}
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-      {user && (
-        <View className="flex-row items-center ">
-          <View className="items-end mr-2">
-            <View className="flex-row items-center">
-              {user.nationality && (
-                <Image
-                  source={
-                    user.nationality.toLowerCase() === "filipino"
-                      ? require("../../assets/images/ph_flag.png")
-                      : require("../../assets/images/foreign_flag.png")
-                  }
-                  className="w-4 h-3 mr-1"
-                />
-              )}
-              <Text className="text-xs font-medium" style={{color: textColor}} >
-                {user.nationality || "N/A"}
-              </Text>
-            </View>
-            {renderYearStatusBadge()}
-          </View>
-        </View>
-      )}
-    </View>
-  );
-
   // === Animated Underline & Highlight ===
   const underlineX = useSharedValue(0);
   const highlightX = useSharedValue(0);
@@ -442,159 +261,165 @@ export default function TabLayout() {
           />
         )}
 
-        {showHeader && renderHeader()}
+        {showHeader && (
+          <TabsHeader
+            isLoading={isLoading}
+            notificationCount={notificationCount}
+            messageCount={messageCount}
+          />
+        )}
 
         <View className="flex-1">
           <Tabs
-          screenOptions={{
-            headerShown: false,
-            tabBarStyle: {
-              height: hasThreeButtonNav ? 80 + insets.bottom : 80,
-              paddingBottom: hasThreeButtonNav ? tabBarPadding + insets.bottom : tabBarPadding,
-              paddingTop: 8,
-              position: "relative",
-            },
-            tabBarButton: HapticTab,
-            tabBarBackground: TabBarBackground,
-            tabBarLabelStyle: {
-              fontSize: 12,
-              marginBottom: 0,
-              marginTop: 4,
-            },
-            tabBarActiveTintColor: tintColor,
-            tabBarInactiveTintColor: theme === 'dark' ? '#9BA1A6' : '#687076',
-          }}
-          screenListeners={{
-            state: (e) => {
-              const index = e.data.state.index;
-              underlineX.value = withTiming(index * tabWidth, {
-                duration: 350,
-              });
-              highlightX.value = withTiming(index * tabWidth, {
-                duration: 350,
-              });
-            },
-          }}
-        >
-          <Tabs.Screen
-            name="home"
-            options={{
-              title: "Home",
-              tabBarIcon: ({ color }) =>
-                isLoading ? (
-                  <Skeleton width={26} height={26} borderRadius={13} />
-                ) : (
-                  <HomeIcon size={iconSize} color={color} />
-                ),
+            screenOptions={{
+              headerShown: false,
+              tabBarStyle: {
+                height: hasThreeButtonNav ? 80 + insets.bottom : 80,
+                paddingBottom: hasThreeButtonNav
+                  ? tabBarPadding + insets.bottom
+                  : tabBarPadding,
+                paddingTop: 8,
+                position: "relative",
+              },
+              tabBarButton: HapticTab,
+              tabBarBackground: TabBarBackground,
+              tabBarLabelStyle: {
+                fontSize: 12,
+                marginBottom: 0,
+                marginTop: 4,
+              },
+              tabBarActiveTintColor: tintColor,
+              tabBarInactiveTintColor: theme === "dark" ? "#9BA1A6" : "#687076",
             }}
-          />
-          <Tabs.Screen
-            name="folder"
-            options={{
-              title: "Folder",
-              tabBarIcon: ({ color }) =>
-                isLoading ? (
-                  <Skeleton width={26} height={26} borderRadius={13} />
-                ) : (
-                  <FolderIcon size={iconSize} color={color} />
-                ),
-            }}
-          />
-          <Tabs.Screen
-            name="ai-assistant"
-            options={{
-              title: "",
-              tabBarIcon: ({ focused }) =>
-                isLoading ? (
-                  <Skeleton width={62} height={62} borderRadius={31} />
-                ) : (
-                  <TouchableOpacity
-                    className="w-[70px] h-[70px] rounded-full justify-center items-center mt-[-25px]"
-                    style={{
-                      backgroundColor: focused ? cardColor : cardColor ,
-                      borderWidth: 1,
-                      borderColor: focused ? "#d66d6d5d" : "#d66d6d5d",
-                      shadowColor: "",
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.25,
-                      shadowRadius: 3,
-                    
-                    }}
-                    onPress={handleAIPress}
-                  >
-                    <Image
-                      source={require("../../assets/images/chatbot.png")}
-                      className=" w-[50px] h-[50px]"
-                     
-                    />
-                  </TouchableOpacity>
-                ),
-            }}
-            listeners={{
-              tabPress: (e) => {
-                e.preventDefault();
-                handleAIPress();
+            screenListeners={{
+              state: (e) => {
+                const index = e.data.state.index;
+                underlineX.value = withTiming(index * tabWidth, {
+                  duration: 350,
+                });
+                highlightX.value = withTiming(index * tabWidth, {
+                  duration: 350,
+                });
               },
             }}
-          />
-          <Tabs.Screen
-            name="evaluations"
-            options={{
-              title: "Evaluation",
-              tabBarIcon: ({ color }) =>
-                isLoading ? (
-                  <Skeleton width={26} height={26} borderRadius={13} />
-                ) : (
-                  <ClipboardList size={iconSize} color={color} />
-                ),
-            }}
-          />
-          <Tabs.Screen
-            name="profile"
-            options={{
-              title: "Profile",
-              tabBarIcon: ({ color }) =>
-                isLoading ? (
-                  <Skeleton width={26} height={26} borderRadius={13} />
-                ) : (
-                  <UserIcon size={iconSize} color={color} />
-                ),
-            }}
-          />
-        </Tabs>
+          >
+            <Tabs.Screen
+              name="home"
+              options={{
+                title: "Home",
+                tabBarIcon: ({ color }) =>
+                  isLoading ? (
+                    <Skeleton width={26} height={26} borderRadius={13} />
+                  ) : (
+                    <HomeIcon size={iconSize} color={color} />
+                  ),
+              }}
+            />
+            <Tabs.Screen
+              name="folder"
+              options={{
+                title: "Folder",
+                tabBarIcon: ({ color }) =>
+                  isLoading ? (
+                    <Skeleton width={26} height={26} borderRadius={13} />
+                  ) : (
+                    <FolderIcon size={iconSize} color={color} />
+                  ),
+              }}
+            />
+            <Tabs.Screen
+              name="ai-assistant"
+              options={{
+                title: "",
+                tabBarIcon: ({ focused }) =>
+                  isLoading ? (
+                    <Skeleton width={62} height={62} borderRadius={31} />
+                  ) : (
+                    <TouchableOpacity
+                      className="w-[60px] h-[60px] rounded-full justify-center  items-center "
+                      style={{
+                        backgroundColor: focused ? cardColor : cardColor,
+                        borderWidth: 1,
+                        borderColor: focused ? "#d66d6d5d" : "#d66d6d5d",
+                        shadowColor: "",
+                        shadowOffset: { width: 2, height: 2 },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 4,
+                      }}
+                      onPress={handleAIPress}
+                    >
+                      <Image
+                        source={require("../../assets/images/chatbot.png")}
+                        className=" w-[60px] h-[60px] relative -left-1 top-1"
+                      />
+                    </TouchableOpacity>
+                  ),
+              }}
+              listeners={{
+                tabPress: (e) => {
+                  e.preventDefault();
+                  handleAIPress();
+                },
+              }}
+            />
+            <Tabs.Screen
+              name="evaluations"
+              options={{
+                title: "Evaluation",
+                tabBarIcon: ({ color }) =>
+                  isLoading ? (
+                    <Skeleton width={26} height={26} borderRadius={13} />
+                  ) : (
+                    <ClipboardList size={iconSize} color={color} />
+                  ),
+              }}
+            />
+            <Tabs.Screen
+              name="profile"
+              options={{
+                title: "Profile",
+                tabBarIcon: ({ color }) =>
+                  isLoading ? (
+                    <Skeleton width={26} height={26} borderRadius={13} />
+                  ) : (
+                    <UserIcon size={iconSize} color={color} />
+                  ),
+              }}
+            />
+          </Tabs>
 
-        {/* Highlight background behind active tab */}
-        <Reanimated.View
-          style={[
-            {
-              position: "absolute",
-              bottom: tabBarBottomOffset + 8,
-              left: 0,
-              width: tabWidth,
-              height: 60,
-              borderRadius: 10,
-              backgroundColor: "rgba(140, 35, 35, 0.08)", 
-            },
-            highlightStyle,
-          ]}
-        />
+          {/* Highlight background behind active tab */}
+          <Reanimated.View
+            style={[
+              {
+                position: "absolute",
+                bottom: tabBarBottomOffset + 8,
+                left: 0,
+                width: tabWidth,
+                height: 60,
+                borderRadius: 10,
+                backgroundColor: "rgba(140, 35, 35, 0.08)",
+              },
+              highlightStyle,
+            ]}
+          />
 
-        {/* Underline (closer to text) */}
-        <Reanimated.View
-          style={[
-            {
-              position: "absolute",
-              bottom: tabBarBottomOffset + 4,
-              left: 0,
-              width: tabWidth * 0.5,
-              height: 3,
-              marginLeft: tabWidth * 0.25,
-              backgroundColor: tintColor,
-              borderRadius: 3,
-            },
-            underlineStyle,
-          ]}
-        />
+          {/* Underline (closer to text) */}
+          <Reanimated.View
+            style={[
+              {
+                position: "absolute",
+                bottom: tabBarBottomOffset + 4,
+                left: 0,
+                width: tabWidth * 0.5,
+                height: 3,
+                marginLeft: tabWidth * 0.25,
+                backgroundColor: tintColor,
+                borderRadius: 3,
+              },
+              underlineStyle,
+            ]}
+          />
         </View>
       </View>
     </GestureHandlerRootView>
