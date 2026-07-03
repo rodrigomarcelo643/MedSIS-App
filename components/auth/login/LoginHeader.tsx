@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Image, Animated } from 'react-native';
+import React from "react";
+import { View, Text, Image, Animated } from "react-native";
 import RotatingDots from "@/components/ui/RotatingDots";
 
 interface LoginHeaderProps {
@@ -31,9 +31,9 @@ export const LoginHeader: React.FC<LoginHeaderProps> = ({
             textShadowRadius: 3,
           }}
         >
-          ARD
+          Med
         </Text>
-        
+
         <Text
           style={{
             color: "#15803d",
@@ -43,7 +43,7 @@ export const LoginHeader: React.FC<LoginHeaderProps> = ({
             textShadowRadius: 3,
           }}
         >
-          MS
+          SIS
         </Text>
       </Text>
       <Text
@@ -56,7 +56,7 @@ export const LoginHeader: React.FC<LoginHeaderProps> = ({
           marginTop: 2,
         }}
       >
-        Academic Records and Document Management System
+        Medical Student Information System
       </Text>
     </Animated.View>
 

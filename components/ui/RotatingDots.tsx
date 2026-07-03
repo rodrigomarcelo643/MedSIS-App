@@ -1,7 +1,12 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Platform, StyleSheet, View } from "react-native";
 
-const RotatingDots = () => {
+interface RotatingDotsProps {
+  dotColor?: string;
+  dotSize?: number;
+}
+
+const RotatingDots = ({ dotColor = "#af1616", dotSize = 8 }: RotatingDotsProps) => {
   // Animation values for each dot
   const dot1Anim = useRef(new Animated.Value(0)).current;
   const dot2Anim = useRef(new Animated.Value(0)).current;
@@ -39,11 +44,11 @@ const RotatingDots = () => {
       createDotAnimation(dot3Anim, 600),
     ];
 
-    animationRefs.current.forEach(anim => anim.start());
+    animationRefs.current.forEach((anim) => anim.start());
 
     // Cleanup function
     return () => {
-      animationRefs.current.forEach(anim => anim.stop());
+      animationRefs.current.forEach((anim) => anim.stop());
       dot1Anim.setValue(0);
       dot2Anim.setValue(0);
       dot3Anim.setValue(0);
@@ -51,16 +56,24 @@ const RotatingDots = () => {
   }, []);
 
   const getDotStyle = (anim: Animated.Value, index: number) => {
+    const dotBaseStyle = {
+      width: dotSize,
+      height: dotSize,
+      borderRadius: dotSize / 2,
+      backgroundColor: dotColor,
+      marginHorizontal: dotSize / 2,
+    };
+
     if (Platform.OS === "web") {
       return {
-        ...styles.dot,
+        ...dotBaseStyle,
         animation: "pulse 1.8s infinite ease-in-out",
         animationDelay: `${index * 0.3}s`,
       };
     }
 
     return {
-      ...styles.dot,
+      ...dotBaseStyle,
       transform: [
         {
           scale: anim.interpolate({
@@ -103,13 +116,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     height: 24,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#af1616",
-    marginHorizontal: 4,
   },
 });
 

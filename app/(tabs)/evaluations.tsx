@@ -1,53 +1,59 @@
-import { useAuth } from "@/contexts/AuthContext";
-import { API_BASE_URL } from "@/constants/Config";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import React, { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  RefreshControl,
-  ScrollView,
-  View,
-} from "react-native";
 import {
   Evaluation,
-  EvaluationResponse,
-  GradeUploadPermission,
-  GradeUploadPermissionResponse,
-  GradeImage,
   GradeImagesResponse,
+  GradeUploadPermissionResponse
 } from "@/@types/tabs";
+import { API_BASE_URL } from "@/constants/Config";
+import { useAuth } from "@/contexts/AuthContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import axios from "axios";
+import React, { useCallback, useEffect, useState } from "react";
+import { Alert, RefreshControl, ScrollView, View } from "react-native";
 
-// Components
-import GradeUploadPermissionBanner from '@/components/evaluations/GradeUploadPermissionBanner';
-import GradeUploadModal from '@/components/evaluations/GradeUploadModal';
-import YearLevelSection, { UploadState } from '@/components/evaluations/YearLevelSection';
-import EvaluationSkeleton from '@/components/evaluations/EvaluationSkeleton';
-import EvaluationSummaryCard from '@/components/evaluations/EvaluationSummaryCard';
-import EvaluationDetailModal from '@/components/evaluations/EvaluationDetailModal';
-import { useDispatch, useSelector } from "@/redux/store";
-import { 
-  setEvaluationData, 
-  setEvaluationPermissions, 
-  setGradeImages, 
-  setEvaluationsLoading, 
-  setEvaluationsError 
+// components
+import EvaluationDetailModal from "@/components/evaluations/EvaluationDetailModal";
+import EvaluationSkeleton from "@/components/evaluations/EvaluationSkeleton";
+import EvaluationSummaryCard from "@/components/evaluations/EvaluationSummaryCard";
+import GradeUploadModal from "@/components/evaluations/GradeUploadModal";
+import GradeUploadPermissionBanner from "@/components/evaluations/GradeUploadPermissionBanner";
+import YearLevelSection, {
+  UploadState,
+} from "@/components/evaluations/YearLevelSection";
+import {
+  setEvaluationData,
+  setEvaluationPermissions,
+  setEvaluationsError,
+  setEvaluationsLoading,
+  setGradeImages,
 } from "@/redux/actions";
+import { useDispatch, useSelector } from "@/redux/store";
 
 // year_level slug → year_levels.id mapping (matches DB seed data)
 const YEAR_LEVEL_ID_MAP: Record<string, number> = {
-  first_year:  1,
+  first_year: 1,
   second_year: 2,
-  third_year:  3,
+  third_year: 3,
   fourth_year: 4,
 };
 
-const YEAR_LEVEL_NAMES = ["first_year", "second_year", "third_year", "fourth_year"] as const;
+const YEAR_LEVEL_NAMES = [
+  "first_year",
+  "second_year",
+  "third_year",
+  "fourth_year",
+] as const;
 
 function yearLevelToNumber(name: string): number {
   const levels: Record<string, number> = {
-      'first_year': 1, 'second_year': 2, 'third_year': 3, 'fourth_year': 4,
-      'Year 1': 1, 'Year 2': 2, 'Year 3': 3, 'Year 4': 4, 'Graduating': 4
+    first_year: 1,
+    second_year: 2,
+    third_year: 3,
+    fourth_year: 4,
+    "Year 1": 1,
+    "Year 2": 2,
+    "Year 3": 3,
+    "Year 4": 4,
+    Graduating: 4,
   };
   return levels[name] ?? 0;
 }
@@ -73,13 +79,23 @@ const Evaluations: React.FC = () => {
 
   // ── Data State ─────────────────────────────────────────────────────────────
   const dispatch = useDispatch();
-  const { data: evaluationData, permissions, gradeImages, loading, error } = useSelector(state => state.evaluations);
+  const {
+    data: evaluationData,
+    permissions,
+    gradeImages,
+    loading,
+    error,
+  } = useSelector((state) => state.evaluations);
 
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
-  const [detailVisible,      setDetailVisible]      = useState(false);
+  const [selectedEvaluation, setSelectedEvaluation] =
+    useState<Evaluation | null>(null);
+  const [detailVisible, setDetailVisible] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
-  const [activeUploadTarget, setActiveUploadTarget] = useState<{ id: number, name: string } | null>(null);
+  const [activeUploadTarget, setActiveUploadTarget] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   // ── Data Fetching ──────────────────────────────────────────────────────────
   const fetchEvaluationData = useCallback(async () => {
@@ -88,7 +104,7 @@ const Evaluations: React.FC = () => {
       dispatch(setEvaluationsLoading(true));
       const response = await axios.get(
         `${API_BASE_URL}/api/evaluations/get_evaluation.php?user_id=${user.id}`,
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
       if (response.data.error) {
         Alert.alert("Error", response.data.error);
@@ -108,7 +124,7 @@ const Evaluations: React.FC = () => {
   const fetchUploadPermissions = useCallback(async () => {
     try {
       const response = await axios.get<GradeUploadPermissionResponse>(
-        `${API_BASE_URL}/api/grade_uploads/check_upload_permission.php`
+        `${API_BASE_URL}/api/grade_uploads/check_upload_permission.php`,
       );
       if (response.data.success) {
         dispatch(setEvaluationPermissions(response.data.permissions));
@@ -122,7 +138,7 @@ const Evaluations: React.FC = () => {
     if (!user?.id) return;
     try {
       const res = await axios.get<GradeImagesResponse>(
-        `${API_BASE_URL}/api/grade_uploads/get_grade_images.php?user_id=${user.id}`
+        `${API_BASE_URL}/api/grade_uploads/get_grade_images.php?user_id=${user.id}`,
       );
       if (res.data.success) {
         dispatch(setGradeImages(res.data.images));
@@ -151,27 +167,29 @@ const Evaluations: React.FC = () => {
   if (loading) return <EvaluationSkeleton />;
   if (!evaluationData) return null;
 
-  const studentYearLevelId  = Number(user?.year_level_id);
+  const studentYearLevelId = Number(user?.year_level_id);
   const studentYearLevelNum = yearLevelToNumber(user?.year_level_name || "");
 
   return (
     <>
-      <ScrollView 
-        style={{ flex: 1, backgroundColor }} 
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      <ScrollView
+        style={{ flex: 1, backgroundColor }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {/* 1. Status Banner */}
         {permissions && permissions[studentYearLevelId] && (
           <View style={{ marginTop: 12 }}>
-            <GradeUploadPermissionBanner 
-              isEnabled={permissions[studentYearLevelId].is_enabled} 
-              yearLevelName={permissions[studentYearLevelId].name} 
+            <GradeUploadPermissionBanner
+              isEnabled={permissions[studentYearLevelId].is_enabled}
+              yearLevelName={permissions[studentYearLevelId].name}
             />
           </View>
         )}
 
         {/* 2. Evaluation Summary Card */}
-        <EvaluationSummaryCard 
+        <EvaluationSummaryCard
           passed={evaluationData.summary.passed_courses}
           failed={evaluationData.summary.failed_courses}
           total={evaluationData.summary.total_courses}
@@ -180,22 +198,26 @@ const Evaluations: React.FC = () => {
 
         {/* 3. Year Level Sections */}
         {YEAR_LEVEL_NAMES.map((slug) => {
-          const evals   = evaluationData.evaluations.filter(e => e.year_level === slug);
-          const ylId    = YEAR_LEVEL_ID_MAP[slug];
-          const ylNum   = yearLevelToNumber(slug);
+          const evals = evaluationData.evaluations.filter(
+            (e) => e.year_level === slug,
+          );
+          const ylId = YEAR_LEVEL_ID_MAP[slug];
+          const ylNum = yearLevelToNumber(slug);
           const isPermitted = permissions?.[ylId]?.is_enabled ?? false;
-          
-          const allGradesFilled = evals.length > 0 && evals.every(e => e.grade !== null && e.grade !== '');
+
+          const allGradesFilled =
+            evals.length > 0 &&
+            evals.every((e) => e.grade !== null && e.grade !== "");
 
           let uploadState: UploadState;
           if (ylNum > studentYearLevelNum) {
-            uploadState = 'not_current';
+            uploadState = "not_current";
           } else if (allGradesFilled) {
-            uploadState = 'completed';
+            uploadState = "completed";
           } else if (isPermitted) {
-            uploadState = 'open';
+            uploadState = "open";
           } else {
-            uploadState = 'admin_locked';
+            uploadState = "admin_locked";
           }
 
           return (
@@ -206,13 +228,18 @@ const Evaluations: React.FC = () => {
               yearLevelLabel={formatYearLevel(slug)}
               evaluations={evals}
               uploadState={uploadState}
-              uploadedImageCount={gradeImages.filter(img => img.year_level_id === ylId).length}
-              onPressEvaluation={(ev) => { 
-                setSelectedEvaluation(ev); 
-                setDetailVisible(true); 
+              uploadedImageCount={
+                gradeImages.filter((img) => img.year_level_id === ylId).length
+              }
+              onPressEvaluation={(ev) => {
+                setSelectedEvaluation(ev);
+                setDetailVisible(true);
               }}
               onPressUpload={() => {
-                setActiveUploadTarget({ id: ylId, name: formatYearLevel(slug) });
+                setActiveUploadTarget({
+                  id: ylId,
+                  name: formatYearLevel(slug),
+                });
                 setUploadModalVisible(true);
               }}
             />
@@ -232,11 +259,16 @@ const Evaluations: React.FC = () => {
         <GradeUploadModal
           visible={uploadModalVisible}
           onClose={() => setUploadModalVisible(false)}
-          onUploaded={() => { fetchGradeImages(); setUploadModalVisible(false); }}
+          onUploaded={() => {
+            fetchGradeImages();
+            setUploadModalVisible(false);
+          }}
           userId={String(user?.id)}
           yearLevelId={activeUploadTarget.id}
           yearLevelName={activeUploadTarget.name}
-          existingImages={gradeImages.filter(img => img.year_level_id === activeUploadTarget.id)}
+          existingImages={gradeImages.filter(
+            (img) => img.year_level_id === activeUploadTarget.id,
+          )}
         />
       )}
     </>
