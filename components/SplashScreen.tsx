@@ -3,7 +3,11 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Image, Text, View } from "react-native";
 
-export function SplashScreen({ onAnimationComplete }) {
+export function SplashScreen({
+  onAnimationComplete,
+}: {
+  onAnimationComplete: () => void;
+}) {
   const colorScheme = useColorScheme();
   const [hasAnimated, setHasAnimated] = useState(false);
 
@@ -175,7 +179,7 @@ export function SplashScreen({ onAnimationComplete }) {
                   textShadowRadius: 3,
                 }}
               >
-                ARD
+                Med
               </Text>
               <Text
                 style={{
@@ -186,7 +190,7 @@ export function SplashScreen({ onAnimationComplete }) {
                   textShadowRadius: 3,
                 }}
               >
-                MS
+                SIS
               </Text>
             </Text>
             <Text
@@ -199,7 +203,7 @@ export function SplashScreen({ onAnimationComplete }) {
                 marginTop: 4,
               }}
             >
-              Academic Records and Document Management System
+              Medical Student Information System
             </Text>
           </Animated.View>
         </View>
