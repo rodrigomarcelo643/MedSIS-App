@@ -1,4 +1,4 @@
-# Claude Assistant Context for ARDMS-App
+# Claude Assistant Context for MedSIS-App (MSIS)
 
 When generating code or proposing architectural changes for this directory, strictly adhere to the following project parameters:
 
@@ -8,12 +8,13 @@ When generating code or proposing architectural changes for this directory, stri
 - NativeWind (Tailwind CSS for React Native)
 - Expo Router (File-based navigation)
 
-### The "ARDMS" Way
-1. **Component Modularity**: Never dump 500 lines of code into a single file. Break down features into independent modules under the `/components/<FeatureName>/` folder. 
-2. **Sharp UI Standard**: UI components must look uniform. Apply `rounded-sm` (2px border radius) to everything to maintain a professional, medical-grade structural feel. Avoid default mobile rounded corners.
+### The "MedSIS" Way
+1. **Component Modularity**: Never dump 500 lines of code into a single file. Break down features into independent modules under the `/components/<FeatureName>/` folder (e.g., `components/TabsHeader.tsx`, `components/ui/Skeleton.tsx`).
+2. **Sharp UI Standard**: UI components must look uniform. Apply `rounded-sm` (2px border radius) to everything to maintain a professional, medical-grade structural feel. Avoid default mobile rounded corners unless specified (e.g., custom tab bar icons or user avatars).
 3. **No Magic Strings**: Pull API URLs from `constants/Config.ts`.
 4. **Safety First**: Your code must pass our custom `test-runner.js`. This requires strict null-checking (`?.`, `??`), no wild typescript typings (`: any`), and guaranteed `try/catch` wrappers around HTTP/Axios actions.
 5. **Theme Awareness**: Use the exported `Colors.light` and `Colors.dark` palettes. Never hardcode hex values like `#FFFFFF` in TSX.
+6. **State Management**: The application uses a custom Redux-like store architecture implemented on top of React Context APIs (`createContext`, `useReducer`, `useContext`) located under `redux/`. Use custom hooks `useSelector` and `useDispatch` from `@/redux/store` to interact with state.
 
 ### Special System Flows
 - **Push Notifications**: Expo token generation connects to `/api/save_push_token.php`. It utilizes Philippine Timezone formatting.
