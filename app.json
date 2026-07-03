@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "ARDMS",
-    "slug": "ARDMS",
+    "name": "MSIS",
+    "slug": "MSIS",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/swu_header.png",
-    "scheme": "ARDMSapp",
+    "scheme": "MSISapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "projectId": "e4d72644-5c96-430c-babd-6066a17d7337",
@@ -57,10 +57,7 @@
           "backgroundColor": "#121212"
         }
       },
-      "permissions": [
-        "RECEIVE_BOOT_COMPLETED",
-        "WAKE_LOCK"
-      ],
+      "permissions": ["RECEIVE_BOOT_COMPLETED", "WAKE_LOCK"],
       "package": "com.marcelo12345.msis",
       "useNextNotificationsApi": true
     },
