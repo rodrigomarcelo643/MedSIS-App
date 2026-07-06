@@ -23,3 +23,8 @@ Whenever interacting with `expo-image-picker` for documents or "Grade Uploads":
 - Never use explicit `: any` types.
 - Always use optional chaining (`?.`) when parsing API responses.
 - Always wrap network requests and async storage operations in `try/catch` error boundaries.
+
+## 5. Scope & Permissions
+- **File Access**: Always strictly follow the exclusions defined in [permissions.json](file:///d:/DevApp/MedSIS-App/.agent/permissions.json).
+- **Privacy**: Do not read or leak sensitive `.env` configurations.
+- **Efficiency**: Ignore large dependency directories and build artifacts to maintain focus on relevant source code.
