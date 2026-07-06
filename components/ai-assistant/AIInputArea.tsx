@@ -1,6 +1,12 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { Send, X } from 'lucide-react-native';
+import { Send, X } from "lucide-react-native";
+import React from "react";
+import {
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface AIInputAreaProps {
   inputText: string;
@@ -33,8 +39,19 @@ export const AIInputArea: React.FC<AIInputAreaProps> = ({
   loadColor,
   borderColor,
 }) => (
-  <View style={{ backgroundColor, borderTopWidth: 1, borderTopColor: borderColor, paddingHorizontal: 16, paddingVertical: 12 }}>
-    <View className="bg-gray-100 rounded-[15px] overflow-hidden" style={{ backgroundColor: loadColor }}>
+  <View
+    style={{
+      backgroundColor,
+      borderTopWidth: 1,
+      borderTopColor: borderColor,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    }}
+  >
+    <View
+      className="bg-gray-100 rounded-[15px] overflow-hidden"
+      style={{ backgroundColor: loadColor }}
+    >
       <ScrollView
         ref={inputScrollRef}
         nestedScrollEnabled={true}
@@ -49,7 +66,7 @@ export const AIInputArea: React.FC<AIInputAreaProps> = ({
             height: Math.max(40, inputHeight),
             minHeight: 40,
           }}
-          placeholder="Ask ARDMS AI..."
+          placeholder="Ask MedSIS AI..."
           placeholderTextColor={mutedColor}
           value={inputText}
           onChangeText={setInputText}

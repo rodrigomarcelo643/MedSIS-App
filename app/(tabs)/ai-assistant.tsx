@@ -44,7 +44,7 @@ export default function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: `Hi ${user?.first_name}! I'm your ARDMS AI Assistant. How can I help you with your medical studies, evaluations, calendar, learning materials, or requirements today?`,
+      text: `Hi ${user?.first_name}! I'm your MedSIS AI Assistant. How can I help you with your medical studies, evaluations, calendar, learning materials, or requirements today?`,
       sender: "bot",
       timestamp: new Date(),
     },
