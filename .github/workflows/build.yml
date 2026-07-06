@@ -26,14 +26,14 @@ jobs:
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: '17'
+          distribution: "zulu"
+          java-version: "17"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -79,14 +79,14 @@ jobs:
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: '17'
+          distribution: "zulu"
+          java-version: "17"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -135,7 +135,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -159,8 +159,8 @@ jobs:
       - name: Build iOS App (Simulator - arm64 for Apple Silicon runner)
         run: |
           set -o pipefail
-          xcodebuild -workspace ios/MSIS.xcworkspace \
-                     -scheme MSIS \
+          xcodebuild -workspace ios/MedSIS.xcworkspace \
+                     -scheme MedSIS \
                      -sdk iphonesimulator \
                      -configuration Release \
                      -derivedDataPath build \
@@ -170,10 +170,10 @@ jobs:
 
       - name: Compress iOS App
         run: |
-          tar -czf MSIS-Simulator.tar.gz -C build/Build/Products/Release-iphonesimulator MSIS.app
+          tar -czf MedSIS-Simulator.tar.gz -C build/Build/Products/Release-iphonesimulator MedSIS.app
 
       - name: Upload iOS App Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-simulator-app
-          path: MSIS-Simulator.tar.gz
+          path: MedSIS-Simulator.tar.gz
