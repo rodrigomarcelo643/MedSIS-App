@@ -1,8 +1,16 @@
-import React from 'react';
-import { Modal, Text, TouchableOpacity, View, Image } from 'react-native';
-import { X, BookOpen, UserCheck, LayoutList, Calendar, User, PenTool } from 'lucide-react-native';
-import { Evaluation } from '@/@types/tabs';
-import { useThemeColor } from '@/hooks/useThemeColor';
+import { Evaluation } from "@/@types/tabs";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import {
+  BookOpen,
+  Calendar,
+  LayoutList,
+  PenTool,
+  User,
+  UserCheck,
+  X,
+} from "lucide-react-native";
+import React from "react";
+import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
 
 interface Props {
   visible: boolean;
@@ -14,17 +22,21 @@ interface Props {
  * Detailed view of a specific evaluation record.
  * Following the sharpened 2px rounded style.
  */
-const EvaluationDetailModal: React.FC<Props> = ({ visible, evaluation, onClose }) => {
-  const cardColor = useThemeColor({}, 'card');
-  const textColor = useThemeColor({}, 'text');
-  const mutedColor = useThemeColor({}, 'muted');
+const EvaluationDetailModal: React.FC<Props> = ({
+  visible,
+  evaluation,
+  onClose,
+}) => {
+  const cardColor = useThemeColor({}, "card");
+  const textColor = useThemeColor({}, "text");
+  const mutedColor = useThemeColor({}, "muted");
 
   if (!evaluation) return null;
 
   const isFailed =
-    evaluation.grade === '5.0' ||
-    evaluation.grade?.toLowerCase() === 'failed' ||
-    evaluation.remarks?.toLowerCase().includes('fail');
+    evaluation.grade === "5.0" ||
+    evaluation.grade?.toLowerCase() === "failed" ||
+    evaluation.remarks?.toLowerCase().includes("fail");
 
   const isPassed = !!evaluation.grade && !isFailed;
 
@@ -41,27 +53,103 @@ const EvaluationDetailModal: React.FC<Props> = ({ visible, evaluation, onClose }
     }
   };
 
-  const DetailRow = ({ icon, label, value, color }: { icon: React.ReactNode, label: string, value: string | number, color?: string }) => (
-    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 12 }}>
-      <View style={{ width: 36, height: 36, borderRadius: 2, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' }}>
+  const DetailRow = ({
+    icon,
+    label,
+    value,
+    color,
+  }: {
+    icon: React.ReactNode;
+    label: string;
+    value: string | number;
+    color?: string;
+  }) => (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 16,
+        gap: 12,
+      }}
+    >
+      <View
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 2,
+          backgroundColor: "#f3f4f6",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         {icon}
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 11, color: mutedColor, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>{label}</Text>
-        <Text style={{ fontSize: 15, fontWeight: '700', color: color || textColor }}>{value}</Text>
+        <Text
+          style={{
+            fontSize: 11,
+            color: mutedColor,
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+            marginBottom: 2,
+          }}
+        >
+          {label}
+        </Text>
+        <Text
+          style={{ fontSize: 15, fontWeight: "700", color: color || textColor }}
+        >
+          {value}
+        </Text>
       </View>
     </View>
   );
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: 20 }}>
-        <View style={{ backgroundColor: cardColor, borderRadius: 2, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 5 }}>
-
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          backgroundColor: "rgba(0,0,0,0.6)",
+          padding: 20,
+        }}
+      >
+        <View
+          style={{
+            backgroundColor: cardColor,
+            borderRadius: 2,
+            padding: 24,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 8,
+            elevation: 5,
+          }}
+        >
           {/* Header */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              marginBottom: 24,
+            }}
+          >
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 20, fontWeight: '800', color: textColor, marginBottom: 4 }}>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: "800",
+                  color: textColor,
+                  marginBottom: 4,
+                }}
+              >
                 Evaluation Details
               </Text>
               <Text style={{ fontSize: 13, color: mutedColor }}>
@@ -83,14 +171,31 @@ const EvaluationDetailModal: React.FC<Props> = ({ visible, evaluation, onClose }
           <DetailRow
             icon={<LayoutList size={18} color="#be2e2e" />}
             label="Academic Term"
-            value={evaluation.term === '1st_semestral' ? '1st Semestral' : '2nd Semestral'}
+            value={
+              evaluation.term === "1st_semestral"
+                ? "1st Semestral"
+                : "2nd Semestral"
+            }
           />
 
           <DetailRow
-            icon={<UserCheck size={18} color={!evaluation.grade ? '#f97316' : isFailed ? '#dc2626' : '#16a34a'} />}
-            label="Result"
-            value={evaluation.grade || 'Pending Evaluation'}
-            color={!evaluation.grade ? '#f97316' : isFailed ? '#dc2626' : '#16a34a'}
+            icon={
+              <UserCheck
+                size={18}
+                color={
+                  !evaluation.grade
+                    ? "#f97316"
+                    : isFailed
+                      ? "#dc2626"
+                      : "#16a34a"
+                }
+              />
+            }
+            label="Grade"
+            value={evaluation.grade || "Pending Evaluation"}
+            color={
+              !evaluation.grade ? "#f97316" : isFailed ? "#dc2626" : "#16a34a"
+            }
           />
 
           {evaluation.evaluator_name && (
@@ -111,21 +216,48 @@ const EvaluationDetailModal: React.FC<Props> = ({ visible, evaluation, onClose }
 
           {evaluation.evaluator_signature_data && (
             <View style={{ marginBottom: 16 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 12 }}>
-                <View style={{ width: 36, height: 36, borderRadius: 2, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 8,
+                  gap: 12,
+                }}
+              >
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 2,
+                    backgroundColor: "#f3f4f6",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <PenTool size={18} color="#be2e2e" />
                 </View>
-                <Text style={{ fontSize: 11, color: mutedColor, textTransform: 'uppercase', letterSpacing: 0.5 }}>Evaluator Signature</Text>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: mutedColor,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Evaluator Signature
+                </Text>
               </View>
-              <View style={{
-                borderWidth: 1,
-                borderColor: '#e5e7eb',
-                borderRadius: 2,
-                padding: 12,
-                backgroundColor: '#ffffff',
-                alignItems: 'center',
-                marginLeft: 48 // align with text
-              }}>
+              <View
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#e5e7eb",
+                  borderRadius: 2,
+                  padding: 12,
+                  backgroundColor: "#ffffff",
+                  alignItems: "center",
+                  marginLeft: 48, // align with text
+                }}
+              >
                 <Image
                   source={{ uri: evaluation.evaluator_signature_data }}
                   style={{ width: 120, height: 60 }}
@@ -135,22 +267,54 @@ const EvaluationDetailModal: React.FC<Props> = ({ visible, evaluation, onClose }
             </View>
           )}
 
-          <View style={{
-            marginTop: 8,
-            padding: 16,
-            backgroundColor: isFailed ? '#fef2f2' : isPassed ? '#f0fdf4' : '#f9fafb',
-            borderRadius: 2,
-            borderLeftWidth: 4,
-            borderLeftColor: isFailed ? '#dc2626' : isPassed ? '#16a34a' : '#be2e2e'
-          }}>
-            <Text style={{ fontSize: 11, color: isFailed ? '#dc2626' : isPassed ? '#16a34a' : mutedColor, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+          <View
+            style={{
+              marginTop: 8,
+              padding: 16,
+              backgroundColor: isFailed
+                ? "#fef2f2"
+                : isPassed
+                  ? "#f0fdf4"
+                  : "#f9fafb",
+              borderRadius: 2,
+              borderLeftWidth: 4,
+              borderLeftColor: isFailed
+                ? "#dc2626"
+                : isPassed
+                  ? "#16a34a"
+                  : "#be2e2e",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 11,
+                color: isFailed ? "#dc2626" : isPassed ? "#16a34a" : mutedColor,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+                marginBottom: 4,
+              }}
+            >
               Status Remarks
             </Text>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: isFailed ? '#991b1b' : isPassed ? '#166534' : textColor }}>
-              {evaluation.remarks || 'Wait for the MEU evaluator to post the final grade and remarks.'}
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: isFailed ? "#991b1b" : isPassed ? "#166534" : textColor,
+              }}
+            >
+              {evaluation.remarks ||
+                "Wait for the MEU evaluator to post the final grade and remarks."}
             </Text>
             {isFailed && (
-              <Text style={{ fontSize: 12, fontWeight: '800', color: '#dc2626', marginTop: 6 }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "800",
+                  color: "#dc2626",
+                  marginTop: 6,
+                }}
+              >
                 MUST RETAKE
               </Text>
             )}
@@ -161,13 +325,15 @@ const EvaluationDetailModal: React.FC<Props> = ({ visible, evaluation, onClose }
             onPress={onClose}
             style={{
               marginTop: 32,
-              backgroundColor: '#be2e2e',
+              backgroundColor: "#be2e2e",
               paddingVertical: 14,
               borderRadius: 2,
-              alignItems: 'center'
+              alignItems: "center",
             }}
           >
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Close Details</Text>
+            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>
+              Close Details
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
