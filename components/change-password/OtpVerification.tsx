@@ -88,7 +88,7 @@ export const OtpVerification: React.FC<OtpVerificationProps> = ({
       ) : null}
       <View className="flex-row items-center justify-between mb-4">
         <Text className="text-sm" style={{ color: mutedColor }}>
-          Didn't receive code?
+          Didn&apos;t receive code?
         </Text>
         <TouchableOpacity
           onPress={onResend}

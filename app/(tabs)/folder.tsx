@@ -688,7 +688,7 @@ export default function FolderScreen() {
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleRemoveFile}
         title="Delete File"
-        message={<Text className="text-gray-600 text-center">Are you sure you want to delete <Text className="font-semibold">"{fileToDelete?.name}"</Text>? This action cannot be undone.</Text>}
+        message={<Text className="text-gray-600 text-center">Are you sure you want to delete <Text className="font-semibold">&quot;{fileToDelete?.name}&quot;</Text>? This action cannot be undone.</Text>}
         confirmText="Delete"
         icon={<AlertTriangle size={32} color="#ef4444" />}
         confirmColor="#dc2626"

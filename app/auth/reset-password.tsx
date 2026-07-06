@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '@/constants/Config';
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Check, Eye, EyeOff, Key, X } from "lucide-react-native";
+import { Check, Eye, Key, X } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,

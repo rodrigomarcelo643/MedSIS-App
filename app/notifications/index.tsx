@@ -578,7 +578,7 @@ const NotificationsScreen = () => {
               No notifications yet
             </Text>
             <Text className="text-gray-400 dark:text-gray-500 mt-2 text-center">
-              You're all caught up! Check back later for updates.
+              You&apos;re all caught up! Check back later for updates.
             </Text>
           </View>
         ) : (

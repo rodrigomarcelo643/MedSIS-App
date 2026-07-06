@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, Image, ActivityIndicator, Animated } from 'react-native';
-import { AlertTriangle, Download, Trash2, Check, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react-native';
-import { UploadedFile, FileInfo } from '@/@types/tabs';
+import { AlertTriangle, Check, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react-native';
+import { FileInfo } from '@/@types/tabs';
 
 // --- Quality Modal Content ---
 export function QualityModalContent({

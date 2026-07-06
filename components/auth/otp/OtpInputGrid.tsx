@@ -50,7 +50,7 @@ export const OtpInputGrid: React.FC<OtpInputGridProps> = ({
     
     <View className="mt-4 flex-row justify-center items-center">
       <Text className="text-gray-600 text-sm mr-2">
-        Didn't receive the code?
+        Didn&apos;t receive the code?
       </Text>
       {canResend ? (
         <TouchableOpacity onPress={onResend} disabled={loading}>

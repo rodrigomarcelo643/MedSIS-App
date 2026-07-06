@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "MSIS",
-    "slug": "MSIS",
+    "name": "MedSIS",
+    "slug": "MedSIS",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/swu_header.png",
-    "scheme": "MSISapp",
+    "scheme": "MedSISapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "projectId": "e4d72644-5c96-430c-babd-6066a17d7337",
@@ -36,7 +36,7 @@
         }
       },
       "usesApplePushNotifications": true,
-      "bundleIdentifier": "com.marcelo12345.msis",
+      "bundleIdentifier": "com.marcelo12345.medsis",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -58,7 +58,7 @@
         }
       },
       "permissions": ["RECEIVE_BOOT_COMPLETED", "WAKE_LOCK"],
-      "package": "com.marcelo12345.msis",
+      "package": "com.marcelo12345.medsis",
       "useNextNotificationsApi": true
     },
     "plugins": [

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, Image } from 'react-native';
 import { Camera, Image as ImageIcon, X, LogOut, CheckCircle, XCircle } from 'lucide-react-native';
 import { UpdateModal } from '@/@types/tabs';
 

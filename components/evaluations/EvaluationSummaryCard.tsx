@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, Animated, Easing } from 'react-native';
+import React from 'react';
+import { View, Text } from 'react-native';
 import { Circle, Svg } from 'react-native-svg';
 import { useThemeColor } from '@/hooks/useThemeColor';
 

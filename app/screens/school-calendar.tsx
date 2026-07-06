@@ -1,7 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { API_BASE_URL } from '@/constants/Config';
-import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as IntentLauncher from "expo-intent-launcher";
 import { useRouter } from "expo-router";
