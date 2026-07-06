@@ -1,6 +1,6 @@
 import { HapticTab } from "@/components/HapticTab";
-import TabsHeader from "@/components/TabsHeader";
-import Skeleton from "@/components/ui/Skeleton";
+import { TabsHeader } from "@/components/TabsHeader";
+import { Skeleton } from "@/components/ui/Skeleton";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { API_BASE_URL } from "@/constants/Config";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,10 +42,7 @@ export default function TabLayout() {
   const { hasThreeButtonNav, insets } = useNavigationMode();
 
   // Theme Change
-  const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
   const cardColor = useThemeColor({}, "card");
-  const mutedColor = useThemeColor({}, "muted");
 
   const tintColor = "#be2e2e";
   const { width } = useWindowDimensions();
@@ -190,6 +187,7 @@ export default function TabLayout() {
     }, 5000); // Reduced frequency to 5 seconds
 
     return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   // Separate effect to handle sound playing when counts increase
@@ -233,6 +231,7 @@ export default function TabLayout() {
     }, 1000);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAIPress = () => {
