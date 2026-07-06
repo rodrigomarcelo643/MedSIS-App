@@ -63,7 +63,9 @@ jobs:
 
   build-ios:
     name: Build iOS (Simulator)
-    runs-on: macos-latest
+    # Pin to macos-15 (Xcode 16.x stable) — macos-latest currently uses
+    # Xcode 26 beta which has C++ breaking changes incompatible with React Native
+    runs-on: macos-15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -80,34 +82,6 @@ jobs:
       - name: Prebuild iOS Project
         run: npx expo prebuild --platform ios
 
-      - name: Patch Podfile - Inject C++17 inside existing post_install block
-        run: |
-          python3 -c "
-          with open('ios/Podfile', 'r') as f:
-              content = f.read()
-
-          inject = (
-              '  # CI patch: force C++17 to fix fmt/Folly on Xcode 15+\n'
-              '  installer.pods_project.targets.each do |target|\n'
-              '    target.build_configurations.each do |config|\n'
-              '      config.build_settings[\"CLANG_CXX_LANGUAGE_STANDARD\"] = \"c++17\"\n'
-              '      config.build_settings[\"CLANG_CXX_LIBRARY\"] = \"libc++\"\n'
-              '    end\n'
-              '  end\n'
-          )
-
-          trigger = 'post_install do |installer|'
-          if trigger in content:
-              content = content.replace(trigger, trigger + '\n' + inject, 1)
-              print('Injected C++17 into existing post_install block')
-          else:
-              content += '\npost_install do |installer|\n' + inject + 'end\n'
-              print('Created new post_install block with C++17 settings')
-
-          with open('ios/Podfile', 'w') as f:
-              f.write(content)
-          "
-
       - name: Cache Pods
         uses: actions/cache@v4
         with:
@@ -121,7 +95,7 @@ jobs:
           cd ios
           pod install
 
-      - name: Build iOS App (Simulator - arm64 only for Apple Silicon runner)
+      - name: Build iOS App (Simulator - arm64 for Apple Silicon runner)
         run: |
           set -o pipefail
           xcodebuild -workspace ios/MSIS.xcworkspace \
@@ -131,7 +105,6 @@ jobs:
                      -derivedDataPath build \
                      EXCLUDED_ARCHS=x86_64 \
                      ONLY_ACTIVE_ARCH=NO \
-                     OTHER_CPLUSPLUSFLAGS='$(inherited) -std=c++17 -stdlib=libc++' \
                      clean build | xcpretty
 
       - name: Compress iOS App
