@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "ignore": [
+      ".env",
+      ".env.local",
+      ".env.development",
+      ".env.production",
+      "node_modules/",
+      ".expo/",
+      "dist/",
+      ".git/",
+      "web-build/",
+      "*.pem",
+      "*.key",
+      "*.jks"
+    ],
+    "scope": [
+      "app/",
+      "components/",
+      "redux/",
+      "services/",
+      "hooks/",
+      "constants/",
+      "lib/",
+      "@types/"
+    ],
+    "description": "Rules to prevent the agent from being overwhelmed by sensitive or irrelevant files."
+  }
+}
