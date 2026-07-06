@@ -17,6 +17,17 @@
       "android": {
         "buildType": "apk"
       }
+    },
+    "ci": {
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      }
     }
+  },
+  "cli": {
+    "appVersionSource": "remote"
   }
 }
