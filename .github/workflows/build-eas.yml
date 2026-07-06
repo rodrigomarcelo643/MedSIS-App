@@ -36,27 +36,4 @@ jobs:
       - name: Build iOS on EAS
         run: eas build --platform ios --profile production --non-interactive --no-wait
 
-  build-web:
-    name: Build & Export Web Assets
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Export Web Assets
-        run: npx expo export --platform web
-
-      - name: Upload Web Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-build
-          path: dist/
