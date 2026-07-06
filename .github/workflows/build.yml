@@ -80,29 +80,33 @@ jobs:
       - name: Prebuild iOS Project
         run: npx expo prebuild --platform ios
 
-      - name: Patch Podfile - Force C++17 for all pod targets
+      - name: Patch Podfile - Inject C++17 inside existing post_install block
         run: |
-          python3 - << 'PYEOF'
+          python3 -c "
           with open('ios/Podfile', 'r') as f:
               content = f.read()
 
-          patch = """
-          # CI patch: force C++17 to fix fmt/Folly compilation on Xcode 15+
-          post_install do |installer|
-            installer.pods_project.targets.each do |target|
-              target.build_configurations.each do |config|
-                config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
-                config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
-              end
-            end
-          end
-          """
+          inject = (
+              '  # CI patch: force C++17 to fix fmt/Folly on Xcode 15+\n'
+              '  installer.pods_project.targets.each do |target|\n'
+              '    target.build_configurations.each do |config|\n'
+              '      config.build_settings[\"CLANG_CXX_LANGUAGE_STANDARD\"] = \"c++17\"\n'
+              '      config.build_settings[\"CLANG_CXX_LIBRARY\"] = \"libc++\"\n'
+              '    end\n'
+              '  end\n'
+          )
 
-          with open('ios/Podfile', 'a') as f:
-              f.write(patch)
+          trigger = 'post_install do |installer|'
+          if trigger in content:
+              content = content.replace(trigger, trigger + '\n' + inject, 1)
+              print('Injected C++17 into existing post_install block')
+          else:
+              content += '\npost_install do |installer|\n' + inject + 'end\n'
+              print('Created new post_install block with C++17 settings')
 
-          print("Podfile patched successfully")
-          PYEOF
+          with open('ios/Podfile', 'w') as f:
+              f.write(content)
+          "
 
       - name: Cache Pods
         uses: actions/cache@v4
