@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-android:
+  build-android-apk:
     name: Build Android (APK)
     runs-on: ubuntu-latest
     steps:
@@ -54,18 +54,69 @@ jobs:
       - name: Make Gradle Wrapper Executable
         run: chmod +x android/gradlew
 
-      - name: Build Android Release (APK & AAB)
+      - name: Build Android Release APK
         run: |
           cd android
-          ./gradlew assembleRelease bundleRelease --no-daemon
+          ./gradlew assembleRelease --no-daemon
 
-      - name: Upload Android Build Artifacts
+      - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-build-artifacts
+          name: android-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+
+  build-android-aab:
+    name: Build Android (AAB)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prebuild Android Project
+        run: npx expo prebuild --platform android
+
+      - name: Cache Gradle Packages
+        uses: actions/cache@v4
+        with:
           path: |
-            android/app/build/outputs/apk/release/app-release.apk
-            android/app/build/outputs/bundle/release/app-release.aab
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make Gradle Wrapper Executable
+        run: chmod +x android/gradlew
+
+      - name: Build Android Release AAB
+        run: |
+          cd android
+          ./gradlew bundleRelease --no-daemon
+
+      - name: Upload Android AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
 
   build-ios:
     name: Build iOS (Simulator)
