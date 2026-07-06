@@ -338,6 +338,15 @@ export default function ProfileScreen() {
     editDataRef.current = { ...editDataRef.current, [field]: text };
   };
 
+  const handleNationalityTypeChange = (type: string) => {
+    setNationalityType(type);
+    editDataRef.current = {
+      ...editDataRef.current,
+      nationality: type,
+      foreigner_specify: type === "Filipino" ? "" : editDataRef.current.foreigner_specify,
+    };
+  };
+
   if ((!user || !userData) && !isLoggingOut) {
     if (!hasInitiallyFetched) return <ProfileSkeleton />;
     return (
@@ -382,7 +391,7 @@ export default function ProfileScreen() {
               <EditableField icon={User} label="First Name" value={userData?.first_name} field="first_name" isEditing={isEditing} theme={theme} borderColor={borderColor} mutedColor={mutedColor} textColor={textColor} inputRef={firstNameInputRef} autoCapitalize="words" onValueChange={handleValueChange} />
               <EditableField icon={User} label="Last Name" value={userData?.last_name} field="last_name" isEditing={isEditing} theme={theme} borderColor={borderColor} mutedColor={mutedColor} textColor={textColor} inputRef={lastNameInputRef} autoCapitalize="words" onValueChange={handleValueChange} />
               <GenderInput label="Sex" value={userData?.gender} isEditing={isEditing} theme={theme} borderColor={borderColor} mutedColor={mutedColor} textColor={textColor} cardColor={cardColor} onGenderChange={(gender) => handleValueChange("gender", gender)} />
-              <NationalityInput label="Nationality" value={userData?.nationality} isEditing={isEditing} theme={theme} borderColor={borderColor} mutedColor={mutedColor} textColor={textColor} cardColor={cardColor} nationalityType={nationalityType} onNationalityTypeChange={setNationalityType} customNationalityRef={customNationalityRef} foreignerSpecify={userData?.foreigner_specify || ""} onValueChange={handleValueChange} />
+              <NationalityInput label="Nationality" value={userData?.nationality} isEditing={isEditing} theme={theme} borderColor={borderColor} mutedColor={mutedColor} textColor={textColor} cardColor={cardColor} nationalityType={nationalityType} onNationalityTypeChange={handleNationalityTypeChange} customNationalityRef={customNationalityRef} foreignerSpecify={userData?.foreigner_specify || ""} onValueChange={handleValueChange} />
               {userData?.nationality === "Foreigner" && userData?.foreigner_specify && !isEditing && (
                 <InfoItem icon={Globe} label="Specified Nationality" value={userData?.foreigner_specify} theme={theme} borderColor={borderColor} mutedColor={mutedColor} textColor={textColor} />
               )}
