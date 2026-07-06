@@ -95,12 +95,13 @@ jobs:
 
       - name: Build iOS App (Simulator build, no code signing required)
         run: |
+          set -o pipefail
           xcodebuild -workspace ios/MSIS.xcworkspace \
                      -scheme MSIS \
                      -sdk iphonesimulator \
                      -configuration Release \
                      -derivedDataPath build \
-                     clean build
+                     clean build | xcpretty
 
       - name: Compress iOS App
         run: |
