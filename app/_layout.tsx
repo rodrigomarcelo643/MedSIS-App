@@ -1,5 +1,7 @@
 import { SplashScreen as CustomSplashScreen } from "@/components/SplashScreen";
-import { useTheme } from "@/contexts/ThemeContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ThemeProvider as CustomThemeProvider, useTheme } from "@/contexts/ThemeContext";
+import { StoreProvider } from "@/redux/store";
 import {
   DarkTheme,
   DefaultTheme,
@@ -19,9 +21,6 @@ import {
 } from "react-native";
 import "react-native-reanimated";
 import "../global.css";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { ThemeProvider as CustomThemeProvider } from "@/contexts/ThemeContext";
-import { StoreProvider } from "@/redux/store";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -29,49 +28,47 @@ SplashScreen.preventAutoHideAsync();
 function MainLayout() {
   const { theme } = useTheme();
   const { user, loading } = useAuth();
-  //console.log("🔄 MainLayout render - user:", user, "loading:", loading);
-  // Loading session if user not yet loaded 
- if (loading) {
-  return (
-    <View className="flex-1 justify-center items-center bg-white px-6">
-      
-      {/* Animated circle or pulse */}
-      <View className="mb-6">
-        <ActivityIndicator size="large" color="#af1616" />
-      </View>
+  //console.log(" MainLayout render - user:", user, "loading:", loading);
+  // Loading session if user not yet loaded
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white px-6">
+        {/* Animated circle or pulse */}
+        <View className="mb-6">
+          <ActivityIndicator size="large" color="#af1616" />
+        </View>
 
-      {/* Title */}
-      <Text className="text-xl font-semibold text-gray-800">
-        Loading your session
-      </Text>
+        {/* Title */}
+        <Text className="text-xl font-semibold text-gray-800">
+          Loading your session
+        </Text>
 
-      {/* Subtitle */}
-      <Text className="mt-2 text-gray-500 text-center">
-        Please wait while we prepare everything for you...
-      </Text>
+        {/* Subtitle */}
+        <Text className="mt-2 text-gray-500 text-center">
+          Please wait while we prepare everything for you...
+        </Text>
 
-      {/* Fake loading progress dots */}
-      <View className="flex-row mt-6 space-x-2">
-        <View className="w-3 h-3 bg-red-600 rounded-full opacity-70" />
-        <View className="w-3 h-3 bg-red-500 rounded-full opacity-50" />
-        <View className="w-3 h-3 bg-red-400 rounded-full opacity-30" />
-      </View>
+        {/* Fake loading progress dots */}
+        <View className="flex-row mt-6 space-x-2">
+          <View className="w-3 h-3 bg-red-600 rounded-full opacity-70" />
+          <View className="w-3 h-3 bg-red-500 rounded-full opacity-50" />
+          <View className="w-3 h-3 bg-red-400 rounded-full opacity-30" />
+        </View>
 
-      {/* Optional: App logo */}
-      {/* <Image 
+        {/* Optional: App logo */}
+        {/* <Image 
         source={require("../assets/swu_header.jpg")}
         className="w-20 h-20 mt-10 opacity-90"
       /> */}
-
-    </View>
-  );
-}
+      </View>
+    );
+  }
   return (
     <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         {/* Index route */}
         <Stack.Screen name="index" />
-        
+
         {/* Auth Screens */}
         <Stack.Screen
           name="auth/login"
@@ -93,7 +90,7 @@ function MainLayout() {
           name="auth/policy-acceptance"
           options={{ title: "Policy Acceptance", headerShown: false }}
         />
-        
+
         {/* Main App Screens */}
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
@@ -103,7 +100,7 @@ function MainLayout() {
         <Stack.Screen name="+not-found" />
         <Stack.Screen
           name="screens/announcements"
-          options={{ title: "Announcements", headerShown: false  }}
+          options={{ title: "Announcements", headerShown: false }}
         />
         <Stack.Screen
           name="screens/learning-materials"
@@ -111,7 +108,7 @@ function MainLayout() {
         />
         <Stack.Screen
           name="screens/calendar"
-          options={{ title: "Calendar", headerShown: false  }}
+          options={{ title: "Calendar", headerShown: false }}
         />
         <Stack.Screen
           name="screens/school-calendar"
@@ -119,7 +116,7 @@ function MainLayout() {
         />
         <Stack.Screen
           name="screens/change-password"
-          options={{ title: "ChangePassword", headerShown: false  }}
+          options={{ title: "ChangePassword", headerShown: false }}
         />
       </Stack>
       <StatusBar style="auto" />
@@ -143,7 +140,7 @@ export default function RootLayout() {
   // Track app readiness
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      //console.log("🔤 Fonts loaded or error, setting appIsReady = true");
+      //console.log("Fonts loaded or error, setting appIsReady = true");
       setAppIsReady(true);
     }
   }, [fontsLoaded, fontError]);
@@ -155,18 +152,18 @@ export default function RootLayout() {
 
       try {
         if (Platform.OS !== "web") {
-          //console.log("📱 Hiding native splash screen");
+          //console.log("Hiding native splash screen");
           await SplashScreen.hideAsync();
         }
 
         setTimeout(() => {
           if (isMountedRef.current && splashAnimationCompleted.current) {
-            //console.log("🟢 Minimum splash time passed, hiding custom splash");
+            //console.log(" Minimum splash time passed, hiding custom splash");
             setShowCustomSplash(false);
           }
         }, minimumSplashTimeRef.current);
       } catch (error) {
-        console.error("❌ Splash screen error:", error);
+        console.error("Splash screen error:", error);
         if (isMountedRef.current) {
           setShowCustomSplash(false);
         }
@@ -183,16 +180,16 @@ export default function RootLayout() {
   const handleSplashAnimationComplete = () => {
     splashAnimationCompleted.current = true;
     const elapsedTime = Date.now() - startTimeRef.current;
-    //console.log("🎬 Splash animation completed, elapsed:", elapsedTime);
+    //console.log(" Splash animation completed, elapsed:", elapsedTime);
 
     if (appIsReady && elapsedTime >= minimumSplashTimeRef.current) {
-      // console.log("🟢 Conditions met, hiding custom splash now");
+      // console.log("Conditions met, hiding custom splash now");
       setShowCustomSplash(false);
     }
   };
 
   if (!appIsReady) {
-    console.log("⌛ App not ready, returning null (fonts still loading)");
+    console.log(" App not ready, returning null (fonts still loading)");
     return null;
   }
 
