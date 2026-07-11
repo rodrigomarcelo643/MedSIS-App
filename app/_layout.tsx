@@ -188,26 +188,23 @@ export default function RootLayout() {
     }
   };
 
-  if (!appIsReady) {
-    console.log(" App not ready, returning null (fonts still loading)");
-    return null;
-  }
-
   return (
     <CustomThemeProvider>
       <StoreProvider>
         <AuthProvider>
           {/* Main app content */}
           <View style={[styles.mainContent, showCustomSplash && styles.hidden]}>
-            <MainLayout />
+            {appIsReady && <MainLayout />}
           </View>
 
           {/* Custom splash overlay */}
-          {showCustomSplash && (
+          {(!appIsReady || showCustomSplash) && (
             <View style={styles.splashOverlay}>
-              <CustomSplashScreen
-                onAnimationComplete={handleSplashAnimationComplete}
-              />
+              {appIsReady && (
+                <CustomSplashScreen
+                  onAnimationComplete={handleSplashAnimationComplete}
+                />
+              )}
             </View>
           )}
         </AuthProvider>
@@ -233,7 +230,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "transparent",
+    backgroundColor: "#ffffff",
     zIndex: 9999,
   },
 });
