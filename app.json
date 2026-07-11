@@ -1,13 +1,14 @@
 {
   "expo": {
     "name": "MedSIS",
-    "slug": "MedSIS",
+    "slug": "MSIS",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/swu_header.png",
-    "scheme": "MedSISapp",
+    "scheme": "medsisapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "projectId": "e4d72644-5c96-430c-babd-6066a17d7337",
     "androidStatusBar": {
       "backgroundColor": "#FFFFFF",
       "barStyle": "light-content"
@@ -17,7 +18,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF",
       "dark": {
-        "image": "./assets/swu_header.jpg",
+        "image": "./assets/swu_header.png",
         "resizeMode": "contain",
         "backgroundColor": "#121212"
       }
@@ -25,17 +26,17 @@
     "ios": {
       "supportsTablet": true,
       "splash": {
-        "image": "./assets/swu_header.jpg",
+        "image": "./assets/swu_header.png",
         "resizeMode": "contain",
         "backgroundColor": "#FFFFFF",
         "dark": {
-          "image": "./assets/swu_header.jpg",
+          "image": "./assets/swu_header.png",
           "resizeMode": "contain",
           "backgroundColor": "#121212"
         }
       },
       "usesApplePushNotifications": true,
-      "bundleIdentifier": "com.marcelo12345.medsis",
+      "bundleIdentifier": "com.marcelo12345.msis",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -43,15 +44,15 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/swu_header.jpg",
+        "foregroundImage": "./assets/swu_header.png",
         "backgroundColor": "#121212"
       },
       "splash": {
-        "image": "./assets/swu_header.jpg",
+        "image": "./assets/swu_header.png",
         "resizeMode": "contain",
         "backgroundColor": "#FFFFFF",
         "dark": {
-          "image": "./assets/swu_header.jpg",
+          "image": "./assets/swu_header.png",
           "resizeMode": "contain",
           "backgroundColor": "#121212"
         }
@@ -60,22 +61,12 @@
         "RECEIVE_BOOT_COMPLETED",
         "WAKE_LOCK"
       ],
-      "package": "com.marcelo12345.medsis",
+      "package": "com.marcelo12345.msis",
       "useNextNotificationsApi": true
     },
     "plugins": [
       "expo-router",
-      "expo-splash-screen",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/swu_header.jpg",
-          "color": "#ffffff",
-          "sounds": [
-            "./assets/sounds/notification_sound.mp3"
-          ]
-        }
-      ]
+      "expo-splash-screen"
     ],
     "experiments": {
       "typedRoutes": true
@@ -83,10 +74,12 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "9c8a5ef9-b54b-48f4-827d-a543d9ab1515"
+        "projectId": "16bb301a-5eff-46d8-a70b-c9fc824b7f4f"
       }
     },
     "runtimeVersion": "1.0.0",
-    "owner": "marcelo12345"
+    "updates": {
+      "url": "https://u.expo.dev/16bb301a-5eff-46d8-a70b-c9fc824b7f4f"
+    }
   }
 }
