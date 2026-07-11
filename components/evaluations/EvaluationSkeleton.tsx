@@ -37,12 +37,8 @@ const EvaluationSkeleton: React.FC = () => {
   const SkeletonItem = ({ style }: { style: any }) => (
     <Animated.View
       style={[
+        { backgroundColor: loaderColor, opacity: pulseAnim, borderRadius: 2 },
         style,
-        {
-          backgroundColor: loaderColor,
-          opacity: pulseAnim,
-          borderRadius: 2, // Hardened 2px rounding
-        },
       ]}
     />
   );
