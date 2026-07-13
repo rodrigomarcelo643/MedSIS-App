@@ -54,7 +54,7 @@ Else:
 ### File Structure
 
 ```
-ARDMS-App/
+MedSIS-App/
 ├── services/
 │   └── imageAnalysisService.ts    # API service for ML endpoints
 ├── lib/
