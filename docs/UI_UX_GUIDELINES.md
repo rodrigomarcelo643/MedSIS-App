@@ -1,7 +1,7 @@
 # Component Styling & UX Guidelines
 
 ## Global Aesthetics & NativeWind
-The ARDMS-App strictly utilizes **NativeWind** (TailwindCSS interoperability for React Native) for all component styling. We do not use `StyleSheet.create` unless absolutely necessary for complex animations or native shadow bindings.
+The MedSIS-App strictly utilizes **NativeWind** (TailwindCSS interoperability for React Native) for all component styling. We do not use `StyleSheet.create` unless absolutely necessary for complex animations or native shadow bindings.
 
 ### Core Design Rules
 1. **The "Sharp" Design Language**: 
