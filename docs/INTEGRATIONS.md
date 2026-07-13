@@ -3,7 +3,7 @@
 ## Backend API Communications
 
 ### Architecture
-The ARDMS-App communicates with the `ARDMS-App-Backend` (a PHP 8.3/MySQL stack) via RESTful API methodology.
+The MedSIS-App communicates with the `MedSIS-App-Backend` (a PHP 8.3/MySQL stack) via RESTful API methodology.
 
 ### Implementation Details
 - **HTTP Client**: Data fetching is handled using `Axios` (`^1.11.0`).
