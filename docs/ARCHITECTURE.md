@@ -1,7 +1,7 @@
 # System Architecture
 
 ## Overview
-The ARDMS-App is built on a modern, React Native foundation powered by Expo. It leverages a highly modular component architecture designed for maintainability, reuse, and strict separation of concerns between business logic, navigational layouts, and presentation.
+The MedSIS-App is built on a modern, React Native foundation powered by Expo. It leverages a highly modular component architecture designed for maintainability, reuse, and strict separation of concerns between business logic, navigational layouts, and presentation.
 
 ### High-Level Tech Stack
 - **Framework:** React Native via Expo (~53.0.23)
